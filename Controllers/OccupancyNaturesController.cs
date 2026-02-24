@@ -1,0 +1,109 @@
+﻿using AutoMapper;
+using ePermitsApp.DTOs;
+using ePermitsApp.Entities;
+using ePermitsApp.Repositories.Interfaces;
+using ePermitsApp.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ePermitsApp.Controllers
+{
+    [Authorize]
+    [ApiController]
+    [Route("api/occupancynatures")]
+    public class OccupancyNaturesController : ControllerBase
+    {
+        private readonly IOccupancyNatureService _service;
+        private readonly IMapper _mapper;
+
+        public OccupancyNaturesController(
+            IOccupancyNatureService service,
+            IMapper mapper)
+        {
+            _service = service;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<OccupancyNatureDto>>> GetAll()
+        {
+            var occupancyNatures = await _service.GetAllAsync();
+            return Ok(_mapper.Map<IEnumerable<OccupancyNatureDto>>(occupancyNatures));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<OccupancyNatureDto>> GetById(int id)
+        {
+            var occupancyNature = await _service.GetByIdAsync(id);
+            if (occupancyNature == null)
+                return NotFound();
+
+            return Ok(_mapper.Map<OccupancyNatureDto>(occupancyNature));
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Create(CreateOccupancyNatureDto dto)
+        {
+            var occupancyNature = await _service.CreateAsync(dto);
+
+            return CreatedAtAction(nameof(GetById),
+                new { id = occupancyNature.Id },
+                _mapper.Map<OccupancyNatureDto>(occupancyNature));
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> Update(int id, UpdateOccupancyNatureDto dto)
+        {
+            var success = await _service.UpdateAsync(id, dto);
+            if (!success)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> SoftDelete(int id)
+        {
+            var success = await _service.SoftDeleteAsync(id);
+            if (!success)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpPost("{id}/restore")]
+        public async Task<ActionResult> Restore(int id)
+        {
+            var success = await _service.RestoreAsync(id);
+            if (!success)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpGet("getbyname")]
+        public async Task<ActionResult<IEnumerable<OccupancyNatureDto>>> GetByName(
+            [FromQuery] string occupancyNatureDesc,
+            [FromQuery] PaginationParams pagination)
+        {
+            var occupancyNatures = await _service.GetByNameAsync(occupancyNatureDesc, pagination);
+            return Ok(_mapper.Map<IEnumerable<OccupancyNatureDto>>(occupancyNatures));
+        }
+
+        [HttpGet("filter")]
+        public async Task<ActionResult<PagedResult<OccupancyNatureDto>>> Filter(
+            [FromQuery] string occupancyNatureDesc,
+            [FromQuery] PaginationParams pagination)
+        {
+            var result = await _service.FilterByNameAsync(occupancyNatureDesc, pagination);
+
+            return Ok(new PagedResult<OccupancyNatureDto>
+            {
+                Items = _mapper.Map<IEnumerable<OccupancyNatureDto>>(result.Items),
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize = result.PageSize
+            });
+        }
+    }
+}
