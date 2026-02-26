@@ -44,7 +44,7 @@ namespace ePermitsApp.Services
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
 
             var now = DateTime.UtcNow;
-            int currentUserId = 0;
+            int currentUserId = 15;
             if (int.TryParse(_currentUser.UserId, out int id))
             {
                 currentUserId = id;

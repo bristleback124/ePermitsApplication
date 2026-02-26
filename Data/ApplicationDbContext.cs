@@ -307,33 +307,33 @@ namespace ePermitsApp.Data
                     .HasForeignKey<BuildingPermitTechDoc>(t => t.BuildingPermitId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // FKs without navigation properties
-                entity.HasOne<PermitApplicationType>()
+                // FKs with navigation properties
+                entity.HasOne(e => e.PermitApplicationType)
                     .WithMany()
                     .HasForeignKey(e => e.PermitAppTypeId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<OccupancyNature>()
+                entity.HasOne(e => e.OccupancyNature)
                     .WithMany()
                     .HasForeignKey(e => e.OccupancyNatureId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<ProjectClassification>()
+                entity.HasOne(e => e.ProjectClassification)
                     .WithMany()
                     .HasForeignKey(e => e.ProjectClassId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<Province>()
+                entity.HasOne(e => e.Province)
                     .WithMany()
                     .HasForeignKey(e => e.ProvinceId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<LGU>()
+                entity.HasOne(e => e.LGU)
                     .WithMany()
                     .HasForeignKey(e => e.LGUId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<Barangay>()
+                entity.HasOne(e => e.Barangay)
                     .WithMany()
                     .HasForeignKey(e => e.BarangayId)
                     .OnDelete(DeleteBehavior.Restrict);

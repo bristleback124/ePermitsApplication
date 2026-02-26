@@ -33,5 +33,13 @@ namespace ePermitsApp.Entities.BuildingPermit
         public BuildingPermitAppInfo? AppInfo { get; set; }
         public BuildingPermitDesignProf? DesignProf { get; set; }
         public BuildingPermitTechDoc? TechDoc { get; set; }
+
+        // Navigation Properties for lookups
+        public PermitApplicationType? PermitApplicationType { get; set; }
+        public OccupancyNature? OccupancyNature { get; set; }
+        public ProjectClassification? ProjectClassification { get; set; }
+        public Province? Province { get; set; }
+        public LGU? LGU { get; set; }
+        public Barangay? Barangay { get; set; }
     }
 }
