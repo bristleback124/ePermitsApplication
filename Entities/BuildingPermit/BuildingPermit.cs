@@ -1,10 +1,12 @@
 using ePermitsApp.Entities.Common;
+using ePermits.Models;
 
 namespace ePermitsApp.Entities.BuildingPermit
 {
     public class BuildingPermit : BaseEntity
     {
         public int Id { get; set; }
+        public int ApplicationId { get; set; }
         public int PermitAppTypeId { get; set; }
         public int OccupancyNatureId { get; set; }
         public string ProjectTitle { get; set; } = string.Empty;
@@ -27,6 +29,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string DigitalSignature { get; set; } = string.Empty;
         public DateTime DateofSignature { get; set; }
         
+        public Application? Application { get; set; }
         public BuildingPermitAppInfo? AppInfo { get; set; }
         public BuildingPermitDesignProf? DesignProf { get; set; }
         public BuildingPermitTechDoc? TechDoc { get; set; }

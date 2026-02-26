@@ -1,4 +1,5 @@
 ﻿using ePermitsApp.Entities;
+using ePermitsApp.Entities.BuildingPermit;
 using ePermits.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -33,6 +34,12 @@ namespace ePermitsApp.Data
 
         public DbSet<Application> Applications { get; set; }
         public DbSet<Message> Messages { get; set; }
+
+        public DbSet<BuildingPermit> BuildingPermits => Set<BuildingPermit>();
+        public DbSet<BuildingPermitAppInfo> BuildingPermitAppInfos => Set<BuildingPermitAppInfo>();
+        public DbSet<BuildingPermitDesignProf> BuildingPermitDesignProfs => Set<BuildingPermitDesignProf>();
+        public DbSet<BuildingPermitTechDoc> BuildingPermitTechDocs => Set<BuildingPermitTechDoc>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Province>()
@@ -138,6 +145,16 @@ namespace ePermitsApp.Data
 
             modelBuilder.Entity<OwnershipType>()
                 .HasQueryFilter(o => !o.IsDeleted);                       
+
+            // Application configuration
+            modelBuilder.Entity<Application>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.BuildingPermit)
+                    .WithOne(b => b.Application)
+                    .HasForeignKey<BuildingPermit>(b => b.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // User configuration
             modelBuilder.Entity<User>(entity =>
@@ -256,6 +273,133 @@ namespace ePermitsApp.Data
                     CreatedAt = DateTime.UtcNow
                 }
             );
+
+            // BuildingPermit configuration
+            modelBuilder.Entity<BuildingPermit>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ProjectTitle).IsRequired();
+                entity.Property(e => e.PropertyAddLot).IsRequired();
+                entity.Property(e => e.PropertyAddStreet).IsRequired();
+                entity.Property(e => e.TCTNo).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.TaxDeclarionNo).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Coordinates).HasMaxLength(100);
+                entity.Property(e => e.DigitalSignature).IsRequired();
+
+                entity.Property(e => e.EstimatedCost).HasPrecision(18, 10);
+                entity.Property(e => e.FloorAreaPerStorey).HasPrecision(18, 10);
+                entity.Property(e => e.TotalFloorArea).HasPrecision(18, 10);
+                entity.Property(e => e.ProjectScopeLotArea).HasPrecision(18, 10);
+                entity.Property(e => e.PropertyDetailLotArea).HasPrecision(18, 10);
+
+                entity.HasOne(e => e.AppInfo)
+                    .WithOne(a => a.BuildingPermit)
+                    .HasForeignKey<BuildingPermitAppInfo>(a => a.BuildingPermitId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.DesignProf)
+                    .WithOne(d => d.BuildingPermit)
+                    .HasForeignKey<BuildingPermitDesignProf>(d => d.BuildingPermitId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.TechDoc)
+                    .WithOne(t => t.BuildingPermit)
+                    .HasForeignKey<BuildingPermitTechDoc>(t => t.BuildingPermitId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // FKs without navigation properties
+                entity.HasOne<PermitApplicationType>()
+                    .WithMany()
+                    .HasForeignKey(e => e.PermitAppTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<OccupancyNature>()
+                    .WithMany()
+                    .HasForeignKey(e => e.OccupancyNatureId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<ProjectClassification>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ProjectClassId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Province>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ProvinceId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<LGU>()
+                    .WithMany()
+                    .HasForeignKey(e => e.LGUId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Barangay>()
+                    .WithMany()
+                    .HasForeignKey(e => e.BarangayId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // BuildingPermitAppInfo configuration
+            modelBuilder.Entity<BuildingPermitAppInfo>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FullName).IsRequired();
+                entity.Property(e => e.ContactNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.TIN).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.MailAddress).IsRequired();
+                entity.Property(e => e.ReqDocProofOwnership).IsRequired();
+                entity.Property(e => e.ReqDocBarangayClearance).IsRequired();
+                entity.Property(e => e.ReqDocTaxDeclaration).IsRequired();
+                entity.Property(e => e.ReqDocRealPropTaxReceipt).IsRequired();
+
+                entity.HasOne<ApplicantType>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicantTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<OwnershipType>()
+                    .WithMany()
+                    .HasForeignKey(e => e.OwnershipTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // BuildingPermitDesignProf configuration
+            modelBuilder.Entity<BuildingPermitDesignProf>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.IoCFullName).IsRequired();
+                entity.Property(e => e.IoCPRCNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.IoCPTRNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.SEFullName).IsRequired();
+                entity.Property(e => e.SEPRCNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.SEPTRNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.EEFullName).IsRequired();
+                entity.Property(e => e.EEPRCNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.EEPTRNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.SPEFullName).IsRequired();
+                entity.Property(e => e.SPEPRCNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.SPEPTRNo).IsRequired().HasMaxLength(20);
+
+                entity.Property(e => e.MEPRCNo).HasMaxLength(20);
+                entity.Property(e => e.MEPTRNo).HasMaxLength(20);
+                entity.Property(e => e.ECEPRCNo).HasMaxLength(20);
+                entity.Property(e => e.ECEPTRNo).HasMaxLength(20);
+                entity.Property(e => e.ContractorPCABNo).HasMaxLength(20);
+                entity.Property(e => e.ContractorClassification).HasMaxLength(20);
+            });
+
+            // BuildingPermitTechDoc configuration
+            modelBuilder.Entity<BuildingPermitTechDoc>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.TechDocIoCPlans).IsRequired();
+                entity.Property(e => e.TechDocSEPlans).IsRequired();
+                entity.Property(e => e.TechDocEEPlans).IsRequired();
+                entity.Property(e => e.TechDocSPPlans).IsRequired();
+                entity.Property(e => e.TechDocBOMCost).IsRequired();
+                entity.Property(e => e.TechDocSoW).IsRequired();
+            });
 
             base.OnModelCreating(modelBuilder);
         }

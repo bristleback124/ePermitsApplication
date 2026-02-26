@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226030320_AddBuildingPermitEntities")]
+    partial class AddBuildingPermitEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,21 +248,21 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 26, 4, 11, 43, 715, DateTimeKind.Utc).AddTicks(120),
+                            CreatedAt = new DateTime(2026, 2, 26, 3, 3, 20, 203, DateTimeKind.Utc).AddTicks(684),
                             CreatedBy = "System",
                             UserRoleDesc = "admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 26, 4, 11, 43, 715, DateTimeKind.Utc).AddTicks(122),
+                            CreatedAt = new DateTime(2026, 2, 26, 3, 3, 20, 203, DateTimeKind.Utc).AddTicks(687),
                             CreatedBy = "System",
                             UserRoleDesc = "user"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 26, 4, 11, 43, 715, DateTimeKind.Utc).AddTicks(124),
+                            CreatedAt = new DateTime(2026, 2, 26, 3, 3, 20, 203, DateTimeKind.Utc).AddTicks(690),
                             CreatedBy = "System",
                             UserRoleDesc = "applicant"
                         });
@@ -348,9 +351,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
 
                     b.Property<int>("BarangayId")
                         .HasColumnType("int");
@@ -442,9 +442,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationId")
-                        .IsUnique();
 
                     b.HasIndex("BarangayId");
 
@@ -797,7 +794,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 26, 4, 11, 43, 715, DateTimeKind.Utc).AddTicks(364),
+                            CreatedAt = new DateTime(2026, 2, 26, 3, 3, 20, 203, DateTimeKind.Utc).AddTicks(1104),
                             CreatedBy = "System",
                             DepartmentCode = "IT",
                             DepartmentName = "Information Technology",
@@ -847,7 +844,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 26, 4, 11, 43, 715, DateTimeKind.Utc).AddTicks(339),
+                            CreatedAt = new DateTime(2026, 2, 26, 3, 3, 20, 203, DateTimeKind.Utc).AddTicks(1072),
                             CreatedBy = "System",
                             IsDeleted = false,
                             LGUName = "Consolacion",
@@ -1033,7 +1030,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 26, 4, 11, 43, 715, DateTimeKind.Utc).AddTicks(314),
+                            CreatedAt = new DateTime(2026, 2, 26, 3, 3, 20, 203, DateTimeKind.Utc).AddTicks(1036),
                             CreatedBy = "System",
                             IsDeleted = false,
                             ProvinceName = "Cebu"
@@ -1236,12 +1233,6 @@ namespace ePermitsApp.Migrations
 
             modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermit", b =>
                 {
-                    b.HasOne("ePermits.Models.Application", "Application")
-                        .WithOne("BuildingPermit")
-                        .HasForeignKey("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "ApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ePermitsApp.Entities.Barangay", null)
                         .WithMany()
                         .HasForeignKey("BarangayId")
@@ -1277,8 +1268,6 @@ namespace ePermitsApp.Migrations
                         .HasForeignKey("ProvinceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Application");
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitAppInfo", b =>
@@ -1372,8 +1361,6 @@ namespace ePermitsApp.Migrations
 
             modelBuilder.Entity("ePermits.Models.Application", b =>
                 {
-                    b.Navigation("BuildingPermit");
-
                     b.Navigation("Messages");
                 });
 

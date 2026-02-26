@@ -1,4 +1,5 @@
 using System;
+using ePermitsApp.Entities.BuildingPermit;
 
 namespace ePermits.Models
 {
@@ -15,6 +16,7 @@ namespace ePermits.Models
 
         // Navigation properties
         public User? User { get; set; }
+        public BuildingPermit? BuildingPermit { get; set; }
         public ICollection<Message>? Messages { get; set; }
     }
 }

@@ -14,6 +14,7 @@ using ePermits.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ePermitsApp.Helpers;
 using ePermitsApp.Models;
 
 namespace ePermitsApp
@@ -30,6 +31,9 @@ namespace ePermitsApp
 
             builder.Services.Configure<List<SampleUser>>(
                 builder.Configuration.GetSection("SampleUsers"));
+
+            builder.Services.Configure<FileStorageSettings>(
+                builder.Configuration.GetSection("FileStorage"));
 
             builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
             builder.Services.AddScoped<IProvinceService, ProvinceService>();
@@ -55,6 +59,8 @@ namespace ePermitsApp
             builder.Services.AddScoped<IApplicantTypeService, ApplicantTypeService>();
             builder.Services.AddScoped<IOwnershipTypeRepository, OwnershipTypeRepository>();
             builder.Services.AddScoped<IOwnershipTypeService, OwnershipTypeService>();
+            builder.Services.AddScoped<IBuildingPermitRepository, BuildingPermitRepository>();
+            builder.Services.AddScoped<IBuildingPermitService, BuildingPermitService>();
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
@@ -80,6 +86,7 @@ namespace ePermitsApp
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(ProjectClassificationProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(ApplicantTypeProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(OwnershipTypeProfile).Assembly));
+            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(BuildingPermitProfile).Assembly));
 
             builder.Services.AddControllers();
 
