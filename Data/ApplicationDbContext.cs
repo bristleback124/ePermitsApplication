@@ -1,8 +1,8 @@
 ﻿using ePermitsApp.Entities;
 using ePermitsApp.Entities.BuildingPermit;
 using ePermits.Models;
+using ePermitsApp.Entities.CoOApp;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace ePermitsApp.Data
 {
@@ -39,6 +39,10 @@ namespace ePermitsApp.Data
         public DbSet<BuildingPermitAppInfo> BuildingPermitAppInfos => Set<BuildingPermitAppInfo>();
         public DbSet<BuildingPermitDesignProf> BuildingPermitDesignProfs => Set<BuildingPermitDesignProf>();
         public DbSet<BuildingPermitTechDoc> BuildingPermitTechDocs => Set<BuildingPermitTechDoc>();
+
+        public DbSet<CoOApp> CoOApps => Set<CoOApp>();
+        public DbSet<CoOAppProf> CoOAppProfs => Set<CoOAppProf>();
+        public DbSet<CoOAppReqDoc> CoOAppReqDocs => Set<CoOAppReqDoc>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -153,6 +157,11 @@ namespace ePermitsApp.Data
                 entity.HasOne(e => e.BuildingPermit)
                     .WithOne(b => b.Application)
                     .HasForeignKey<BuildingPermit>(b => b.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.CoOApp)
+                    .WithOne(c => c.Application)
+                    .HasForeignKey<CoOApp>(c => c.ApplicationId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -399,6 +408,83 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.TechDocSPPlans).IsRequired();
                 entity.Property(e => e.TechDocBOMCost).IsRequired();
                 entity.Property(e => e.TechDocSoW).IsRequired();
+            });
+
+            // CoOApp configuration
+            modelBuilder.Entity<CoOApp>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.BldgPermitNo).IsRequired();
+                entity.Property(e => e.ProjectTitle).IsRequired();
+                entity.Property(e => e.ProjLocLot).IsRequired();
+                entity.Property(e => e.ProjLocStreet).IsRequired();
+                entity.Property(e => e.FullName).IsRequired();
+                entity.Property(e => e.ContactNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.TIN).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.MailAddress).IsRequired();
+                entity.Property(e => e.DigitalSignature).IsRequired();
+
+                entity.Property(e => e.FloorArea).HasPrecision(18, 10);
+
+                entity.HasOne(e => e.CoOAppProf)
+                    .WithOne(p => p.CoOApp)
+                    .HasForeignKey<CoOAppProf>(p => p.CoOAppId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.CoOAppReqDoc)
+                    .WithOne(r => r.CoOApp)
+                    .HasForeignKey<CoOAppReqDoc>(r => r.CoOAppId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Province)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProvinceId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Lgu)
+                    .WithMany()
+                    .HasForeignKey(e => e.LGUId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Barangay)
+                    .WithMany()
+                    .HasForeignKey(e => e.BarangayId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.OccupancyNature)
+                    .WithMany()
+                    .HasForeignKey(e => e.OccupancyNatureId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.ApplicantType)
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicantTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // CoOAppProf configuration
+            modelBuilder.Entity<CoOAppProf>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.IoCFullName).IsRequired();
+                entity.Property(e => e.IoCPRCNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.IoCPTRNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.EoRFullName).IsRequired();
+                entity.Property(e => e.EoRPRCorPTRNo).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.EoRSpecialization).IsRequired();
+            });
+
+            // CoOAppReqDoc configuration
+            modelBuilder.Entity<CoOAppReqDoc>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ReqDocBldgPermitSPlans).IsRequired();
+                entity.Property(e => e.ReqDocAsBuiltPlans).IsRequired();
+                entity.Property(e => e.ReqDocConsLogbook).IsRequired();
+                entity.Property(e => e.ReqDocConsPhotos).IsRequired();
+                entity.Property(e => e.ReqDocBrgyClearance).IsRequired();
+                entity.Property(e => e.ReqDocFSIC).IsRequired();
             });
 
             base.OnModelCreating(modelBuilder);

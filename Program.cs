@@ -62,6 +62,8 @@ namespace ePermitsApp
             builder.Services.AddScoped<IOwnershipTypeService, OwnershipTypeService>();
             builder.Services.AddScoped<IBuildingPermitRepository, BuildingPermitRepository>();
             builder.Services.AddScoped<IBuildingPermitService, BuildingPermitService>();
+            builder.Services.AddScoped<ICoOAppRepository, CoOAppRepository>();
+            builder.Services.AddScoped<ICoOAppService, CoOAppService>();
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
@@ -89,6 +91,7 @@ namespace ePermitsApp
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(ApplicantTypeProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(OwnershipTypeProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(BuildingPermitProfile).Assembly));
+            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(CoOAppProfile).Assembly));
 
             builder.Services.AddControllers();
 
