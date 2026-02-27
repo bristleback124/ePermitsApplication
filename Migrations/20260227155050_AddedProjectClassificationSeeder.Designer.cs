@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227155050_AddedProjectClassificationSeeder")]
+    partial class AddedProjectClassificationSeeder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,21 +248,21 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 15, 55, 15, 637, DateTimeKind.Utc).AddTicks(9872),
+                            CreatedAt = new DateTime(2026, 2, 27, 15, 50, 49, 826, DateTimeKind.Utc).AddTicks(2527),
                             CreatedBy = "System",
                             UserRoleDesc = "admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 27, 15, 55, 15, 637, DateTimeKind.Utc).AddTicks(9874),
+                            CreatedAt = new DateTime(2026, 2, 27, 15, 50, 49, 826, DateTimeKind.Utc).AddTicks(2531),
                             CreatedBy = "System",
                             UserRoleDesc = "user"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 27, 15, 55, 15, 637, DateTimeKind.Utc).AddTicks(9875),
+                            CreatedAt = new DateTime(2026, 2, 27, 15, 50, 49, 826, DateTimeKind.Utc).AddTicks(2532),
                             CreatedBy = "System",
                             UserRoleDesc = "applicant"
                         });
@@ -1034,7 +1037,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 15, 55, 15, 638, DateTimeKind.Utc).AddTicks(90),
+                            CreatedAt = new DateTime(2026, 2, 27, 15, 50, 49, 826, DateTimeKind.Utc).AddTicks(2738),
                             CreatedBy = "System",
                             DepartmentCode = "IT",
                             DepartmentName = "Information Technology",
@@ -1084,7 +1087,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 15, 55, 15, 638, DateTimeKind.Utc).AddTicks(70),
+                            CreatedAt = new DateTime(2026, 2, 27, 15, 50, 49, 826, DateTimeKind.Utc).AddTicks(2719),
                             CreatedBy = "System",
                             IsDeleted = false,
                             LGUName = "Consolacion",
@@ -1160,32 +1163,6 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("OwnershipTypeDesc");
 
                     b.ToTable("OwnershipTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            OwnershipTypeDesc = "Owner"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            OwnershipTypeDesc = "Lessee"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            OwnershipTypeDesc = "Authorized Representative"
-                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.PermitApplicationType", b =>
@@ -1372,7 +1349,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 15, 55, 15, 638, DateTimeKind.Utc).AddTicks(45),
+                            CreatedAt = new DateTime(2026, 2, 27, 15, 50, 49, 826, DateTimeKind.Utc).AddTicks(2695),
                             CreatedBy = "System",
                             IsDeleted = false,
                             ProvinceName = "Cebu"

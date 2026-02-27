@@ -59,4 +59,47 @@ namespace ePermitsApp.DTOs
         public string Phone { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
     }
+
+    public class ApplicationCoODetailDto
+    {
+        public BasicInformationDto BasicInformation { get; set; } = new();
+        public CoOProjectDetailsDto ProjectDetails { get; set; } = new();
+        public OwnerInformationDto OwnerInformation { get; set; } = new();
+        public CoORequiredDocsDto RequiredDocs { get; set; } = new();
+        public CoOProfessionalInfoDto ProfessionalInfo { get; set; } = new();
+    }
+
+    public class CoOProjectDetailsDto
+    {
+        public string ProjectType { get; set; } = string.Empty;
+        public string BldgPermitNo { get; set; } = string.Empty;
+        public string OccupancyType { get; set; } = string.Empty;
+        public decimal FloorArea { get; set; }
+        public int NumberOfStories { get; set; }
+        public DateTime CompletionDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class CoORequiredDocsDto
+    {
+        public FileMetadataDto ReqDocBldgPermitSPlans { get; set; } = new();
+        public FileMetadataDto ReqDocAsBuiltPlans { get; set; } = new();
+        public FileMetadataDto ReqDocConsLogbook { get; set; } = new();
+        public FileMetadataDto ReqDocConsPhotos { get; set; } = new();
+        public FileMetadataDto ReqDocBrgyClearance { get; set; } = new();
+        public FileMetadataDto ReqDocFSIC { get; set; } = new();
+        public FileMetadataDto? ReqDocOthers { get; set; }
+    }
+
+    public class CoOProfessionalInfoDto
+    {
+        public string IoCFullName { get; set; } = string.Empty;
+        public string IoCPRCNo { get; set; } = string.Empty;
+        public string IoCPTRNo { get; set; } = string.Empty;
+        public DateTime IOCValidity { get; set; }
+        public string EoRFullName { get; set; } = string.Empty;
+        public string EoRPRCorPTRNo { get; set; } = string.Empty;
+        public DateTime EoRValidity { get; set; }
+        public string EoRSpecialization { get; set; } = string.Empty;
+    }
 }
