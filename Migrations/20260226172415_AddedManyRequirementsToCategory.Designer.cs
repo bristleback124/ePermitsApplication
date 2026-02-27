@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226172415_AddedManyRequirementsToCategory")]
+    partial class AddedManyRequirementsToCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,21 +248,21 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 13, 4, 23, 551, DateTimeKind.Utc).AddTicks(6102),
+                            CreatedAt = new DateTime(2026, 2, 26, 17, 24, 15, 56, DateTimeKind.Utc).AddTicks(852),
                             CreatedBy = "System",
                             UserRoleDesc = "admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 27, 13, 4, 23, 551, DateTimeKind.Utc).AddTicks(6108),
+                            CreatedAt = new DateTime(2026, 2, 26, 17, 24, 15, 56, DateTimeKind.Utc).AddTicks(854),
                             CreatedBy = "System",
                             UserRoleDesc = "user"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 27, 13, 4, 23, 551, DateTimeKind.Utc).AddTicks(6109),
+                            CreatedAt = new DateTime(2026, 2, 26, 17, 24, 15, 56, DateTimeKind.Utc).AddTicks(855),
                             CreatedBy = "System",
                             UserRoleDesc = "applicant"
                         });
@@ -1034,7 +1037,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 13, 4, 23, 551, DateTimeKind.Utc).AddTicks(6448),
+                            CreatedAt = new DateTime(2026, 2, 26, 17, 24, 15, 56, DateTimeKind.Utc).AddTicks(1025),
                             CreatedBy = "System",
                             DepartmentCode = "IT",
                             DepartmentName = "Information Technology",
@@ -1084,7 +1087,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 13, 4, 23, 551, DateTimeKind.Utc).AddTicks(6419),
+                            CreatedAt = new DateTime(2026, 2, 26, 17, 24, 15, 56, DateTimeKind.Utc).AddTicks(1009),
                             CreatedBy = "System",
                             IsDeleted = false,
                             LGUName = "Consolacion",
@@ -1270,7 +1273,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 27, 13, 4, 23, 551, DateTimeKind.Utc).AddTicks(6392),
+                            CreatedAt = new DateTime(2026, 2, 26, 17, 24, 15, 56, DateTimeKind.Utc).AddTicks(990),
                             CreatedBy = "System",
                             IsDeleted = false,
                             ProvinceName = "Cebu"
@@ -1315,278 +1318,6 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("ReqDesc");
 
                     b.ToTable("Requirements");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 1,
-                            ReqDesc = "Barangay Clearance"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 1,
-                            ReqDesc = "Tax Declaration of Real Property"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 1,
-                            ReqDesc = "Latest Real Property Tax Receipt"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 1,
-                            ReqDesc = "Proof of ownership or right to build (TCT, deed of sale, lease contract)"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 2,
-                            ReqDesc = "Architectural Plans (signed & sealed by Licensed Architect)"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 2,
-                            ReqDesc = "Structural Plans (signed & sealed by Licensed Civil/Structural Engineer)"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 2,
-                            ReqDesc = "Electrical Plans (signed & sealed by Licensed Electrical Engineer)"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 2,
-                            ReqDesc = "Plumbing Plans (signed & sealed by Licensed Master Plumber)"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 2,
-                            ReqDesc = "Mechanical Plans (if applicable, signed & sealed by Licensed Mechanical Engineer)"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 2,
-                            ReqDesc = "Bill of Materials/Specifications"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 3,
-                            ReqDesc = "DPWH clearance (for structures near national roads)"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 3,
-                            ReqDesc = "CAAP clearance (for high-rise buildings)"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 3,
-                            ReqDesc = "Environmental Compliance Certificate (ECC)"
-                        },
-                        new
-                        {
-                            Id = 14,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 3,
-                            ReqDesc = "Locational clearance from concerned agencies"
-                        },
-                        new
-                        {
-                            Id = 15,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 4,
-                            ReqDesc = "Copy of approved Building Permit"
-                        },
-                        new
-                        {
-                            Id = 16,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 4,
-                            ReqDesc = "As-Built Plans (signed & sealed by professionals)"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 4,
-                            ReqDesc = "Construction completion certificate"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 4,
-                            ReqDesc = "Material test certificates (concrete, steel, etc.)"
-                        },
-                        new
-                        {
-                            Id = 19,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 5,
-                            ReqDesc = "Fire Safety Inspection Certificate (FSIC)"
-                        },
-                        new
-                        {
-                            Id = 20,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 5,
-                            ReqDesc = "Electrical Safety Inspection Certificate"
-                        },
-                        new
-                        {
-                            Id = 21,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 5,
-                            ReqDesc = "Structural inspection report"
-                        },
-                        new
-                        {
-                            Id = 22,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 5,
-                            ReqDesc = "Plumbing inspection certificate"
-                        },
-                        new
-                        {
-                            Id = 23,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 5,
-                            ReqDesc = "Mechanical systems inspection (if applicable)"
-                        },
-                        new
-                        {
-                            Id = 24,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 6,
-                            ReqDesc = "Environmental compliance monitoring report (if required)"
-                        },
-                        new
-                        {
-                            Id = 25,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 6,
-                            ReqDesc = "Accessibility compliance certificate (for public buildings)"
-                        },
-                        new
-                        {
-                            Id = 26,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 6,
-                            ReqDesc = "Waste management compliance certificate"
-                        },
-                        new
-                        {
-                            Id = 27,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 6,
-                            ReqDesc = "Building maintenance plan"
-                        },
-                        new
-                        {
-                            Id = 28,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 7,
-                            ReqDesc = "Updated tax declaration reflecting improvements"
-                        },
-                        new
-                        {
-                            Id = 29,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 7,
-                            ReqDesc = "Insurance coverage for the structure"
-                        },
-                        new
-                        {
-                            Id = 30,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatId = 7,
-                            ReqDesc = "Business permits (for commercial/industrial buildings)"
-                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.RequirementCategory", b =>
@@ -1625,71 +1356,6 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("ReqClassId", "ReqCatDesc");
 
                     b.ToTable("RequirementCategorys");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Basic Documents",
-                            ReqClassId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Technical Plans & Documents",
-                            ReqClassId = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Special Requirements",
-                            ReqClassId = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Completion Documents",
-                            ReqClassId = 2
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Inspection Certificates",
-                            ReqClassId = 2
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Compliance Documents",
-                            ReqClassId = 2
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqCatDesc = "Additional Requirements",
-                            ReqClassId = 2
-                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.RequirementClassification", b =>
@@ -1725,24 +1391,6 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("ReqClassDesc");
 
                     b.ToTable("RequirementClassifications");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqClassDesc = "Building Permit Requirements"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false,
-                            ReqClassDesc = "Certificate of Occupancy Requirements"
-                        });
                 });
 
             modelBuilder.Entity("ePermits.Models.Application", b =>
