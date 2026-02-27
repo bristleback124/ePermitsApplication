@@ -14,7 +14,9 @@ using ePermits.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ePermitsApp.Helpers;
 using ePermitsApp.Models;
+using Microsoft.OpenApi.Models;
 
 namespace ePermitsApp
 {
@@ -30,6 +32,9 @@ namespace ePermitsApp
 
             builder.Services.Configure<List<SampleUser>>(
                 builder.Configuration.GetSection("SampleUsers"));
+
+            builder.Services.Configure<FileStorageSettings>(
+                builder.Configuration.GetSection("FileStorage"));
 
             builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
             builder.Services.AddScoped<IProvinceService, ProvinceService>();
@@ -55,6 +60,10 @@ namespace ePermitsApp
             builder.Services.AddScoped<IApplicantTypeService, ApplicantTypeService>();
             builder.Services.AddScoped<IOwnershipTypeRepository, OwnershipTypeRepository>();
             builder.Services.AddScoped<IOwnershipTypeService, OwnershipTypeService>();
+            builder.Services.AddScoped<IBuildingPermitRepository, BuildingPermitRepository>();
+            builder.Services.AddScoped<IBuildingPermitService, BuildingPermitService>();
+            builder.Services.AddScoped<ICoOAppRepository, CoOAppRepository>();
+            builder.Services.AddScoped<ICoOAppService, CoOAppService>();
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
@@ -66,6 +75,7 @@ namespace ePermitsApp
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+            builder.Services.AddScoped<IApplicationService, ApplicationService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -80,6 +90,8 @@ namespace ePermitsApp
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(ProjectClassificationProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(ApplicantTypeProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(OwnershipTypeProfile).Assembly));
+            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(BuildingPermitProfile).Assembly));
+            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(CoOAppProfile).Assembly));
 
             builder.Services.AddControllers();
 
@@ -88,7 +100,36 @@ namespace ePermitsApp
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ePermits API", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+                });
+            });
 
             var jwtKey = builder.Configuration["Jwt:Key"];
             if (string.IsNullOrEmpty(jwtKey))
