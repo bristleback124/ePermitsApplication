@@ -62,7 +62,7 @@ namespace ePermits.Services
             }
             else
             {
-                role = await _userRoleRepository.GetByDescriptionAsync("applicant");
+            role = await _userRoleRepository.GetByDescriptionAsync("applicant");
             }
 
             if (role == null)

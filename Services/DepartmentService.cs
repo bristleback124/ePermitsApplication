@@ -60,7 +60,7 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(department);
             await _repository.SaveChangesAsync();
 
-            return department;
+            return await _repository.GetByIdAsync(department.Id) ?? department;
         }
 
         public async Task<bool> UpdateAsync(int id, UpdateDepartmentDto dto)

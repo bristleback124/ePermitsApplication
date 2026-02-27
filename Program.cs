@@ -67,6 +67,7 @@ namespace ePermitsApp
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
             builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+            builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
             builder.Services.AddScoped<IAuthService, AuthService>();
 
