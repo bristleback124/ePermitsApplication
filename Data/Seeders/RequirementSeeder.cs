@@ -45,7 +45,7 @@ namespace ePermitsApp.Data.Seeders
             modelBuilder.Entity<RequirementCategory>().HasData(
                 new RequirementCategory { Id = 1, ReqCatDesc = "Basic Documents",            ReqClassId = 1, CreatedBy = createdBy, CreatedAt = now },
                 new RequirementCategory { Id = 2, ReqCatDesc = "Technical Plans & Documents", ReqClassId = 1, CreatedBy = createdBy, CreatedAt = now },
-                new RequirementCategory { Id = 3, ReqCatDesc = "Special Requirements",       ReqClassId = 1, CreatedBy = createdBy, CreatedAt = now },
+                new RequirementCategory { Id = 3, ReqCatDesc = "Special Requirements (if applicable)", ReqClassId = 1, CreatedBy = createdBy, CreatedAt = now },
                 new RequirementCategory { Id = 4, ReqCatDesc = "Completion Documents",       ReqClassId = 2, CreatedBy = createdBy, CreatedAt = now },
                 new RequirementCategory { Id = 5, ReqCatDesc = "Inspection Certificates",    ReqClassId = 2, CreatedBy = createdBy, CreatedAt = now },
                 new RequirementCategory { Id = 6, ReqCatDesc = "Compliance Documents",       ReqClassId = 2, CreatedBy = createdBy, CreatedAt = now },
