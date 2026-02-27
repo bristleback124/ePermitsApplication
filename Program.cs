@@ -10,7 +10,6 @@ using ePermitsApp.Mappings;
 using ePermits.Data;
 using ePermits.Services;
 using ePermits.Hubs;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

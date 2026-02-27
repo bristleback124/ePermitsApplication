@@ -2,6 +2,7 @@
 using ePermitsApp.Entities.BuildingPermit;
 using ePermits.Models;
 using ePermitsApp.Entities.CoOApp;
+using ePermitsApp.Data.Seeders;
 using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Data
@@ -115,6 +116,12 @@ namespace ePermitsApp.Data
 
             modelBuilder.Entity<Requirement>()
                 .HasQueryFilter(r => !r.IsDeleted);
+
+            modelBuilder.Entity<Requirement>()
+                .HasOne(r => r.RequirementCategory)
+                .WithMany(c => c.Requirements)
+                .HasForeignKey(r => r.ReqCatId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Requirement>()
                 .Property(r => r.ReqDesc)
@@ -486,6 +493,9 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.ReqDocBrgyClearance).IsRequired();
                 entity.Property(e => e.ReqDocFSIC).IsRequired();
             });
+
+            // Run modular seeders (HasData calls)
+            DatabaseSeederRunner.RunSeeders(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
         }
