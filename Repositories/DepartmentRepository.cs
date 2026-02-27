@@ -20,6 +20,7 @@ namespace ePermitsApp.Repositories
         {
             return await _context.Departments
                 .Include(d => d.LGU)
+                    .ThenInclude(l => l.Province)
                 .AsNoTracking()
                 .ToListAsync();
         }

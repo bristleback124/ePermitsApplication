@@ -22,6 +22,7 @@ namespace ePermitsApp.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DepartmentDto>>> GetAll()
         {
