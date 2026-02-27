@@ -24,6 +24,14 @@ namespace ePermitsApp.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
+        [HttpGet("hierarchy")]
+        public async Task<ActionResult<IEnumerable<RequirementClassificationHierarchyDto>>> GetHierarchy()
+        {
+            var classifications = await _service.GetAllWithHierarchyAsync();
+            return Ok(_mapper.Map<IEnumerable<RequirementClassificationHierarchyDto>>(classifications));
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RequirementClassificationDto>>> GetAll()
         {

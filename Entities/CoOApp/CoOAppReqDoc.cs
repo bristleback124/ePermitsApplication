@@ -6,12 +6,12 @@ public class CoOAppReqDoc : BaseEntity
 {
     public int Id { get; set; }
     public int CoOAppId { get; set; }
-    public string ReqDocBldgPermitSPlans { get; set; } = null!;
-    public string ReqDocAsBuiltPlans { get; set; } = null!;
-    public string ReqDocConsLogbook { get; set; } = null!;
-    public string ReqDocConsPhotos { get; set; } = null!;
-    public string ReqDocBrgyClearance { get; set; } = null!;
-    public string ReqDocFSIC { get; set; } = null!;
+    public string ReqDocBldgPermitSPlans { get; set; } = string.Empty;
+    public string ReqDocAsBuiltPlans { get; set; } = string.Empty;
+    public string ReqDocConsLogbook { get; set; } = string.Empty;
+    public string ReqDocConsPhotos { get; set; } = string.Empty;
+    public string ReqDocBrgyClearance { get; set; } = string.Empty;
+    public string ReqDocFSIC { get; set; } = string.Empty;
     public string? ReqDocOthers { get; set; }
 
     public CoOApp CoOApp { get; set; } = null!;
