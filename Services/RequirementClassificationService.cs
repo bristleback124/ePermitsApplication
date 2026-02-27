@@ -111,5 +111,10 @@ namespace ePermitsApp.Services
         {
             return await _repository.FilterByNameAsync(reqClassDesc, pagination);
         }
+
+        public async Task<IEnumerable<RequirementClassification>> GetAllWithHierarchyAsync()
+        {
+            return await _repository.GetAllWithHierarchyAsync();
+        }
     }
 }

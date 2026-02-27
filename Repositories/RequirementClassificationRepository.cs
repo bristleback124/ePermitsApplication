@@ -81,5 +81,15 @@ namespace ePermitsApp.Repositories
                 PageSize = pagination.PageSize
             };
         }
+
+        public async Task<IEnumerable<RequirementClassification>> GetAllWithHierarchyAsync()
+        {
+            return await _context.RequirementClassifications
+                .Include(rc => rc.RequirementCategorys)
+                    .ThenInclude(cat => cat.Requirements)
+                .AsNoTracking()
+                .OrderBy(rc => rc.Id)
+                .ToListAsync();
+        }
     }
 }
