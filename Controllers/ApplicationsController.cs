@@ -31,5 +31,15 @@ namespace ePermitsApp.Controllers
 
             return Ok(application);
         }
+
+        [HttpGet("coo/{applicationId}")]
+        public async Task<ActionResult<ApplicationCoODetailDto>> GetApplicationCoOById(int applicationId)
+        {
+            var application = await _service.GetApplicationCoOById(applicationId);
+            if (application == null)
+                return NotFound();
+
+            return Ok(application);
+        }
     }
 }

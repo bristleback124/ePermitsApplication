@@ -29,5 +29,13 @@ namespace ePermitsApp.Services
 
             return _mapper.Map<ApplicationBuildingPermitDetailDto>(application);
         }
+
+        public async Task<ApplicationCoODetailDto?> GetApplicationCoOById(int id)
+        {
+            var application = await _applicationRepository.GetByIdCoODetailedAsync(id);
+            if (application == null) return null;
+
+            return _mapper.Map<ApplicationCoODetailDto>(application);
+        }
     }
 }

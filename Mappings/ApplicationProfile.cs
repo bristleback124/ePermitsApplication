@@ -2,6 +2,7 @@ using AutoMapper;
 using ePermits.Models;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities.BuildingPermit;
+using ePermitsApp.Entities.CoOApp;
 using ePermitsApp.Helpers;
 
 namespace ePermitsApp.Mappings
@@ -11,7 +12,10 @@ namespace ePermitsApp.Mappings
         public ApplicationProfile()
         {
             CreateMap<Application, ApplicationDtoShort>()
-                .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle : string.Empty));
+                .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle
+                    : src.CoOApp != null ? src.CoOApp.ProjectTitle
+                    : string.Empty));
 
             CreateMap<Application, ApplicationBuildingPermitDetailDto>()
                 .ForMember(dest => dest.BasicInformation, opt => opt.MapFrom(src => src))
@@ -43,11 +47,14 @@ namespace ePermitsApp.Mappings
             // Mapping for BasicInformationDto
             CreateMap<Application, BasicInformationDto>()
                 .ForMember(dest => dest.ApplicationId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.ProjectDescription, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle : string.Empty))
+                .ForMember(dest => dest.ProjectDescription, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle
+                    : src.CoOApp != null ? src.CoOApp.ProjectTitle
+                    : string.Empty))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-                .ForMember(dest => dest.Applicant, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null 
+                .ForMember(dest => dest.Applicant, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null
                     ? $"{src.User.UserProfile.FirstName} {src.User.UserProfile.LastName}" : string.Empty))
-                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null 
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null
                     ? src.User.UserProfile.MobileNo : string.Empty));
 
             // Mapping for ProjectDetailsDto
@@ -65,14 +72,51 @@ namespace ePermitsApp.Mappings
 
             // Mapping for OwnerInformationDto
             CreateMap<Application, OwnerInformationDto>()
-                .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.BuildingPermit != null && src.BuildingPermit.AppInfo != null 
-                    ? src.BuildingPermit.AppInfo.FullName : string.Empty))
-                .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.BuildingPermit != null && src.BuildingPermit.AppInfo != null 
-                    ? src.BuildingPermit.AppInfo.MailAddress : string.Empty))
-                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.BuildingPermit != null && src.BuildingPermit.AppInfo != null 
-                    ? src.BuildingPermit.AppInfo.ContactNo : string.Empty))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.BuildingPermit != null && src.BuildingPermit.AppInfo != null 
-                    ? src.BuildingPermit.AppInfo.Email : string.Empty));
+                .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null && src.BuildingPermit.AppInfo != null ? src.BuildingPermit.AppInfo.FullName
+                    : src.CoOApp != null ? src.CoOApp.FullName
+                    : string.Empty))
+                .ForMember(dest => dest.Location, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null && src.BuildingPermit.AppInfo != null ? src.BuildingPermit.AppInfo.MailAddress
+                    : src.CoOApp != null ? src.CoOApp.MailAddress
+                    : string.Empty))
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null && src.BuildingPermit.AppInfo != null ? src.BuildingPermit.AppInfo.ContactNo
+                    : src.CoOApp != null ? src.CoOApp.ContactNo
+                    : string.Empty))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null && src.BuildingPermit.AppInfo != null ? src.BuildingPermit.AppInfo.Email
+                    : src.CoOApp != null ? src.CoOApp.Email
+                    : string.Empty));
+
+            // CoO Detail mappings
+            CreateMap<Application, ApplicationCoODetailDto>()
+                .ForMember(dest => dest.BasicInformation, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.ProjectDetails, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.OwnerInformation, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.RequiredDocs, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.CoOAppReqDoc : null))
+                .ForMember(dest => dest.ProfessionalInfo, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.CoOAppProf : null));
+
+            CreateMap<Application, CoOProjectDetailsDto>()
+                .ForMember(dest => dest.ProjectType, opt => opt.MapFrom(src => src.Type))
+                .ForMember(dest => dest.BldgPermitNo, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.BldgPermitNo : string.Empty))
+                .ForMember(dest => dest.OccupancyType, opt => opt.MapFrom(src => src.CoOApp != null && src.CoOApp.OccupancyNature != null
+                    ? src.CoOApp.OccupancyNature.OccupancyNatureDesc : string.Empty))
+                .ForMember(dest => dest.FloorArea, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.FloorArea : 0))
+                .ForMember(dest => dest.NumberOfStories, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.NoOfStoreys : 0))
+                .ForMember(dest => dest.CompletionDate, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.CompletionDate : DateTime.MinValue))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+
+            CreateMap<CoOAppReqDoc, CoORequiredDocsDto>()
+                .ForMember(dest => dest.ReqDocBldgPermitSPlans, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocBldgPermitSPlans)))
+                .ForMember(dest => dest.ReqDocAsBuiltPlans, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocAsBuiltPlans)))
+                .ForMember(dest => dest.ReqDocConsLogbook, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocConsLogbook)))
+                .ForMember(dest => dest.ReqDocConsPhotos, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocConsPhotos)))
+                .ForMember(dest => dest.ReqDocBrgyClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocBrgyClearance)))
+                .ForMember(dest => dest.ReqDocFSIC, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocFSIC)))
+                .ForMember(dest => dest.ReqDocOthers, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocOthers)));
+
+            CreateMap<CoOAppProf, CoOProfessionalInfoDto>();
         }
     }
 }

@@ -13,8 +13,9 @@ namespace ePermitsApp.Data.Seeders
             var seeders = new List<ISeeder>
             {
                 new RequirementSeeder(),
-                // Add future seeders here, e.g.:
-                // new ApplicantTypeSeeder(),
+                new PermitApplicationTypeSeeder(),
+                new ProjectClassificationSeeder(),
+                new OwnershipTypeSeeder(),
             }
             .OrderBy(s => s.Order)
             .ToList();
