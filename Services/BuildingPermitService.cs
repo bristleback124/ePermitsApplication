@@ -86,42 +86,80 @@ namespace ePermitsApp.Services
             // Save files
             if (buildingPermit.AppInfo != null)
             {
-                buildingPermit.AppInfo.ReqDocProofOwnership = await SaveFileAsync(dto.AppInfo.ReqDocProofOwnership, buildingPermit.Id, "req-docs");
-                buildingPermit.AppInfo.ReqDocBarangayClearance = await SaveFileAsync(dto.AppInfo.ReqDocBarangayClearance, buildingPermit.Id, "req-docs");
-                buildingPermit.AppInfo.ReqDocTaxDeclaration = await SaveFileAsync(dto.AppInfo.ReqDocTaxDeclaration, buildingPermit.Id, "req-docs");
-                buildingPermit.AppInfo.ReqDocRealPropTaxReceipt = await SaveFileAsync(dto.AppInfo.ReqDocRealPropTaxReceipt, buildingPermit.Id, "req-docs");
+                buildingPermit.AppInfo.ReqDocProofOwnership = await SaveFileWithMetadataAsync(dto.AppInfo.ReqDocProofOwnership, buildingPermit.Id, "req-docs");
+                buildingPermit.AppInfo.ReqDocBarangayClearance = await SaveFileWithMetadataAsync(dto.AppInfo.ReqDocBarangayClearance, buildingPermit.Id, "req-docs");
+                buildingPermit.AppInfo.ReqDocTaxDeclaration = await SaveFileWithMetadataAsync(dto.AppInfo.ReqDocTaxDeclaration, buildingPermit.Id, "req-docs");
+                buildingPermit.AppInfo.ReqDocRealPropTaxReceipt = await SaveFileWithMetadataAsync(dto.AppInfo.ReqDocRealPropTaxReceipt, buildingPermit.Id, "req-docs");
 
                 if (dto.AppInfo.ReqDocECCorCNC != null)
-                    buildingPermit.AppInfo.ReqDocECCorCNC = await SaveFileAsync(dto.AppInfo.ReqDocECCorCNC, buildingPermit.Id, "req-docs");
+                    buildingPermit.AppInfo.ReqDocECCorCNC = await SaveFileWithMetadataAsync(dto.AppInfo.ReqDocECCorCNC, buildingPermit.Id, "req-docs");
 
                 if (dto.AppInfo.ReqDocSpecialClearances != null)
-                    buildingPermit.AppInfo.ReqDocSpecialClearances = await SaveFileAsync(dto.AppInfo.ReqDocSpecialClearances, buildingPermit.Id, "req-docs");
+                    buildingPermit.AppInfo.ReqDocSpecialClearances = await SaveFileWithMetadataAsync(dto.AppInfo.ReqDocSpecialClearances, buildingPermit.Id, "req-docs");
             }
 
             if (buildingPermit.TechDoc != null)
             {
-                buildingPermit.TechDoc.TechDocIoCPlans = await SaveFileAsync(dto.TechDoc.TechDocIoCPlans, buildingPermit.Id, "tech-docs");
-                buildingPermit.TechDoc.TechDocSEPlans = await SaveFileAsync(dto.TechDoc.TechDocSEPlans, buildingPermit.Id, "tech-docs");
-                buildingPermit.TechDoc.TechDocEEPlans = await SaveFileAsync(dto.TechDoc.TechDocEEPlans, buildingPermit.Id, "tech-docs");
-                buildingPermit.TechDoc.TechDocSPPlans = await SaveFileAsync(dto.TechDoc.TechDocSPPlans, buildingPermit.Id, "tech-docs");
-                buildingPermit.TechDoc.TechDocBOMCost = await SaveFileAsync(dto.TechDoc.TechDocBOMCost, buildingPermit.Id, "tech-docs");
-                buildingPermit.TechDoc.TechDocSoW = await SaveFileAsync(dto.TechDoc.TechDocSoW, buildingPermit.Id, "tech-docs");
+                buildingPermit.TechDoc.TechDocIoCPlans = await SaveFilesAsync(dto.TechDoc.TechDocIoCPlans, buildingPermit.Id, "tech-docs");
+                buildingPermit.TechDoc.TechDocSEPlans = await SaveFilesAsync(dto.TechDoc.TechDocSEPlans, buildingPermit.Id, "tech-docs");
+                buildingPermit.TechDoc.TechDocEEPlans = await SaveFilesAsync(dto.TechDoc.TechDocEEPlans, buildingPermit.Id, "tech-docs");
+                buildingPermit.TechDoc.TechDocSPPlans = await SaveFilesAsync(dto.TechDoc.TechDocSPPlans, buildingPermit.Id, "tech-docs");
+                buildingPermit.TechDoc.TechDocBOMCost = await SaveFilesAsync(dto.TechDoc.TechDocBOMCost, buildingPermit.Id, "tech-docs");
+                buildingPermit.TechDoc.TechDocSoW = await SaveFilesAsync(dto.TechDoc.TechDocSoW, buildingPermit.Id, "tech-docs");
 
                 if (dto.TechDoc.TechDocMEPlans != null)
-                    buildingPermit.TechDoc.TechDocMEPlans = await SaveFileAsync(dto.TechDoc.TechDocMEPlans, buildingPermit.Id, "tech-docs");
+                    buildingPermit.TechDoc.TechDocMEPlans = await SaveFilesAsync(dto.TechDoc.TechDocMEPlans, buildingPermit.Id, "tech-docs");
 
                 if (dto.TechDoc.TechDocECEPlans != null)
-                    buildingPermit.TechDoc.TechDocECEPlans = await SaveFileAsync(dto.TechDoc.TechDocECEPlans, buildingPermit.Id, "tech-docs");
+                    buildingPermit.TechDoc.TechDocECEPlans = await SaveFilesAsync(dto.TechDoc.TechDocECEPlans, buildingPermit.Id, "tech-docs");
             }
 
             // Update again with file paths
             _repository.Update(buildingPermit);
+            if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
 
             return buildingPermit;
         }
 
-        private async Task<string> SaveFileAsync(IFormFile file, int permitId, string subFolder)
+        private async Task<string> SaveFilesAsync(IFormFileCollection? files, int permitId, string subFolder)
+        {
+            if (files == null || files.Count == 0)
+                return string.Empty;
+
+            var metadataList = new List<FileMetadataDto>();
+
+            foreach (var file in files)
+            {
+                var filePath = await SaveFileInternalAsync(file, permitId, subFolder);
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    metadataList.Add(new FileMetadataDto
+                    {
+                        Name = file.FileName,
+                        Size = file.Length,
+                        Path = filePath
+                    });
+                }
+            }
+
+            return FilePathHelper.Serialize(metadataList);
+        }
+
+        private async Task<string> SaveFileWithMetadataAsync(IFormFile file, int permitId, string subFolder)
+        {
+            var filePath = await SaveFileInternalAsync(file, permitId, subFolder);
+            if (string.IsNullOrEmpty(filePath)) return string.Empty;
+
+            return FilePathHelper.SerializeSingle(new FileMetadataDto
+            {
+                Name = file.FileName,
+                Size = file.Length,
+                Path = filePath
+            });
+        }
+
+        private async Task<string> SaveFileInternalAsync(IFormFile file, int permitId, string subFolder)
         {
             if (file == null || file.Length == 0)
                 return string.Empty;

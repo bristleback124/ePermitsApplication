@@ -12,12 +12,23 @@ namespace ePermitsApp.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
-    public class ApplicationDetailDto
+    public class ApplicationBuildingPermitDetailDto
     {
         public BasicInformationDto BasicInformation { get; set; } = new();
         public ProjectDetailsDto ProjectDetails { get; set; } = new();
         public OwnerInformationDto OwnerInformation { get; set; } = new();
-        public List<DocumentDto> Docs { get; set; } = new();
+        public RequiredDocs RequiredDocs { get; set; } = new();
+        public BuildingPermitTechDocDto BuildingPermitTechDocs { get; set; } = new();
+    }
+
+    public class RequiredDocs
+    {
+        public FileMetadataDto ReqDocProofOwnership { get; set; } = new();
+        public FileMetadataDto ReqDocBarangayClearance { get; set; } = new();
+        public FileMetadataDto ReqDocTaxDeclaration { get; set; } = new();
+        public FileMetadataDto ReqDocRealPropTaxReceipt { get; set; } = new();
+        public FileMetadataDto? ReqDocECCorCNC { get; set; }
+        public FileMetadataDto? ReqDocSpecialClearances { get; set; }
     }
 
     public class BasicInformationDto
@@ -47,11 +58,5 @@ namespace ePermitsApp.DTOs
         public string Location { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-    }
-
-    public class DocumentDto
-    {
-        public string Name { get; set; } = string.Empty;
-        public string FilePath { get; set; } = string.Empty;
     }
 }

@@ -5,6 +5,6 @@ namespace ePermitsApp.Services.Interfaces
     public interface IApplicationService
     {
         Task<IEnumerable<ApplicationDtoShort>> GetApplicationsByUserIdAsync(int userId);
-        Task<ApplicationDetailDto?> GetApplicationByIdAsync(int id);
+        Task<ApplicationBuildingPermitDetailDto?> GetApplicationBuildingPermitById(int id);
     }
 }

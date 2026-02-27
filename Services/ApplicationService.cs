@@ -22,12 +22,12 @@ namespace ePermitsApp.Services
             return _mapper.Map<IEnumerable<ApplicationDtoShort>>(applications);
         }
 
-        public async Task<ApplicationDetailDto?> GetApplicationByIdAsync(int id)
+        public async Task<ApplicationBuildingPermitDetailDto?> GetApplicationBuildingPermitById(int id)
         {
-            var application = await _applicationRepository.GetByIdDetailedAsync(id);
+            var application = await _applicationRepository.GetByIdBuildingPermitDetailedAsync(id);
             if (application == null) return null;
 
-            return _mapper.Map<ApplicationDetailDto>(application);
+            return _mapper.Map<ApplicationBuildingPermitDetailDto>(application);
         }
     }
 }

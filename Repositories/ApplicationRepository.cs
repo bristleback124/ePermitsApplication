@@ -61,7 +61,7 @@ namespace ePermits.Data
                 .ToListAsync();
         }
 
-        public async Task<Application?> GetByIdDetailedAsync(int id)
+        public async Task<Application?> GetByIdBuildingPermitDetailedAsync(int id)
         {
             return await _context.Applications
                 .Include(a => a.User)

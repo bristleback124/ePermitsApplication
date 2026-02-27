@@ -2,6 +2,7 @@ using AutoMapper;
 using ePermits.Models;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities.BuildingPermit;
+using ePermitsApp.Helpers;
 
 namespace ePermitsApp.Mappings
 {
@@ -12,11 +13,32 @@ namespace ePermitsApp.Mappings
             CreateMap<Application, ApplicationDtoShort>()
                 .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle : string.Empty));
 
-            CreateMap<Application, ApplicationDetailDto>()
+            CreateMap<Application, ApplicationBuildingPermitDetailDto>()
                 .ForMember(dest => dest.BasicInformation, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.ProjectDetails, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.OwnerInformation, opt => opt.MapFrom(src => src))
-                .ForMember(dest => dest.Docs, opt => opt.MapFrom(src => src));
+                .ForMember(dest => dest.RequiredDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.AppInfo : null))
+                .ForMember(dest => dest.BuildingPermitTechDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.TechDoc : null));
+
+            // Mapping for BuildingPermitTechDoc
+            CreateMap<BuildingPermitTechDoc, BuildingPermitTechDocDto>()
+                .ForMember(dest => dest.TechDocIoCPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocIoCPlans)))
+                .ForMember(dest => dest.TechDocSEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSEPlans)))
+                .ForMember(dest => dest.TechDocEEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocEEPlans)))
+                .ForMember(dest => dest.TechDocSPPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSPPlans)))
+                .ForMember(dest => dest.TechDocBOMCost, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocBOMCost)))
+                .ForMember(dest => dest.TechDocSoW, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSoW)))
+                .ForMember(dest => dest.TechDocMEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocMEPlans)))
+                .ForMember(dest => dest.TechDocECEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocECEPlans)));
+
+            // Mapping for RequiredDocs
+            CreateMap<BuildingPermitAppInfo, RequiredDocs>()
+                .ForMember(dest => dest.ReqDocProofOwnership, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocProofOwnership)))
+                .ForMember(dest => dest.ReqDocBarangayClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocBarangayClearance)))
+                .ForMember(dest => dest.ReqDocTaxDeclaration, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocTaxDeclaration)))
+                .ForMember(dest => dest.ReqDocRealPropTaxReceipt, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocRealPropTaxReceipt)))
+                .ForMember(dest => dest.ReqDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocECCorCNC)))
+                .ForMember(dest => dest.ReqDocSpecialClearances, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocSpecialClearances)));
 
             // Mapping for BasicInformationDto
             CreateMap<Application, BasicInformationDto>()
@@ -51,40 +73,6 @@ namespace ePermitsApp.Mappings
                     ? src.BuildingPermit.AppInfo.ContactNo : string.Empty))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.BuildingPermit != null && src.BuildingPermit.AppInfo != null 
                     ? src.BuildingPermit.AppInfo.Email : string.Empty));
-
-            CreateMap<Application, ApplicationDetailDto>()
-                .ForMember(dest => dest.BasicInformation, opt => opt.MapFrom(src => src))
-                .ForMember(dest => dest.ProjectDetails, opt => opt.MapFrom(src => src))
-                .ForMember(dest => dest.OwnerInformation, opt => opt.MapFrom(src => src))
-                .ForMember(dest => dest.Docs, opt => opt.MapFrom(src => MapDocs(src)));
-        }
-
-        private List<DocumentDto> MapDocs(Application source)
-        {
-            var docs = new List<DocumentDto>();
-            if (source.BuildingPermit != null && source.BuildingPermit.TechDoc != null)
-            {
-                var td = source.BuildingPermit.TechDoc;
-                AddDoc(docs, "Site Plans", td.TechDocSPPlans);
-                AddDoc(docs, "Location Plans", td.TechDocIoCPlans);
-                AddDoc(docs, "Architectural Plans", td.TechDocIoCPlans);
-                AddDoc(docs, "Structural Plans", td.TechDocSEPlans);
-                AddDoc(docs, "Electrical Plans", td.TechDocEEPlans);
-
-                if (!string.IsNullOrEmpty(td.TechDocMEPlans)) AddDoc(docs, "Mechanical Plans", td.TechDocMEPlans);
-                if (!string.IsNullOrEmpty(td.TechDocECEPlans)) AddDoc(docs, "Electronics Plans", td.TechDocECEPlans);
-                AddDoc(docs, "Bill of Materials", td.TechDocBOMCost);
-                AddDoc(docs, "Scope of Work", td.TechDocSoW);
-            }
-            return docs;
-        }
-
-        private void AddDoc(List<DocumentDto> list, string name, string? path)
-        {
-            if (!string.IsNullOrEmpty(path))
-            {
-                list.Add(new DocumentDto { Name = name, FilePath = path });
-            }
         }
     }
 }

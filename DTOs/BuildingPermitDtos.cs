@@ -43,12 +43,12 @@ namespace ePermitsApp.DTOs
         public string TIN { get; set; } = string.Empty;
         public string MailAddress { get; set; } = string.Empty;
         public int OwnershipTypeId { get; set; }
-        public string ReqDocProofOwnership { get; set; } = string.Empty;
-        public string ReqDocBarangayClearance { get; set; } = string.Empty;
-        public string ReqDocTaxDeclaration { get; set; } = string.Empty;
-        public string ReqDocRealPropTaxReceipt { get; set; } = string.Empty;
-        public string? ReqDocECCorCNC { get; set; }
-        public string? ReqDocSpecialClearances { get; set; }
+        public FileMetadataDto ReqDocProofOwnership { get; set; } = new();
+        public FileMetadataDto ReqDocBarangayClearance { get; set; } = new();
+        public FileMetadataDto ReqDocTaxDeclaration { get; set; } = new();
+        public FileMetadataDto ReqDocRealPropTaxReceipt { get; set; } = new();
+        public FileMetadataDto? ReqDocECCorCNC { get; set; }
+        public FileMetadataDto? ReqDocSpecialClearances { get; set; }
     }
 
     public class BuildingPermitDesignProfDto
@@ -84,17 +84,24 @@ namespace ePermitsApp.DTOs
         public DateTime? ContractorValidity { get; set; }
     }
 
+    public class FileMetadataDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public long Size { get; set; }
+        public string Path { get; set; } = string.Empty;
+    }
+
     public class BuildingPermitTechDocDto
     {
         public int Id { get; set; }
-        public string TechDocIoCPlans { get; set; } = string.Empty;
-        public string TechDocSEPlans { get; set; } = string.Empty;
-        public string TechDocEEPlans { get; set; } = string.Empty;
-        public string TechDocSPPlans { get; set; } = string.Empty;
-        public string TechDocBOMCost { get; set; } = string.Empty;
-        public string TechDocSoW { get; set; } = string.Empty;
-        public string? TechDocMEPlans { get; set; }
-        public string? TechDocECEPlans { get; set; }
+        public List<FileMetadataDto> TechDocIoCPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocSEPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocEEPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocSPPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocBOMCost { get; set; } = new();
+        public List<FileMetadataDto> TechDocSoW { get; set; } = new();
+        public List<FileMetadataDto> TechDocMEPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocECEPlans { get; set; } = new();
     }
 
     public class BuildingPermitCreateDto
@@ -225,18 +232,18 @@ namespace ePermitsApp.DTOs
     public class BuildingPermitTechDocCreateDto
     {
         [Required]
-        public IFormFile TechDocIoCPlans { get; set; } = null!;
+        public IFormFileCollection TechDocIoCPlans { get; set; } = null!;
         [Required]
-        public IFormFile TechDocSEPlans { get; set; } = null!;
+        public IFormFileCollection TechDocSEPlans { get; set; } = null!;
         [Required]
-        public IFormFile TechDocEEPlans { get; set; } = null!;
+        public IFormFileCollection TechDocEEPlans { get; set; } = null!;
         [Required]
-        public IFormFile TechDocSPPlans { get; set; } = null!;
+        public IFormFileCollection TechDocSPPlans { get; set; } = null!;
         [Required]
-        public IFormFile TechDocBOMCost { get; set; } = null!;
+        public IFormFileCollection TechDocBOMCost { get; set; } = null!;
         [Required]
-        public IFormFile TechDocSoW { get; set; } = null!;
-        public IFormFile? TechDocMEPlans { get; set; }
-        public IFormFile? TechDocECEPlans { get; set; }
+        public IFormFileCollection TechDocSoW { get; set; } = null!;
+        public IFormFileCollection? TechDocMEPlans { get; set; }
+        public IFormFileCollection? TechDocECEPlans { get; set; }
     }
 }

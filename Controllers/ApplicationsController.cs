@@ -22,10 +22,10 @@ namespace ePermitsApp.Controllers
             return Ok(applications);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApplicationDetailDto>> GetApplicationById(int id)
+        [HttpGet("building-permit/{applicationId}")]
+        public async Task<ActionResult<ApplicationBuildingPermitDetailDto>> GetApplicationBuildingPermitById(int applicationId)
         {
-            var application = await _service.GetApplicationByIdAsync(id);
+            var application = await _service.GetApplicationBuildingPermitById(applicationId);
             if (application == null)
                 return NotFound();
 

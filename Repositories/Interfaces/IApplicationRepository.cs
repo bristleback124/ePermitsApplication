@@ -5,7 +5,7 @@ namespace ePermits.Data
     public interface IApplicationRepository
     {
         Task<Application?> GetByIdAsync(int id);
-        Task<Application?> GetByIdDetailedAsync(int id);
+        Task<Application?> GetByIdBuildingPermitDetailedAsync(int id);
         Task<IEnumerable<Application>> GetAllAsync();
         Task<Application> AddAsync(Application application);
         Task UpdateAsync(Application application);
