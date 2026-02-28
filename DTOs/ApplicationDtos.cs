@@ -6,6 +6,7 @@ namespace ePermitsApp.DTOs
     public class ApplicationDtoShort
     {
         public int Id { get; set; }
+        public string FormattedId { get; set; } = string.Empty;
         public string ProjectTitle { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
@@ -34,6 +35,7 @@ namespace ePermitsApp.DTOs
     public class BasicInformationDto
     {
         public int ApplicationId { get; set; }
+        public string FormattedId { get; set; } = string.Empty;
         public string ProjectDescription { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Applicant { get; set; } = string.Empty;

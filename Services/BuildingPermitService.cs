@@ -83,6 +83,9 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(buildingPermit);
             await _repository.SaveChangesAsync();
 
+            // Set formatted ID now that we have the auto-generated Id
+            buildingPermit.Application.FormattedId = $"BP-{buildingPermit.Application.CreatedAt.Year}-{buildingPermit.Application.Id:D3}";
+
             // Save files
             if (buildingPermit.AppInfo != null)
             {
