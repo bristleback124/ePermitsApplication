@@ -12,10 +12,15 @@ namespace ePermitsApp.Data.Seeders
         {
             var seeders = new List<ISeeder>
             {
+                new GeographicSeeder(),
+                new DepartmentSeeder(),
                 new RequirementSeeder(),
                 new PermitApplicationTypeSeeder(),
                 new ProjectClassificationSeeder(),
                 new OwnershipTypeSeeder(),
+                new OccupancyNatureSeeder(),
+                new ApplicantTypeSeeder(),
+                new AdminSeeder(),
             }
             .OrderBy(s => s.Order)
             .ToList();

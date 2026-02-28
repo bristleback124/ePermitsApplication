@@ -77,7 +77,7 @@ namespace ePermitsApp.Data
                 .HasMaxLength(200);                      
 
             modelBuilder.Entity<Department>()
-                .HasIndex(d => new { d.LGUId, d.DepartmentCode })
+                .HasIndex(d => d.DepartmentCode)
                 .IsUnique();
 
             modelBuilder.Entity<Department>()
@@ -230,63 +230,28 @@ namespace ePermitsApp.Data
             });
 
             // Seed default user roles
+            var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             modelBuilder.Entity<UserRole>().HasData(
                 new UserRole
                 {
                     Id = 1,
                     UserRoleDesc = "admin",
                     CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = seedDate
                 },
                 new UserRole
                 {
                     Id = 2,
                     UserRoleDesc = "user",
                     CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = seedDate
                 },
                 new UserRole
                 {
                     Id = 3,
                     UserRoleDesc = "applicant",
                     CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow
-                }
-            );
-
-            // Seed provinces
-            modelBuilder.Entity<Province>().HasData(
-                new Province
-                {
-                    Id = 1,
-                    ProvinceName = "Cebu",
-                    CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow
-                }
-            );
-
-            // Seed LGUs
-            modelBuilder.Entity<LGU>().HasData(
-                new LGU
-                {
-                    Id = 1,
-                    LGUName = "Consolacion",
-                    ProvinceId = 1,
-                    CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow
-                }
-            );
-
-            // Seed departments
-            modelBuilder.Entity<Department>().HasData(
-                new Department
-                {
-                    Id = 1,
-                    DepartmentName = "Information Technology",
-                    DepartmentCode = "IT",
-                    LGUId = 1,
-                    CreatedBy = "System",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = seedDate
                 }
             );
 

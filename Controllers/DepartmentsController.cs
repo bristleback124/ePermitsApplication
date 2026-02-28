@@ -85,12 +85,10 @@ namespace ePermitsApp.Controllers
         public async Task<ActionResult<PagedResult<DepartmentDto>>> Filter(
             [FromQuery] string? departmentName,
             [FromQuery] string? departmentCode,
-            [FromQuery] int? lguId,
-            [FromQuery] string? provinceName,
             [FromQuery] PaginationParams pagination)
         {
             var result = await _service.FilterAsync(
-                departmentName, departmentCode, lguId, provinceName, pagination);
+                departmentName, departmentCode, pagination);
 
             return Ok(new PagedResult<DepartmentDto>
             {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260228152949_AddedOccupancyNatureSeeders")]
+    partial class AddedOccupancyNatureSeeders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,6 +159,7 @@ namespace ePermitsApp.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
+                            DepartmentId = 1,
                             LGUId = 1,
                             Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
                             UserProfileId = 1,
@@ -272,21 +276,21 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 28, 15, 29, 48, 585, DateTimeKind.Utc).AddTicks(2996),
                             CreatedBy = "System",
                             UserRoleDesc = "admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 28, 15, 29, 48, 585, DateTimeKind.Utc).AddTicks(2999),
                             CreatedBy = "System",
                             UserRoleDesc = "user"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAt = new DateTime(2026, 2, 28, 15, 29, 48, 585, DateTimeKind.Utc).AddTicks(3000),
                             CreatedBy = "System",
                             UserRoleDesc = "applicant"
                         });
@@ -325,24 +329,6 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("ApplicantTypeDesc");
 
                     b.ToTable("ApplicantTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ApplicantTypeDesc = "Individual",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ApplicantTypeDesc = "Company/Organization",
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            IsDeleted = false
-                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.Barangay", b =>
@@ -1241,6 +1227,9 @@ namespace ePermitsApp.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int>("LGUId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -1249,7 +1238,7 @@ namespace ePermitsApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DepartmentCode")
+                    b.HasIndex("LGUId", "DepartmentCode")
                         .IsUnique();
 
                     b.ToTable("Departments");
@@ -1260,27 +1249,10 @@ namespace ePermitsApp.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
-                            DepartmentCode = "OBO",
-                            DepartmentName = "Office of the Building Official",
-                            IsDeleted = false
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            DepartmentCode = "CPDO",
-                            DepartmentName = "City Planning Development Office",
-                            IsDeleted = false
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            DepartmentCode = "BFP",
-                            DepartmentName = "Bureau of Fire Protection",
-                            IsDeleted = false
+                            DepartmentCode = "IT",
+                            DepartmentName = "Information Technology",
+                            IsDeleted = false,
+                            LGUId = 1
                         });
                 });
 
@@ -2391,6 +2363,17 @@ namespace ePermitsApp.Migrations
                         .IsRequired();
 
                     b.Navigation("CoOApp");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.Department", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.LGU", "LGU")
+                        .WithMany()
+                        .HasForeignKey("LGUId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LGU");
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.LGU", b =>
