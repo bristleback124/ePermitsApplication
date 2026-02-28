@@ -485,7 +485,7 @@ namespace ePermitsApp.Migrations
                             CreatedAt = new DateTime(2026, 2, 11, 9, 50, 32, 293, DateTimeKind.Utc).AddTicks(4820),
                             CreatedBy = "System",
                             IsDeleted = false,
-                            LGUName = "Manila",
+                            LGUName = "Consolacion",
                             ProvinceId = 1
                         });
                 });
@@ -531,7 +531,7 @@ namespace ePermitsApp.Migrations
                             CreatedAt = new DateTime(2026, 2, 11, 9, 50, 32, 293, DateTimeKind.Utc).AddTicks(4780),
                             CreatedBy = "System",
                             IsDeleted = false,
-                            ProvinceName = "Metro Manila"
+                            ProvinceName = "Cebu"
                         });
                 });
 

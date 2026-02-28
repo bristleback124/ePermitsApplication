@@ -12,7 +12,6 @@ namespace ePermitsApp.Services
         private readonly ILGURepository _repository;
         private readonly IProvinceRepository _provinceRepository;
         private readonly IBarangayRepository _barangayRepository;
-        private readonly IDepartmentRepository _departmentRepository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
 
@@ -20,14 +19,12 @@ namespace ePermitsApp.Services
             ILGURepository repository,
             IProvinceRepository provinceRepository,
             IBarangayRepository barangayRepository,
-            IDepartmentRepository departmentRepository,
             IMapper mapper,
             ICurrentUserService currentUser)
         {
             _repository = repository;
             _provinceRepository = provinceRepository;
             _barangayRepository = barangayRepository;
-            _departmentRepository = departmentRepository;
             _mapper = mapper;
             _currentUser = currentUser;
         }
@@ -109,17 +106,6 @@ namespace ePermitsApp.Services
                 _barangayRepository.Update(barangay);
             }
 
-            // Soft delete Departments
-            var departments = await _departmentRepository.GetByLGUAsync(id);
-            foreach (var department in departments)
-            {
-                department.IsDeleted = true;
-                department.UpdatedAt = now;
-                department.UpdatedBy = user;
-
-                _departmentRepository.Update(department);
-            }
-
             return await _repository.SaveChangesAsync();
         }
 
@@ -156,17 +142,6 @@ namespace ePermitsApp.Services
                 barangay.UpdatedBy = user;
 
                 _barangayRepository.Update(barangay);
-            }
-
-            // Restore Departments
-            var deletedDepartments = await _departmentRepository.GetDeletedByLGUAsync(id);
-            foreach (var department in deletedDepartments)
-            {
-                department.IsDeleted = false;
-                department.UpdatedAt = now;
-                department.UpdatedBy = user;
-
-                _departmentRepository.Update(department);
             }
 
             return await _repository.SaveChangesAsync();

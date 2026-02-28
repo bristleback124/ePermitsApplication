@@ -7,9 +7,6 @@
         public string DepartmentCode { get; set; } = null!;
         public string DepartmentName { get; set; } = null!;
 
-        public int LGUId { get; set; }
-        public LGU LGU { get; set; } = null!;
-
         public string CreatedBy { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
 

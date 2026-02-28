@@ -81,7 +81,7 @@ namespace ePermits.Services
             Department? department = null;
 
             // Check if the role requires a department
-            bool requiresDepartment = role.UserRoleDesc.ToLower() != "applicant";
+            bool requiresDepartment = role.UserRoleDesc.ToLower() != "applicant" && role.UserRoleDesc.ToLower() != "admin";
 
             if (requiresDepartment)
             {
