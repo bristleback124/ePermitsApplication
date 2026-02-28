@@ -12,6 +12,7 @@ namespace ePermitsApp.Mappings
         public ApplicationProfile()
         {
             CreateMap<Application, ApplicationDtoShort>()
+                .ForMember(dest => dest.FormattedId, opt => opt.MapFrom(src => src.FormattedId))
                 .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src =>
                     src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle
                     : src.CoOApp != null ? src.CoOApp.ProjectTitle
@@ -47,6 +48,7 @@ namespace ePermitsApp.Mappings
             // Mapping for BasicInformationDto
             CreateMap<Application, BasicInformationDto>()
                 .ForMember(dest => dest.ApplicationId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.FormattedId, opt => opt.MapFrom(src => src.FormattedId))
                 .ForMember(dest => dest.ProjectDescription, opt => opt.MapFrom(src =>
                     src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle
                     : src.CoOApp != null ? src.CoOApp.ProjectTitle

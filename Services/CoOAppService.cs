@@ -77,6 +77,9 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(coOApp);
             await _repository.SaveChangesAsync();
 
+            // Set formatted ID now that we have the auto-generated Id
+            coOApp.Application.FormattedId = $"CO-{coOApp.Application.CreatedAt.Year}-{coOApp.Application.Id:D3}";
+
             // Save files
             if (coOApp.CoOAppReqDoc != null)
             {
