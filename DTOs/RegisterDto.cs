@@ -37,13 +37,5 @@ namespace ePermits.DTOs
         [Phone]
         [StringLength(20)]
         public string MobileNo { get; set; } = string.Empty;
-
-        [Required]
-        public int LGUId { get; set; }
-
-        public int? DepartmentId { get; set; }
-
-        // Optional: defaults to "user" role if not specified
-        public int? UserRoleId { get; set; }
     }
 }

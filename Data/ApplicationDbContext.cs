@@ -189,13 +189,14 @@ namespace ePermitsApp.Data
                 entity.HasOne(e => e.LGU)
                     .WithMany()
                     .HasForeignKey(e => e.LGUId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
 
                 entity.HasOne(e => e.Department)
                 .WithMany()
                 .HasForeignKey(e => e.DepartmentId)
                 .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false); 
+                .IsRequired(false);
 
             });
 
