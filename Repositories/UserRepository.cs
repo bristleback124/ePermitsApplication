@@ -24,6 +24,16 @@ namespace ePermits.Data
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
+        public async Task<List<User>> GetAllAsync()
+        {
+            return await _context.Users
+                .Include(u => u.UserRole)
+                .Include(u => u.UserProfile)
+                .Include(u => u.LGU)
+                .Include(u => u.Department)
+                .ToListAsync();
+        }
+
         public async Task<User?> GetByUsernameAsync(string username)
         {
             return await _context.Users

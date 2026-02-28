@@ -10,7 +10,7 @@ namespace ePermits.Models
         public string Password { get; set; } = string.Empty;
         public int UserRoleId { get; set; }
         public int? UserProfileId { get; set; }
-        public int LGUId { get; set; }
+        public int? LGUId { get; set; }
         public int? DepartmentId { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }

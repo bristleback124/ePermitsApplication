@@ -70,6 +70,7 @@ namespace ePermitsApp
             builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
             // Chat additions
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
