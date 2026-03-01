@@ -57,20 +57,24 @@ namespace ePermits.Controllers
         [HttpPut("{applicationId}/mark-read")]
         public async Task<IActionResult> MarkAsRead(int applicationId)
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "applicant";
             // Admin and User (govt roles) read applicant messages, Applicant reads govt messages
             var senderType = (userRole == "admin" || userRole == "user") ? "Applicant" : "Government";
-            await _chatService.MarkAsReadAsync(applicationId, senderType);
+            await _chatService.MarkAsReadAsync(applicationId, userId, userRole, senderType);
             return Ok();
         }
 
         [HttpGet("{applicationId}/unread-count")]
         public async Task<IActionResult> GetUnreadCount(int applicationId)
         {
+            var userId = int.Parse(
+                User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "applicant";
             // Admin and User (govt roles) count unread applicant messages, Applicant counts govt messages
             var senderType = (userRole == "admin" || userRole == "user") ? "Applicant" : "Government";
-            var count = await _chatService.GetUnreadCountAsync(applicationId, senderType);
+            var count = await _chatService.GetUnreadCountAsync(applicationId, userId, userRole, senderType);
             return Ok(new { UnreadCount = count });
         }
     }

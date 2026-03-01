@@ -1,4 +1,4 @@
-﻿using ePermitsApp.Data;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Extensions;
@@ -19,7 +19,6 @@ namespace ePermitsApp.Repositories
         public async Task<IEnumerable<Department>> GetAllAsync()
         {
             return await _context.Departments
-                .Include(d => d.LGU)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -27,15 +26,13 @@ namespace ePermitsApp.Repositories
         public async Task<Department?> GetByIdAsync(int id)
         {
             return await _context.Departments
-                .Include(d => d.LGU)
-                    .ThenInclude(l => l.Province)
                 .FirstOrDefaultAsync(d => d.Id == id);
         }
 
         public async Task AddAsync(Department department)
         {
             await _context.Departments.AddAsync(department);
-        } 
+        }
 
         public void Update(Department department)
         {
@@ -46,51 +43,37 @@ namespace ePermitsApp.Repositories
         {
             return await _context.SaveChangesAsync() > 0;
         }
-        
+
         public async Task<Department?> GetByIdIncludingDeletedAsync(int id)
         {
              return await _context.Departments
                 .IgnoreQueryFilters()
-                .Include(d => d.LGU)
-                    .ThenInclude(l => l.Province)
                 .FirstOrDefaultAsync(d => d.Id == id);
-        } 
+        }
 
         public async Task<PagedResult<Department>> FilterAsync(
             string? departmentName,
             string? departmentCode,
-            int? lguId,
-            string? provinceName,
             PaginationParams pagination)
         {
             var query = _context.Departments
-                .Include(d => d.LGU)
-                    .ThenInclude(l => l.Province)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(departmentName))
-                query = query.Where(d => 
+                query = query.Where(d =>
                     d.DepartmentName.ToLower().Contains(departmentName.ToLower()));
 
             if (!string.IsNullOrWhiteSpace(departmentCode))
-                query = query.Where(d => 
+                query = query.Where(d =>
                     d.DepartmentCode.ToLower().Contains(departmentCode.ToLower()));
-
-            if (lguId.HasValue)
-                query = query.Where(d => d.LGUId == lguId);
-
-            if (!string.IsNullOrWhiteSpace(provinceName))
-                query = query.Where(d => 
-                    d.LGU.Province.ProvinceName.ToLower()
-                        .Contains(provinceName.ToLower()));
 
             query = pagination.OrderBy?.ToLower() switch
             {
-                "departmentname" => pagination.IsDescending 
-                    ? query.OrderByDescending(d => d.DepartmentName) 
+                "departmentname" => pagination.IsDescending
+                    ? query.OrderByDescending(d => d.DepartmentName)
                     : query.OrderBy(d => d.DepartmentName),
-                "departmentcode" => pagination.IsDescending 
-                    ? query.OrderByDescending(d => d.DepartmentCode) 
+                "departmentcode" => pagination.IsDescending
+                    ? query.OrderByDescending(d => d.DepartmentCode)
                     : query.OrderBy(d => d.DepartmentCode),
 
                 _ => query.OrderBy(d => d.Id)
@@ -112,22 +95,5 @@ namespace ePermitsApp.Repositories
                 PageSize = pagination.PageSize
             };
         }
-
-        public async Task<IEnumerable<Department>> GetDeletedByLGUAsync(int lguId)
-        {
-            return await _context.Departments
-                .IgnoreQueryFilters()
-                .Where(d => d.LGUId == lguId && d.IsDeleted)
-                .AsNoTracking()
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<Department>> GetByLGUAsync(int lguId)
-        {
-            return await _context.Departments
-                .Where(d => d.LGUId == lguId)
-                .ToListAsync();
-        }
-
     }
 }

@@ -22,7 +22,7 @@ namespace ePermitsApp.Migrations
             migrationBuilder.InsertData(
                 table: "Provinces",
                 columns: new[] { "Id", "CreatedAt", "CreatedBy", "IsDeleted", "ProvinceName", "UpdatedAt", "UpdatedBy" },
-                values: new object[] { 1, new DateTime(2026, 1, 23, 14, 42, 55, 958, DateTimeKind.Utc).AddTicks(4618), "System", false, "Metro Manila", null, null });
+                values: new object[] { 1, new DateTime(2026, 1, 23, 14, 42, 55, 958, DateTimeKind.Utc).AddTicks(4618), "System", false, "Cebu", null, null });
 
             migrationBuilder.UpdateData(
                 table: "UserRoles",
@@ -41,7 +41,7 @@ namespace ePermitsApp.Migrations
             migrationBuilder.InsertData(
                 table: "LGUs",
                 columns: new[] { "Id", "CreatedAt", "CreatedBy", "IsDeleted", "LGUName", "ProvinceId", "UpdatedAt", "UpdatedBy" },
-                values: new object[] { 1, new DateTime(2026, 1, 23, 14, 42, 55, 958, DateTimeKind.Utc).AddTicks(4682), "System", false, "Manila", 1, null, null });
+                values: new object[] { 1, new DateTime(2026, 1, 23, 14, 42, 55, 958, DateTimeKind.Utc).AddTicks(4682), "System", false, "Consolacion", 1, null, null });
 
             migrationBuilder.InsertData(
                 table: "Departments",

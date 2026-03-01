@@ -1,4 +1,5 @@
-using System;
+using ePermitsApp.Entities.BuildingPermit;
+using ePermitsApp.Entities.CoOApp;
 
 namespace ePermits.Models
 {
@@ -7,6 +8,7 @@ namespace ePermits.Models
         public int Id { get; set; }
         public int UserId { get; set; } // Applicant
         public string Type { get; set; } = string.Empty; // "BuildingPermit" or "CertificateOfOccupancy"
+        public string FormattedId { get; set; } = string.Empty;
         public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, etc.
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -15,6 +17,9 @@ namespace ePermits.Models
 
         // Navigation properties
         public User? User { get; set; }
+        public BuildingPermit? BuildingPermit { get; set; }
+        public CoOApp? CoOApp { get; set; }
         public ICollection<Message>? Messages { get; set; }
+        public ICollection<ePermitsApp.Entities.ApplicationDepartmentReview> DepartmentReviews { get; set; } = new List<ePermitsApp.Entities.ApplicationDepartmentReview>();
     }
 }

@@ -54,70 +54,24 @@ namespace ePermits.Services
                 return null;
             }
 
-            // Get role (default to "user" if not specified)
-            UserRole? role;
-            if (registerDto.UserRoleId.HasValue)
-            {
-                role = await _userRoleRepository.GetByIdAsync(registerDto.UserRoleId.Value);
-            }
-            else
-            {
-                role = await _userRoleRepository.GetByDescriptionAsync("applicant");
-            }
-
+            // Always assign "applicant" role for self-registration
+            var role = await _userRoleRepository.GetByDescriptionAsync("applicant");
             if (role == null)
             {
                 return null;
             }
 
-            // Validate LGUId exists
-            var lgu = await _lguRepository.GetByIdAsync(registerDto.LGUId);
-            if (lgu == null)
-            {
-                return null;
-            }
-
-            // Validate DepartmentId based on role
-            Department? department = null;
-
-            // Check if the role requires a department
-            bool requiresDepartment = role.UserRoleDesc.ToLower() != "applicant";
-
-            if (requiresDepartment)
-            {
-                if (!registerDto.DepartmentId.HasValue)
-                {
-                    Console.WriteLine($"DepartmentId is required for role: {role.UserRoleDesc}");
-                    return null;
-                }
-
-                department = await _departmentRepository.GetByIdAsync(registerDto.DepartmentId.Value);
-                if (department == null)
-                {
-                    Console.WriteLine($"Invalid DepartmentId: {registerDto.DepartmentId.Value}");
-                    return null;
-                }
-            }
-            else
-            {
-                if (registerDto.DepartmentId.HasValue)
-                {
-                    Console.WriteLine($"Warning: DepartmentId provided for applicant role, setting to null");
-                }
-                registerDto.DepartmentId = null; // Force null for applicants
-            }
-
             // Hash password
             string hashedPassword = HashPassword(registerDto.Password);
 
-            // Create user first
+            // Create user with no LGU or Department (applicant defaults)
             var user = new User
             {
                 Username = registerDto.Username,
                 Password = hashedPassword,
                 UserRoleId = role.Id,
-                LGUId = registerDto.LGUId,
-                DepartmentId = registerDto.DepartmentId,
+                LGUId = null,
+                DepartmentId = null,
                 CreatedBy = registerDto.Username,
                 CreatedAt = DateTime.UtcNow
             };

@@ -17,5 +17,6 @@ namespace ePermitsApp.Services.Interfaces
         Task<PagedResult<RequirementClassification>> FilterByNameAsync(
             string reqClassDesc,
             PaginationParams pagination);
+        Task<IEnumerable<RequirementClassification>> GetAllWithHierarchyAsync();
     }
 }

@@ -37,6 +37,10 @@ namespace ePermitsApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FormattedId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -116,7 +120,7 @@ namespace ePermitsApp.Migrations
                     b.Property<int?>("DepartmentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("LGUId")
+                    b.Property<int?>("LGUId")
                         .HasColumnType("int");
 
                     b.Property<string>("Password")
@@ -149,6 +153,19 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("UserRoleId");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            LGUId = 1,
+                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
+                            UserProfileId = 1,
+                            UserRoleId = 1,
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("ePermits.Models.UserProfile", b =>
@@ -209,6 +226,20 @@ namespace ePermitsApp.Migrations
                         .IsUnique();
 
                     b.ToTable("UserProfiles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            Email = "admin@epermits.com",
+                            FirstName = "System",
+                            LastName = "Administrator",
+                            MiddleName = "",
+                            MobileNo = "0000000000",
+                            UserId = 1
+                        });
                 });
 
             modelBuilder.Entity("ePermits.Models.UserRole", b =>
@@ -245,21 +276,21 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 11, 11, 8, 18, 7, DateTimeKind.Utc).AddTicks(8508),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             UserRoleDesc = "admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 11, 11, 8, 18, 7, DateTimeKind.Utc).AddTicks(8512),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             UserRoleDesc = "user"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 11, 11, 8, 18, 7, DateTimeKind.Utc).AddTicks(8514),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             UserRoleDesc = "applicant"
                         });
@@ -298,6 +329,24 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("ApplicantTypeDesc");
 
                     b.ToTable("ApplicantTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ApplicantTypeDesc = "Individual",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ApplicantTypeDesc = "Company/Organization",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false
+                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.Barangay", b =>
@@ -339,6 +388,833 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("LGUId");
 
                     b.ToTable("Barangays");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BarangayName = "Cabangahan",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BarangayName = "Cansaga",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BarangayName = "Casili",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            BarangayName = "Danglag",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            BarangayName = "Garing",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 6,
+                            BarangayName = "Jugan",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 7,
+                            BarangayName = "Lamac",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 8,
+                            BarangayName = "Lanipga",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 9,
+                            BarangayName = "Nangka",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 10,
+                            BarangayName = "Panas",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 11,
+                            BarangayName = "Pitogo",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 12,
+                            BarangayName = "Poblacion East",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 13,
+                            BarangayName = "Poblacion Occidental",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 14,
+                            BarangayName = "Poblacion Oriental",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 15,
+                            BarangayName = "Pulpogan",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 16,
+                            BarangayName = "Sacsac",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 17,
+                            BarangayName = "Tayud",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 18,
+                            BarangayName = "Tilhaong",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 19,
+                            BarangayName = "Tolotolo",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        },
+                        new
+                        {
+                            Id = 20,
+                            BarangayName = "Tugbongan",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            LGUId = 1
+                        });
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BarangayId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Coordinates")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateofSignature")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DigitalSignature")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("EstimatedCost")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<decimal>("FloorAreaPerStorey")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<int>("LGUId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NoOfStoreys")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OccupancyNatureId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PermitAppTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProjectClassId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ProjectScopeLotArea")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<string>("ProjectTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PropertyAddBlock")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PropertyAddLot")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PropertyAddStreet")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("PropertyDetailLotArea")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<int>("ProvinceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TCTNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TaxDeclarionNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("TotalFloorArea")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
+
+                    b.HasIndex("BarangayId");
+
+                    b.HasIndex("LGUId");
+
+                    b.HasIndex("OccupancyNatureId");
+
+                    b.HasIndex("PermitAppTypeId");
+
+                    b.HasIndex("ProjectClassId");
+
+                    b.HasIndex("ProvinceId");
+
+                    b.ToTable("BuildingPermits");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitAppInfo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicantTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BuildingPermitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContactNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MailAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnershipTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReqDocBarangayClearance")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocECCorCNC")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocProofOwnership")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocRealPropTaxReceipt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocSpecialClearances")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocTaxDeclaration")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TIN")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantTypeId");
+
+                    b.HasIndex("BuildingPermitId")
+                        .IsUnique();
+
+                    b.HasIndex("OwnershipTypeId");
+
+                    b.ToTable("BuildingPermitAppInfos");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitDesignProf", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BuildingPermitId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContractorBusinessName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContractorClassification")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ContractorPCABNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ContractorValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ECEFullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ECEPRCNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ECEPTRNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ECEValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EEFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EEPRCNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("EEPTRNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("EEValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("IOCValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IoCFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IoCPRCNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("IoCPTRNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("MEFullName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MEPRCNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("MEPTRNo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("MEValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SEFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SEPRCNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SEPTRNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("SEValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SPEFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SPEPRCNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SPEPTRNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("SPEValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildingPermitId")
+                        .IsUnique();
+
+                    b.ToTable("BuildingPermitDesignProfs");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitTechDoc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BuildingPermitId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TechDocBOMCost")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocECEPlans")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocEEPlans")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocIoCPlans")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocMEPlans")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocSEPlans")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocSPPlans")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TechDocSoW")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildingPermitId")
+                        .IsUnique();
+
+                    b.ToTable("BuildingPermitTechDocs");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOApp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicantTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BarangayId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BldgPermitNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CompletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ContactNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateOfSignature")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DigitalSignature")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("FloorArea")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LGUId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MailAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NoOfStoreys")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OccupancyNatureId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProjLocBlock")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProjLocLot")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProjLocStreet")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProjectTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProvinceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TIN")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantTypeId");
+
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
+
+                    b.HasIndex("BarangayId");
+
+                    b.HasIndex("LGUId");
+
+                    b.HasIndex("OccupancyNatureId");
+
+                    b.HasIndex("ProvinceId");
+
+                    b.ToTable("CoOApps");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOAppProf", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CoOAppId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EoRFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EoRPRCorPTRNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("EoRSpecialization")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EoRValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("IOCValidity")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IoCFullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IoCPRCNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("IoCPTRNo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoOAppId")
+                        .IsUnique();
+
+                    b.ToTable("CoOAppProfs");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOAppReqDoc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CoOAppId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReqDocAsBuiltPlans")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocBldgPermitSPlans")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocBrgyClearance")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocConsLogbook")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocConsPhotos")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocFSIC")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReqDocOthers")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoOAppId")
+                        .IsUnique();
+
+                    b.ToTable("CoOAppReqDocs");
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.Department", b =>
@@ -369,9 +1245,6 @@ namespace ePermitsApp.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("LGUId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -380,7 +1253,7 @@ namespace ePermitsApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LGUId", "DepartmentCode")
+                    b.HasIndex("DepartmentCode")
                         .IsUnique();
 
                     b.ToTable("Departments");
@@ -389,12 +1262,29 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 11, 11, 8, 18, 7, DateTimeKind.Utc).AddTicks(9180),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
-                            DepartmentCode = "IT",
-                            DepartmentName = "Information Technology",
-                            IsDeleted = false,
-                            LGUId = 1
+                            DepartmentCode = "OBO",
+                            DepartmentName = "Office of the Building Official",
+                            IsDeleted = false
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            DepartmentCode = "CPDO",
+                            DepartmentName = "City Planning Development Office",
+                            IsDeleted = false
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            DepartmentCode = "BFP",
+                            DepartmentName = "Bureau of Fire Protection",
+                            IsDeleted = false
                         });
                 });
 
@@ -439,7 +1329,7 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 11, 11, 8, 18, 7, DateTimeKind.Utc).AddTicks(9132),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             IsDeleted = false,
                             LGUName = "Consolacion",
@@ -480,6 +1370,56 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("OccupancyNatureDesc");
 
                     b.ToTable("OccupancyNatures");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OccupancyNatureDesc = "Residential"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OccupancyNatureDesc = "Commercial"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OccupancyNatureDesc = "Industrial"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OccupancyNatureDesc = "Institutional"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OccupancyNatureDesc = "Agricultural"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OccupancyNatureDesc = "Others"
+                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.OwnershipType", b =>
@@ -515,6 +1455,32 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("OwnershipTypeDesc");
 
                     b.ToTable("OwnershipTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OwnershipTypeDesc = "Owner"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OwnershipTypeDesc = "Lessee"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            OwnershipTypeDesc = "Authorized Representative"
+                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.PermitApplicationType", b =>
@@ -550,6 +1516,64 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("PermitAppTypeDesc");
 
                     b.ToTable("PermitApplicationTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "New Construction"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "Renovation"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "Addition"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "Repair"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "Demolition"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "Fencing"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            PermitAppTypeDesc = "Others"
+                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.ProjectClassification", b =>
@@ -585,6 +1609,24 @@ namespace ePermitsApp.Migrations
                     b.HasIndex("ProjectClassDesc");
 
                     b.ToTable("ProjectClassifications");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ProjectClassDesc = "Private"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ProjectClassDesc = "Government"
+                        });
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.Province", b =>
@@ -625,10 +1667,478 @@ namespace ePermitsApp.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 11, 11, 8, 18, 7, DateTimeKind.Utc).AddTicks(9081),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             IsDeleted = false,
                             ProvinceName = "Cebu"
+                        });
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.Requirement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ReqCatId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReqDesc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReqCatId");
+
+                    b.HasIndex("ReqDesc");
+
+                    b.ToTable("Requirements");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 1,
+                            ReqDesc = "Barangay Clearance"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 1,
+                            ReqDesc = "Tax Declaration of Real Property"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 1,
+                            ReqDesc = "Latest Real Property Tax Receipt"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 1,
+                            ReqDesc = "Proof of ownership or right to build (TCT, deed of sale, lease contract)"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 2,
+                            ReqDesc = "Architectural Plans (signed & sealed by Licensed Architect)"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 2,
+                            ReqDesc = "Structural Plans (signed & sealed by Licensed Civil/Structural Engineer)"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 2,
+                            ReqDesc = "Electrical Plans (signed & sealed by Licensed Electrical Engineer)"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 2,
+                            ReqDesc = "Plumbing Plans (signed & sealed by Licensed Master Plumber)"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 2,
+                            ReqDesc = "Mechanical Plans (if applicable, signed & sealed by Licensed Mechanical Engineer)"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 2,
+                            ReqDesc = "Bill of Materials/Specifications"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 3,
+                            ReqDesc = "DPWH clearance (for structures near national roads)"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 3,
+                            ReqDesc = "CAAP clearance (for high-rise buildings)"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 3,
+                            ReqDesc = "Environmental Compliance Certificate (ECC)"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 3,
+                            ReqDesc = "Locational clearance from concerned agencies"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 4,
+                            ReqDesc = "Copy of approved Building Permit"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 4,
+                            ReqDesc = "As-Built Plans (signed & sealed by professionals)"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 4,
+                            ReqDesc = "Construction completion certificate"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 4,
+                            ReqDesc = "Material test certificates (concrete, steel, etc.)"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 5,
+                            ReqDesc = "Fire Safety Inspection Certificate (FSIC)"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 5,
+                            ReqDesc = "Electrical Safety Inspection Certificate"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 5,
+                            ReqDesc = "Structural inspection report"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 5,
+                            ReqDesc = "Plumbing inspection certificate"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 5,
+                            ReqDesc = "Mechanical systems inspection (if applicable)"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 6,
+                            ReqDesc = "Environmental compliance monitoring report (if required)"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 6,
+                            ReqDesc = "Accessibility compliance certificate (for public buildings)"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 6,
+                            ReqDesc = "Waste management compliance certificate"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 6,
+                            ReqDesc = "Building maintenance plan"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 7,
+                            ReqDesc = "Updated tax declaration reflecting improvements"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 7,
+                            ReqDesc = "Insurance coverage for the structure"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatId = 7,
+                            ReqDesc = "Business permits (for commercial/industrial buildings)"
+                        });
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.RequirementCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReqCatDesc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ReqClassId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReqClassId", "ReqCatDesc");
+
+                    b.ToTable("RequirementCategorys");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Basic Documents",
+                            ReqClassId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Technical Plans & Documents",
+                            ReqClassId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Special Requirements (if applicable)",
+                            ReqClassId = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Completion Documents",
+                            ReqClassId = 2
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Inspection Certificates",
+                            ReqClassId = 2
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Compliance Documents",
+                            ReqClassId = 2
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqCatDesc = "Additional Requirements",
+                            ReqClassId = 2
+                        });
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.RequirementClassification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReqClassDesc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReqClassDesc");
+
+                    b.ToTable("RequirementClassifications");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqClassDesc = "Building Permit Requirements"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsDeleted = false,
+                            ReqClassDesc = "Certificate of Occupancy Requirements"
                         });
                 });
 
@@ -672,8 +2182,7 @@ namespace ePermitsApp.Migrations
                     b.HasOne("ePermitsApp.Entities.LGU", "LGU")
                         .WithMany()
                         .HasForeignKey("LGUId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ePermits.Models.UserRole", "UserRole")
                         .WithMany("Users")
@@ -699,122 +2208,6 @@ namespace ePermitsApp.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ePermitsApp.Entities.Requirement", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ReqCatId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReqDesc")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("RequirementCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReqDesc");
-
-                    b.HasIndex("RequirementCategoryId");
-
-                    b.ToTable("Requirements");
-                });
-
-            modelBuilder.Entity("ePermitsApp.Entities.RequirementCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ReqCatDesc")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("ReqClassId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReqClassId", "ReqCatDesc");
-
-                    b.ToTable("RequirementCategorys");
-                });
-
-            modelBuilder.Entity("ePermitsApp.Entities.RequirementClassification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ReqClassDesc")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReqClassDesc");
-
-                    b.ToTable("RequirementClassifications");
-                });
-
             modelBuilder.Entity("ePermitsApp.Entities.Barangay", b =>
                 {
                     b.HasOne("ePermitsApp.Entities.LGU", "LGU")
@@ -826,15 +2219,181 @@ namespace ePermitsApp.Migrations
                     b.Navigation("LGU");
                 });
 
-            modelBuilder.Entity("ePermitsApp.Entities.Department", b =>
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermit", b =>
                 {
-                    b.HasOne("ePermitsApp.Entities.LGU", "LGU")
-                        .WithMany()
-                        .HasForeignKey("LGUId")
+                    b.HasOne("ePermits.Models.Application", "Application")
+                        .WithOne("BuildingPermit")
+                        .HasForeignKey("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "ApplicationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ePermitsApp.Entities.Barangay", "Barangay")
+                        .WithMany()
+                        .HasForeignKey("BarangayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.LGU", "LGU")
+                        .WithMany()
+                        .HasForeignKey("LGUId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.OccupancyNature", "OccupancyNature")
+                        .WithMany()
+                        .HasForeignKey("OccupancyNatureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.PermitApplicationType", "PermitApplicationType")
+                        .WithMany()
+                        .HasForeignKey("PermitAppTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.ProjectClassification", "ProjectClassification")
+                        .WithMany()
+                        .HasForeignKey("ProjectClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.Province", "Province")
+                        .WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Barangay");
+
                     b.Navigation("LGU");
+
+                    b.Navigation("OccupancyNature");
+
+                    b.Navigation("PermitApplicationType");
+
+                    b.Navigation("ProjectClassification");
+
+                    b.Navigation("Province");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitAppInfo", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.ApplicantType", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicantTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "BuildingPermit")
+                        .WithOne("AppInfo")
+                        .HasForeignKey("ePermitsApp.Entities.BuildingPermit.BuildingPermitAppInfo", "BuildingPermitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.OwnershipType", null)
+                        .WithMany()
+                        .HasForeignKey("OwnershipTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("BuildingPermit");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitDesignProf", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "BuildingPermit")
+                        .WithOne("DesignProf")
+                        .HasForeignKey("ePermitsApp.Entities.BuildingPermit.BuildingPermitDesignProf", "BuildingPermitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BuildingPermit");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitTechDoc", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "BuildingPermit")
+                        .WithOne("TechDoc")
+                        .HasForeignKey("ePermitsApp.Entities.BuildingPermit.BuildingPermitTechDoc", "BuildingPermitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BuildingPermit");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOApp", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.ApplicantType", "ApplicantType")
+                        .WithMany()
+                        .HasForeignKey("ApplicantTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermits.Models.Application", "Application")
+                        .WithOne("CoOApp")
+                        .HasForeignKey("ePermitsApp.Entities.CoOApp.CoOApp", "ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.Barangay", "Barangay")
+                        .WithMany()
+                        .HasForeignKey("BarangayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.LGU", "Lgu")
+                        .WithMany()
+                        .HasForeignKey("LGUId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.OccupancyNature", "OccupancyNature")
+                        .WithMany()
+                        .HasForeignKey("OccupancyNatureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ePermitsApp.Entities.Province", "Province")
+                        .WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApplicantType");
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Barangay");
+
+                    b.Navigation("Lgu");
+
+                    b.Navigation("OccupancyNature");
+
+                    b.Navigation("Province");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOAppProf", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.CoOApp.CoOApp", "CoOApp")
+                        .WithOne("CoOAppProf")
+                        .HasForeignKey("ePermitsApp.Entities.CoOApp.CoOAppProf", "CoOAppId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CoOApp");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOAppReqDoc", b =>
+                {
+                    b.HasOne("ePermitsApp.Entities.CoOApp.CoOApp", "CoOApp")
+                        .WithOne("CoOAppReqDoc")
+                        .HasForeignKey("ePermitsApp.Entities.CoOApp.CoOAppReqDoc", "CoOAppId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CoOApp");
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.LGU", b =>
@@ -848,27 +2407,12 @@ namespace ePermitsApp.Migrations
                     b.Navigation("Province");
                 });
 
-            modelBuilder.Entity("ePermits.Models.Application", b =>
-                {
-                    b.Navigation("Messages");
-                });
-
-            modelBuilder.Entity("ePermits.Models.User", b =>
-                {
-                    b.Navigation("UserProfile");
-                });
-
-            modelBuilder.Entity("ePermits.Models.UserRole", b =>
-                {
-                    b.Navigation("Users");
-                });
-
             modelBuilder.Entity("ePermitsApp.Entities.Requirement", b =>
                 {
                     b.HasOne("ePermitsApp.Entities.RequirementCategory", "RequirementCategory")
-                        .WithMany()
-                        .HasForeignKey("RequirementCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("Requirements")
+                        .HasForeignKey("ReqCatId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("RequirementCategory");
@@ -885,9 +2429,49 @@ namespace ePermitsApp.Migrations
                     b.Navigation("RequirementClassification");
                 });
 
+            modelBuilder.Entity("ePermits.Models.Application", b =>
+                {
+                    b.Navigation("BuildingPermit");
+
+                    b.Navigation("CoOApp");
+
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("ePermits.Models.User", b =>
+                {
+                    b.Navigation("UserProfile");
+                });
+
+            modelBuilder.Entity("ePermits.Models.UserRole", b =>
+                {
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermit", b =>
+                {
+                    b.Navigation("AppInfo");
+
+                    b.Navigation("DesignProf");
+
+                    b.Navigation("TechDoc");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.CoOApp.CoOApp", b =>
+                {
+                    b.Navigation("CoOAppProf");
+
+                    b.Navigation("CoOAppReqDoc");
+                });
+
             modelBuilder.Entity("ePermitsApp.Entities.Province", b =>
                 {
                     b.Navigation("LGUs");
+                });
+
+            modelBuilder.Entity("ePermitsApp.Entities.RequirementCategory", b =>
+                {
+                    b.Navigation("Requirements");
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.RequirementClassification", b =>

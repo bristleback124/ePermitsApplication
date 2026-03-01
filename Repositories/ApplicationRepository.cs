@@ -52,5 +52,69 @@ namespace ePermits.Data
                 .Where(a => a.UserId == userId)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Application>> GetByUserIdDetailedAsync(int userId)
+        {
+            return await _context.Applications
+                .Include(a => a.BuildingPermit)
+                .Include(a => a.CoOApp)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
+                .Where(a => a.UserId == userId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Application>> GetDashboardDetailedAsync()
+        {
+            return await _context.Applications
+                .Include(a => a.User)
+                    .ThenInclude(u => u!.UserProfile)
+                .Include(a => a.BuildingPermit)
+                .Include(a => a.CoOApp)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
+                .OrderByDescending(a => a.UpdatedAt ?? a.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<Application?> GetByIdBuildingPermitDetailedAsync(int id)
+        {
+            return await _context.Applications
+                .Include(a => a.User)
+                    .ThenInclude(u => u!.UserProfile)
+                .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.AppInfo)
+                .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.TechDoc)
+                .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.PermitApplicationType)
+                .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.OccupancyNature)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public async Task<Application?> GetByIdCoODetailedAsync(int id)
+        {
+            return await _context.Applications
+                .Include(a => a.User)
+                    .ThenInclude(u => u!.UserProfile)
+                .Include(a => a.CoOApp)
+                    .ThenInclude(c => c!.CoOAppProf)
+                .Include(a => a.CoOApp)
+                    .ThenInclude(c => c!.CoOAppReqDoc)
+                .Include(a => a.CoOApp)
+                    .ThenInclude(c => c!.OccupancyNature)
+                .Include(a => a.CoOApp)
+                    .ThenInclude(c => c!.Province)
+                .Include(a => a.CoOApp)
+                    .ThenInclude(c => c!.Lgu)
+                .Include(a => a.CoOApp)
+                    .ThenInclude(c => c!.Barangay)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
     }
 }

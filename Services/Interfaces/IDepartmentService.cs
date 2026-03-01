@@ -14,8 +14,6 @@ namespace ePermitsApp.Services.Interfaces
         Task<PagedResult<Department>> FilterAsync(
             string? departmentName,
             string? departmentCode,
-            int? lguId,
-            string? provinceName,
             PaginationParams pagination);       
     }
 }
