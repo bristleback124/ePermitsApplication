@@ -5,6 +5,7 @@ namespace ePermits.Data
     public interface IMessageRepository
     {
         Task<Message?> GetByIdAsync(int id);
+        Task<Message?> GetDetailedByIdAsync(int id);
         Task<IEnumerable<Message>> GetByApplicationIdAsync(int applicationId);
         Task<Message> AddAsync(Message message);
         Task UpdateAsync(Message message);

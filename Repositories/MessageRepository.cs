@@ -18,11 +18,24 @@ namespace ePermits.Data
             return await _context.Messages.FindAsync(id);
         }
 
+        public async Task<Message?> GetDetailedByIdAsync(int id)
+        {
+            return await _context.Messages
+                .Include(m => m.Sender)
+                    .ThenInclude(s => s!.UserProfile)
+                .Include(m => m.Sender)
+                    .ThenInclude(s => s!.UserRole)
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
         public async Task<IEnumerable<Message>> GetByApplicationIdAsync(int applicationId)
         {
             return await _context.Messages
                 .Where(m => m.ApplicationId == applicationId)
                 .Include(m => m.Sender)
+                    .ThenInclude(s => s!.UserProfile)
+                .Include(m => m.Sender)
+                    .ThenInclude(s => s!.UserRole)
                 .OrderBy(m => m.Timestamp)
                 .ToListAsync();
         }
@@ -31,7 +44,7 @@ namespace ePermits.Data
         {
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
-            return message;
+            return await GetDetailedByIdAsync(message.Id) ?? message;
         }
 
         public async Task UpdateAsync(Message message)
@@ -53,14 +66,14 @@ namespace ePermits.Data
         public async Task<int> GetUnreadCountAsync(int applicationId, string senderType)
         {
             return await _context.Messages
-                .Where(m => m.ApplicationId == applicationId && m.SenderType != senderType && !m.IsRead)
+                .Where(m => m.ApplicationId == applicationId && m.SenderType == senderType && !m.IsRead)
                 .CountAsync();
         }
 
         public async Task MarkAsReadAsync(int applicationId, string senderType)
         {
             var messages = await _context.Messages
-                .Where(m => m.ApplicationId == applicationId && m.SenderType != senderType && !m.IsRead)
+                .Where(m => m.ApplicationId == applicationId && m.SenderType == senderType && !m.IsRead)
                 .ToListAsync();
 
             foreach (var message in messages)
