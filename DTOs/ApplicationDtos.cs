@@ -13,6 +13,27 @@ namespace ePermitsApp.DTOs
         public DateTime CreatedAt { get; set; }
     }
 
+    public class ApplicationDepartmentReviewDto
+    {
+        public int DepartmentId { get; set; }
+        public string DepartmentCode { get; set; } = string.Empty;
+        public string DepartmentName { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+    }
+
+    public class ReviewerDashboardItemDto
+    {
+        public int Id { get; set; }
+        public string FormattedId { get; set; } = string.Empty;
+        public string ProjectTitle { get; set; } = string.Empty;
+        public string Applicant { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public DateTime LastActionAt { get; set; }
+        public List<ApplicationDepartmentReviewDto> ReviewOffices { get; set; } = new();
+    }
+
     public class ApplicationBuildingPermitDetailDto
     {
         public BasicInformationDto BasicInformation { get; set; } = new();
@@ -20,6 +41,7 @@ namespace ePermitsApp.DTOs
         public OwnerInformationDto OwnerInformation { get; set; } = new();
         public RequiredDocs RequiredDocs { get; set; } = new();
         public BuildingPermitTechDocDto BuildingPermitTechDocs { get; set; } = new();
+        public List<ApplicationDepartmentReviewDto> ReviewOffices { get; set; } = new();
     }
 
     public class RequiredDocs
@@ -69,6 +91,7 @@ namespace ePermitsApp.DTOs
         public OwnerInformationDto OwnerInformation { get; set; } = new();
         public CoORequiredDocsDto RequiredDocs { get; set; } = new();
         public CoOProfessionalInfoDto ProfessionalInfo { get; set; } = new();
+        public List<ApplicationDepartmentReviewDto> ReviewOffices { get; set; } = new();
     }
 
     public class CoOProjectDetailsDto

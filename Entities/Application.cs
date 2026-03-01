@@ -20,5 +20,6 @@ namespace ePermits.Models
         public BuildingPermit? BuildingPermit { get; set; }
         public CoOApp? CoOApp { get; set; }
         public ICollection<Message>? Messages { get; set; }
+        public ICollection<ePermitsApp.Entities.ApplicationDepartmentReview> DepartmentReviews { get; set; } = new List<ePermitsApp.Entities.ApplicationDepartmentReview>();
     }
 }

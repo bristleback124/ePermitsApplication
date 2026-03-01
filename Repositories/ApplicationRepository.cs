@@ -58,7 +58,22 @@ namespace ePermits.Data
             return await _context.Applications
                 .Include(a => a.BuildingPermit)
                 .Include(a => a.CoOApp)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
                 .Where(a => a.UserId == userId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Application>> GetDashboardDetailedAsync()
+        {
+            return await _context.Applications
+                .Include(a => a.User)
+                    .ThenInclude(u => u!.UserProfile)
+                .Include(a => a.BuildingPermit)
+                .Include(a => a.CoOApp)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
+                .OrderByDescending(a => a.UpdatedAt ?? a.CreatedAt)
                 .ToListAsync();
         }
 
@@ -75,6 +90,8 @@ namespace ePermits.Data
                     .ThenInclude(b => b!.PermitApplicationType)
                 .Include(a => a.BuildingPermit)
                     .ThenInclude(b => b!.OccupancyNature)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
@@ -95,6 +112,8 @@ namespace ePermits.Data
                     .ThenInclude(c => c!.Lgu)
                 .Include(a => a.CoOApp)
                     .ThenInclude(c => c!.Barangay)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
     }

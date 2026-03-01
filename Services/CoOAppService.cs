@@ -1,5 +1,6 @@
 using AutoMapper;
 using ePermitsApp.DTOs;
+using ePermitsApp.Entities;
 using ePermitsApp.Entities.CoOApp;
 using ePermits.Models;
 using ePermitsApp.Helpers;
@@ -57,9 +58,14 @@ namespace ePermitsApp.Services
             {
                 UserId = currentUserId,
                 Type = "CertificateOfOccupancy",
-                Status = "Pending",
+                Status = "submitted",
                 CreatedAt = now,
-                CreatedBy = _currentUser.UserName ?? "System"
+                CreatedBy = _currentUser.UserName ?? "System",
+                DepartmentReviews = new List<ApplicationDepartmentReview>
+                {
+                    new() { DepartmentId = 1, Status = "In Queue", CreatedAt = now },
+                    new() { DepartmentId = 2, Status = "In Queue", CreatedAt = now },
+                }
             };
 
             if (coOApp.CoOAppProf != null)

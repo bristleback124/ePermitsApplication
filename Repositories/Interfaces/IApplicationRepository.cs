@@ -13,5 +13,6 @@ namespace ePermits.Data
         Task DeleteAsync(int id);
         Task<IEnumerable<Application>> GetByUserIdAsync(int userId);
         Task<IEnumerable<Application>> GetByUserIdDetailedAsync(int userId);
+        Task<IEnumerable<Application>> GetDashboardDetailedAsync();
     }
 }

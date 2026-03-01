@@ -1,6 +1,7 @@
 using AutoMapper;
 using ePermits.Models;
 using ePermitsApp.DTOs;
+using ePermitsApp.Entities;
 using ePermitsApp.Entities.BuildingPermit;
 using ePermitsApp.Entities.CoOApp;
 using ePermitsApp.Helpers;
@@ -18,12 +19,28 @@ namespace ePermitsApp.Mappings
                     : src.CoOApp != null ? src.CoOApp.ProjectTitle
                     : string.Empty));
 
+            CreateMap<ApplicationDepartmentReview, ApplicationDepartmentReviewDto>()
+                .ForMember(dest => dest.DepartmentCode, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentCode : string.Empty))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : string.Empty));
+
+            CreateMap<Application, ReviewerDashboardItemDto>()
+                .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle
+                    : src.CoOApp != null ? src.CoOApp.ProjectTitle
+                    : string.Empty))
+                .ForMember(dest => dest.Applicant, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null
+                    ? $"{src.User.UserProfile.FirstName} {src.User.UserProfile.LastName}".Trim()
+                    : string.Empty))
+                .ForMember(dest => dest.LastActionAt, opt => opt.MapFrom(src => src.UpdatedAt ?? src.CreatedAt))
+                .ForMember(dest => dest.ReviewOffices, opt => opt.MapFrom(src => src.DepartmentReviews));
+
             CreateMap<Application, ApplicationBuildingPermitDetailDto>()
                 .ForMember(dest => dest.BasicInformation, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.ProjectDetails, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.OwnerInformation, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.RequiredDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.AppInfo : null))
-                .ForMember(dest => dest.BuildingPermitTechDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.TechDoc : null));
+                .ForMember(dest => dest.BuildingPermitTechDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.TechDoc : null))
+                .ForMember(dest => dest.ReviewOffices, opt => opt.MapFrom(src => src.DepartmentReviews));
 
             // Mapping for BuildingPermitTechDoc
             CreateMap<BuildingPermitTechDoc, BuildingPermitTechDocDto>()
@@ -97,7 +114,8 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.ProjectDetails, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.OwnerInformation, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.RequiredDocs, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.CoOAppReqDoc : null))
-                .ForMember(dest => dest.ProfessionalInfo, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.CoOAppProf : null));
+                .ForMember(dest => dest.ProfessionalInfo, opt => opt.MapFrom(src => src.CoOApp != null ? src.CoOApp.CoOAppProf : null))
+                .ForMember(dest => dest.ReviewOffices, opt => opt.MapFrom(src => src.DepartmentReviews));
 
             CreateMap<Application, CoOProjectDetailsDto>()
                 .ForMember(dest => dest.ProjectType, opt => opt.MapFrom(src => src.Type))

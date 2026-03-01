@@ -34,6 +34,7 @@ namespace ePermitsApp.Data
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
 
         public DbSet<Application> Applications { get; set; }
+        public DbSet<ApplicationDepartmentReview> ApplicationDepartmentReviews => Set<ApplicationDepartmentReview>();
         public DbSet<Message> Messages { get; set; }
 
         public DbSet<BuildingPermit> BuildingPermits => Set<BuildingPermit>();
@@ -170,6 +171,27 @@ namespace ePermitsApp.Data
                     .WithOne(c => c.Application)
                     .HasForeignKey<CoOApp>(c => c.ApplicationId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(e => e.DepartmentReviews)
+                    .WithOne(r => r.Application)
+                    .HasForeignKey(r => r.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ApplicationDepartmentReview>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(e => new { e.ApplicationId, e.DepartmentId })
+                    .IsUnique();
+
+                entity.HasOne(e => e.Department)
+                    .WithMany()
+                    .HasForeignKey(e => e.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // User configuration

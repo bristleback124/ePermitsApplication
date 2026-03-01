@@ -1,11 +1,13 @@
 using ePermitsApp.DTOs;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ePermitsApp.Controllers
 {
     [ApiController]
     [Route("api/applications")]
+    [Authorize]
     public class ApplicationsController : ControllerBase
     {
         private readonly IApplicationService _service;
@@ -19,6 +21,13 @@ namespace ePermitsApp.Controllers
         public async Task<ActionResult<IEnumerable<ApplicationDtoShort>>> GetApplicationsByUserId(int userId)
         {
             var applications = await _service.GetApplicationsByUserIdAsync(userId);
+            return Ok(applications);
+        }
+
+        [HttpGet("reviewer-dashboard")]
+        public async Task<ActionResult<IEnumerable<ReviewerDashboardItemDto>>> GetReviewerDashboard()
+        {
+            var applications = await _service.GetReviewerDashboardAsync();
             return Ok(applications);
         }
 
