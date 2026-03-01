@@ -13,6 +13,7 @@ using ePermits.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ePermitsApp.Extensions;
 using ePermitsApp.Helpers;
 using ePermitsApp.Models;
 using Microsoft.OpenApi.Models;
@@ -21,7 +22,7 @@ namespace ePermitsApp
 {
     public class Program
     {        
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             
@@ -190,6 +191,8 @@ namespace ePermitsApp
 
             var app = builder.Build();
 
+            await app.MigrateDatabaseAsync();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -214,7 +217,7 @@ namespace ePermitsApp
             // SignalR hub
             app.MapHub<ChatHub>("/chatHub");
 
-            app.Run();
+            await app.RunAsync();
         }
     }
 }
