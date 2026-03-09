@@ -102,6 +102,79 @@ namespace ePermitsApp.DTOs
         public CoOAppReqDocCreateDto CoOAppReqDoc { get; set; } = null!;
     }
 
+    public class CoOAppEditDto
+    {
+        public int ApplicationId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string BldgPermitNo { get; set; } = string.Empty;
+        public string ProjectTitle { get; set; } = string.Empty;
+        public string? ProjLocBlock { get; set; }
+        public string ProjLocLot { get; set; } = string.Empty;
+        public string ProjLocStreet { get; set; } = string.Empty;
+        public int ProvinceId { get; set; }
+        public int LGUId { get; set; }
+        public int BarangayId { get; set; }
+        public int OccupancyNatureId { get; set; }
+        public decimal FloorArea { get; set; }
+        public int NoOfStoreys { get; set; }
+        public DateTime CompletionDate { get; set; }
+        public int ApplicantTypeId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string ContactNo { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string TIN { get; set; } = string.Empty;
+        public string MailAddress { get; set; } = string.Empty;
+        public string DigitalSignature { get; set; } = string.Empty;
+        public DateTime DateOfSignature { get; set; }
+        public CoOAppProfEditDto CoOAppProf { get; set; } = new();
+        public CoOAppReqDocEditDto CoOAppReqDoc { get; set; } = new();
+    }
+
+    public class CoOAppUpdateDto
+    {
+        [Required]
+        public string BldgPermitNo { get; set; } = string.Empty;
+        [Required]
+        public string ProjectTitle { get; set; } = string.Empty;
+        public string? ProjLocBlock { get; set; }
+        [Required]
+        public string ProjLocLot { get; set; } = string.Empty;
+        [Required]
+        public string ProjLocStreet { get; set; } = string.Empty;
+        [Required]
+        public int ProvinceId { get; set; }
+        [Required]
+        public int LGUId { get; set; }
+        [Required]
+        public int BarangayId { get; set; }
+        [Required]
+        public int OccupancyNatureId { get; set; }
+        [Required]
+        public decimal FloorArea { get; set; }
+        [Required]
+        public int NoOfStoreys { get; set; }
+        [Required]
+        public DateTime CompletionDate { get; set; }
+        [Required]
+        public int ApplicantTypeId { get; set; }
+        [Required]
+        public string FullName { get; set; } = string.Empty;
+        [Required]
+        public string ContactNo { get; set; } = string.Empty;
+        [Required]
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        public string TIN { get; set; } = string.Empty;
+        [Required]
+        public string MailAddress { get; set; } = string.Empty;
+        [Required]
+        public string DigitalSignature { get; set; } = string.Empty;
+        [Required]
+        public DateTime DateOfSignature { get; set; }
+        public CoOAppProfUpdateDto CoOAppProf { get; set; } = null!;
+        public CoOAppReqDocUpdateDto CoOAppReqDoc { get; set; } = null!;
+    }
+
     public class CoOAppProfCreateDto
     {
         [Required]
@@ -122,6 +195,14 @@ namespace ePermitsApp.DTOs
         public string EoRSpecialization { get; set; } = string.Empty;
     }
 
+    public class CoOAppProfEditDto : CoOAppProfCreateDto
+    {
+    }
+
+    public class CoOAppProfUpdateDto : CoOAppProfCreateDto
+    {
+    }
+
     public class CoOAppReqDocCreateDto
     {
         [Required]
@@ -136,6 +217,36 @@ namespace ePermitsApp.DTOs
         public IFormFile ReqDocBrgyClearance { get; set; } = null!;
         [Required]
         public IFormFile ReqDocFSIC { get; set; } = null!;
+        public IFormFile? ReqDocOthers { get; set; }
+    }
+
+    public class CoOAppReqDocEditDto
+    {
+        public FileMetadataDto ReqDocBldgPermitSPlans { get; set; } = new();
+        public FileMetadataDto ReqDocAsBuiltPlans { get; set; } = new();
+        public FileMetadataDto ReqDocConsLogbook { get; set; } = new();
+        public FileMetadataDto ReqDocConsPhotos { get; set; } = new();
+        public FileMetadataDto ReqDocBrgyClearance { get; set; } = new();
+        public FileMetadataDto ReqDocFSIC { get; set; } = new();
+        public FileMetadataDto? ReqDocOthers { get; set; }
+    }
+
+    public class CoOAppReqDocUpdateDto
+    {
+        public bool KeepReqDocBldgPermitSPlans { get; set; }
+        public bool KeepReqDocAsBuiltPlans { get; set; }
+        public bool KeepReqDocConsLogbook { get; set; }
+        public bool KeepReqDocConsPhotos { get; set; }
+        public bool KeepReqDocBrgyClearance { get; set; }
+        public bool KeepReqDocFSIC { get; set; }
+        public bool KeepReqDocOthers { get; set; }
+
+        public IFormFile? ReqDocBldgPermitSPlans { get; set; }
+        public IFormFile? ReqDocAsBuiltPlans { get; set; }
+        public IFormFile? ReqDocConsLogbook { get; set; }
+        public IFormFile? ReqDocConsPhotos { get; set; }
+        public IFormFile? ReqDocBrgyClearance { get; set; }
+        public IFormFile? ReqDocFSIC { get; set; }
         public IFormFile? ReqDocOthers { get; set; }
     }
 }

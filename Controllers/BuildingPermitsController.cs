@@ -2,12 +2,14 @@ using AutoMapper;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities.BuildingPermit;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ePermitsApp.Controllers
 {
     [ApiController]
     [Route("api/building-permits")]
+    [Authorize]
     public class BuildingPermitsController : ControllerBase
     {
         private readonly IBuildingPermitService _service;
@@ -53,6 +55,46 @@ namespace ePermitsApp.Controllers
             return CreatedAtAction(nameof(GetById),
                 new { id = buildingPermit.Id },
                 _mapper.Map<BuildingPermitDto>(buildingPermit));
+        }
+
+        [HttpGet("application/{applicationId}/edit")]
+        public async Task<ActionResult<BuildingPermitEditDto>> GetEditByApplicationId(int applicationId)
+        {
+            var buildingPermit = await _service.GetEditByApplicationIdAsync(applicationId);
+            if (buildingPermit == null)
+                return NotFound();
+
+            return Ok(buildingPermit);
+        }
+
+        [HttpGet("application/{applicationId}/form")]
+        public async Task<ActionResult<BuildingPermitEditDto>> GetFormByApplicationId(int applicationId)
+        {
+            var buildingPermit = await _service.GetFormByApplicationIdAsync(applicationId);
+            if (buildingPermit == null)
+                return NotFound();
+
+            return Ok(buildingPermit);
+        }
+
+        [HttpPut("application/{applicationId}")]
+        public async Task<IActionResult> UpdateByApplicationId(int applicationId, [FromForm] BuildingPermitUpdateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _service.UpdateByApplicationIdAsync(applicationId, dto);
+                if (!result.Success)
+                    return BadRequest(new { success = false, message = result.Message });
+
+                return Ok(new { success = true, message = result.Message, data = _mapper.Map<BuildingPermitDto>(result.BuildingPermit) });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
     }
 }

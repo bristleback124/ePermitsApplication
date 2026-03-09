@@ -2,12 +2,14 @@ using AutoMapper;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities.CoOApp;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ePermitsApp.Controllers
 {
     [ApiController]
     [Route("api/coo-apps")]
+    [Authorize]
     public class CoOAppsController : ControllerBase
     {
         private readonly ICoOAppService _service;
@@ -53,6 +55,46 @@ namespace ePermitsApp.Controllers
             return CreatedAtAction(nameof(GetById),
                 new { id = coOApp.Id },
                 _mapper.Map<CoOAppDto>(coOApp));
+        }
+
+        [HttpGet("application/{applicationId}/edit")]
+        public async Task<ActionResult<CoOAppEditDto>> GetEditByApplicationId(int applicationId)
+        {
+            var coOApp = await _service.GetEditByApplicationIdAsync(applicationId);
+            if (coOApp == null)
+                return NotFound();
+
+            return Ok(coOApp);
+        }
+
+        [HttpGet("application/{applicationId}/form")]
+        public async Task<ActionResult<CoOAppEditDto>> GetFormByApplicationId(int applicationId)
+        {
+            var coOApp = await _service.GetFormByApplicationIdAsync(applicationId);
+            if (coOApp == null)
+                return NotFound();
+
+            return Ok(coOApp);
+        }
+
+        [HttpPut("application/{applicationId}")]
+        public async Task<IActionResult> UpdateByApplicationId(int applicationId, [FromForm] CoOAppUpdateDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _service.UpdateByApplicationIdAsync(applicationId, dto);
+                if (!result.Success)
+                    return BadRequest(new { success = false, message = result.Message });
+
+                return Ok(new { success = true, message = result.Message, data = _mapper.Map<CoOAppDto>(result.CoOApp) });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
     }
 }

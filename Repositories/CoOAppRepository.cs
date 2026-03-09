@@ -42,9 +42,19 @@ namespace ePermitsApp.Repositories
         public async Task<CoOApp?> GetByIdAsync(int id)
         {
             return await _context.CoOApps
+                .Include(c => c.Application)
                 .Include(c => c.CoOAppProf)
                 .Include(c => c.CoOAppReqDoc)
                 .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<CoOApp?> GetByApplicationIdAsync(int applicationId)
+        {
+            return await _context.CoOApps
+                .Include(c => c.Application)
+                .Include(c => c.CoOAppProf)
+                .Include(c => c.CoOAppReqDoc)
+                .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
         }
 
         public async Task AddAsync(CoOApp coOApp)

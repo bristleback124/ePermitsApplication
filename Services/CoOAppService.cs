@@ -9,6 +9,7 @@ using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
+using ePermits.Data;
 
 namespace ePermitsApp.Services
 {
@@ -17,6 +18,7 @@ namespace ePermitsApp.Services
         private readonly ICoOAppRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly IUserRepository _userRepository;
         private readonly FileStorageSettings _fileSettings;
         private readonly IEmailService _emailService;
         private readonly ILogger<CoOAppService> _logger;
@@ -25,6 +27,7 @@ namespace ePermitsApp.Services
             ICoOAppRepository repository,
             IMapper mapper,
             ICurrentUserService currentUser,
+            IUserRepository userRepository,
             IOptions<FileStorageSettings> fileSettings,
             IEmailService emailService,
             ILogger<CoOAppService> logger)
@@ -32,6 +35,7 @@ namespace ePermitsApp.Services
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _userRepository = userRepository;
             _fileSettings = fileSettings.Value;
             _emailService = emailService;
             _logger = logger;
@@ -45,6 +49,28 @@ namespace ePermitsApp.Services
         public async Task<CoOApp?> GetByIdAsync(int id)
         {
             return await _repository.GetByIdAsync(id);
+        }
+
+        public async Task<CoOAppEditDto?> GetEditByApplicationIdAsync(int applicationId)
+        {
+            var coOApp = await _repository.GetByApplicationIdAsync(applicationId);
+            if (!await CanEditAsync(coOApp?.Application))
+            {
+                return null;
+            }
+
+            return coOApp == null ? null : _mapper.Map<CoOAppEditDto>(coOApp);
+        }
+
+        public async Task<CoOAppEditDto?> GetFormByApplicationIdAsync(int applicationId)
+        {
+            var coOApp = await _repository.GetByApplicationIdAsync(applicationId);
+            if (!await CanViewFormAsync(coOApp?.Application))
+            {
+                return null;
+            }
+
+            return coOApp == null ? null : _mapper.Map<CoOAppEditDto>(coOApp);
         }
 
         public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto)
@@ -115,30 +141,50 @@ namespace ePermitsApp.Services
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
 
-            // Send submission confirmation email
-            if (!string.IsNullOrEmpty(coOApp.Email))
+            return coOApp;
+        }
+
+        public async Task<(bool Success, string Message, CoOApp? CoOApp)> UpdateByApplicationIdAsync(int applicationId, CoOAppUpdateDto dto)
+        {
+            var coOApp = await _repository.GetByApplicationIdAsync(applicationId);
+            if (coOApp?.Application == null || coOApp.CoOAppProf == null || coOApp.CoOAppReqDoc == null)
             {
-                try
-                {
-                    await _emailService.SendTemplatedEmailAsync(
-                        coOApp.Email,
-                        "Your Certificate of Occupancy Application Has Been Submitted",
-                        "ApplicationSubmitted",
-                        new ApplicationSubmittedModel
-                        {
-                            ApplicantName = coOApp.FullName,
-                            ApplicationType = "Certificate of Occupancy",
-                            FormattedId = coOApp.Application.FormattedId,
-                            SubmittedAt = now
-                        });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send submission email for CoO {FormattedId}", coOApp.Application.FormattedId);
-                }
+                return (false, "Application not found", null);
             }
 
-            return coOApp;
+            if (!await CanEditAsync(coOApp.Application))
+            {
+                return (false, "This application can no longer be edited", null);
+            }
+
+            var now = DateTime.UtcNow;
+            var actor = _currentUser.UserName ?? "System";
+            var currentUserId = TryGetCurrentUserId();
+
+            _mapper.Map(dto, coOApp);
+            _mapper.Map(dto.CoOAppProf, coOApp.CoOAppProf);
+            coOApp.UpdatedAt = now;
+            coOApp.UpdatedBy = currentUserId;
+            coOApp.CoOAppProf.UpdatedAt = now;
+            coOApp.CoOAppProf.UpdatedBy = currentUserId;
+            coOApp.CoOAppReqDoc.UpdatedAt = now;
+            coOApp.CoOAppReqDoc.UpdatedBy = currentUserId;
+
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans), dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, dto.CoOAppReqDoc.KeepReqDocBldgPermitSPlans, coOApp.Id, true);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans), dto.CoOAppReqDoc.ReqDocAsBuiltPlans, dto.CoOAppReqDoc.KeepReqDocAsBuiltPlans, coOApp.Id, true);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsLogbook), dto.CoOAppReqDoc.ReqDocConsLogbook, dto.CoOAppReqDoc.KeepReqDocConsLogbook, coOApp.Id, true);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsPhotos), dto.CoOAppReqDoc.ReqDocConsPhotos, dto.CoOAppReqDoc.KeepReqDocConsPhotos, coOApp.Id, true);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBrgyClearance), dto.CoOAppReqDoc.ReqDocBrgyClearance, dto.CoOAppReqDoc.KeepReqDocBrgyClearance, coOApp.Id, true);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocFSIC), dto.CoOAppReqDoc.ReqDocFSIC, dto.CoOAppReqDoc.KeepReqDocFSIC, coOApp.Id, true);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocOthers), dto.CoOAppReqDoc.ReqDocOthers, dto.CoOAppReqDoc.KeepReqDocOthers, coOApp.Id, false);
+
+            coOApp.Application.UpdatedAt = now;
+            coOApp.Application.UpdatedBy = actor;
+
+            _repository.Update(coOApp);
+            await _repository.SaveChangesAsync();
+
+            return (true, "Application updated successfully", coOApp);
         }
 
         private async Task<string> SaveFileAsync(IFormFile file, int permitId, string subFolder)
@@ -159,6 +205,84 @@ namespace ePermitsApp.Services
             }
 
             return filePath;
+        }
+
+        private async Task UpdateSingleReqDocAsync(object target, string propertyName, IFormFile? newFile, bool keepExisting, int permitId, bool required)
+        {
+            var property = target.GetType().GetProperty(propertyName)!;
+            var currentValue = property.GetValue(target) as string;
+
+            if (newFile != null)
+            {
+                property.SetValue(target, await SaveFileAsync(newFile, permitId, "req-docs"));
+                return;
+            }
+
+            if (keepExisting && !string.IsNullOrWhiteSpace(currentValue))
+            {
+                return;
+            }
+
+            if (required)
+            {
+                throw new InvalidOperationException($"{propertyName} is required.");
+            }
+
+            property.SetValue(target, string.Empty);
+        }
+
+        private async Task<bool> CanEditAsync(Application? application)
+        {
+            if (application == null)
+            {
+                return false;
+            }
+
+            if (await IsAdminAsync())
+            {
+                return true;
+            }
+
+            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var currentUserId = TryGetCurrentUserId();
+            return currentUserId > 0 && application.UserId == currentUserId;
+        }
+
+        private async Task<bool> CanViewFormAsync(Application? application)
+        {
+            if (application == null)
+            {
+                return false;
+            }
+
+            if (await IsAdminAsync())
+            {
+                return true;
+            }
+
+            var currentUserId = TryGetCurrentUserId();
+            return currentUserId > 0 && application.UserId == currentUserId;
+        }
+
+        private async Task<bool> IsAdminAsync()
+        {
+            var currentUserId = TryGetCurrentUserId();
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            var user = await _userRepository.GetByIdAsync(currentUserId);
+            return string.Equals(user?.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private int TryGetCurrentUserId()
+        {
+            return int.TryParse(_currentUser.UserId, out var id) ? id : 0;
         }
     }
 }
