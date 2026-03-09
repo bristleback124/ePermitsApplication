@@ -11,10 +11,12 @@ namespace ePermitsApp.Controllers
     public class ApplicationsController : ControllerBase
     {
         private readonly IApplicationService _service;
+        private readonly IApplicationPdfService _pdfService;
 
-        public ApplicationsController(IApplicationService service)
+        public ApplicationsController(IApplicationService service, IApplicationPdfService pdfService)
         {
             _service = service;
+            _pdfService = pdfService;
         }
 
         [HttpGet("user/{userId}")]
@@ -106,6 +108,23 @@ namespace ePermitsApp.Controllers
                 return BadRequest(new { success = false, message = result.Message });
 
             return Ok(new { success = true, message = result.Message });
+        }
+
+        [HttpGet("{applicationId}/download-all")]
+        public async Task<IActionResult> DownloadAll(int applicationId, [FromQuery] string type)
+        {
+            if (type != "BuildingPermit" && type != "COO")
+                return BadRequest(new { success = false, message = "Invalid application type. Must be 'BuildingPermit' or 'COO'." });
+
+            try
+            {
+                var pdfBytes = await _pdfService.GenerateApplicationPdfAsync(applicationId, type);
+                return File(pdfBytes, "application/pdf", $"Application-{applicationId}-Documents.pdf");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
         }
     }
 }

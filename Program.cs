@@ -27,7 +27,9 @@ namespace ePermitsApp
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            
+
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
             // Add services to the container.
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -97,6 +99,8 @@ namespace ePermitsApp
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
             builder.Services.AddScoped<IApplicationService, ApplicationService>();
+            builder.Services.AddScoped<IDocumentDownloadService, DocumentDownloadService>();
+            builder.Services.AddScoped<IApplicationPdfService, ApplicationPdfService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
