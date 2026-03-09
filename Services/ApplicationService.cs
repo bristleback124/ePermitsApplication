@@ -3,6 +3,7 @@ using ePermits.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Helpers;
+using ePermitsApp.Models.EmailModels;
 using ePermitsApp.Services.Interfaces;
 using ePermits.Models;
 
@@ -14,17 +15,23 @@ namespace ePermitsApp.Services
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<ApplicationService> _logger;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
             IUserRepository userRepository,
             ICurrentUserService currentUserService,
-            IMapper mapper)
+            IMapper mapper,
+            IEmailService emailService,
+            ILogger<ApplicationService> logger)
         {
             _applicationRepository = applicationRepository;
             _userRepository = userRepository;
             _currentUserService = currentUserService;
             _mapper = mapper;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<ApplicationDtoShort>> GetApplicationsByUserIdAsync(int userId)
@@ -177,6 +184,8 @@ namespace ePermitsApp.Services
 
             await _applicationRepository.UpdateAsync(review.Application);
 
+            await SendStatusUpdateEmailAsync(applicationId, dto.Status);
+
             var updatedReview = await _applicationRepository.GetDepartmentReviewAsync(applicationId, departmentId);
             return updatedReview == null
                 ? (true, "Department status updated successfully", null)
@@ -202,6 +211,9 @@ namespace ePermitsApp.Services
             application.UpdatedBy = currentUser?.Username ?? "System";
 
             await _applicationRepository.UpdateAsync(application);
+
+            await SendStatusUpdateEmailAsync(applicationId, dto.Status);
+
             return (true, "Overall status updated successfully");
         }
 
@@ -268,6 +280,57 @@ namespace ePermitsApp.Services
             }
 
             reviews.RemoveAll(r => r.DepartmentId != currentUser.DepartmentId.Value);
+        }
+
+        private async Task SendStatusUpdateEmailAsync(int applicationId, string newStatus)
+        {
+            try
+            {
+                var application = await _applicationRepository.GetByIdWithApplicantInfoAsync(applicationId);
+                if (application == null) return;
+
+                string? email = null;
+                string? applicantName = null;
+                string applicationType;
+
+                if (application.Type == ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit
+                    && application.BuildingPermit?.AppInfo != null)
+                {
+                    email = application.BuildingPermit.AppInfo.Email;
+                    applicantName = application.BuildingPermit.AppInfo.FullName;
+                    applicationType = "Building Permit";
+                }
+                else if (application.Type == ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy
+                    && application.CoOApp != null)
+                {
+                    email = application.CoOApp.Email;
+                    applicantName = application.CoOApp.FullName;
+                    applicationType = "Certificate of Occupancy";
+                }
+                else
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(email)) return;
+
+                await _emailService.SendTemplatedEmailAsync(
+                    email,
+                    $"Your {applicationType} Application Status Has Been Updated",
+                    "ApplicationStatusUpdated",
+                    new ApplicationStatusUpdatedModel
+                    {
+                        ApplicantName = applicantName,
+                        ApplicationType = applicationType,
+                        FormattedId = application.FormattedId,
+                        NewStatus = newStatus,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send status update email for Application {ApplicationId}", applicationId);
+            }
         }
 
         private static void TrimDepartmentReviewsForCurrentUser(User? currentUser, List<ReviewerDashboardItemDto> items)

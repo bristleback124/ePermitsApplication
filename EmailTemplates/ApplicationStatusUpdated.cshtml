@@ -1,0 +1,45 @@
+@model ePermitsApp.Models.EmailModels.ApplicationStatusUpdatedModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background-color: #1a56db; color: white; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px 20px; background-color: #f9fafb; }
+        .content h2 { color: #1a56db; margin-top: 0; }
+        .details { background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .details p { margin: 8px 0; }
+        .label { font-weight: bold; color: #374151; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 4px; background-color: #1a56db; color: white; font-weight: bold; }
+        .footer { padding: 15px 20px; text-align: center; font-size: 12px; color: #6b7280; background-color: #f3f4f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ePermits</h1>
+        </div>
+        <div class="content">
+            <h2>Application Status Updated</h2>
+            <p>Dear @Model.ApplicantName,</p>
+            <p>The status of your <strong>@Model.ApplicationType</strong> application has been updated.</p>
+
+            <div class="details">
+                <p><span class="label">Reference Number:</span> @Model.FormattedId</p>
+                <p><span class="label">New Status:</span> <span class="status">@Model.NewStatus</span></p>
+                <p><span class="label">Updated On:</span> @Model.UpdatedAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+            </div>
+
+            <p>You can view the full details of your application through the ePermits portal.</p>
+            <p>If you have any questions, please contact your local government office.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year ePermits System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

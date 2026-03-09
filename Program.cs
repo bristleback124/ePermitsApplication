@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ePermitsApp.Extensions;
 using ePermitsApp.Helpers;
+using System.Threading.Channels;
 using ePermitsApp.Models;
 using Microsoft.OpenApi.Models;
 using RazorLight;
@@ -50,7 +51,9 @@ namespace ePermitsApp
             });
 
             builder.Services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
+            builder.Services.AddSingleton(Channel.CreateUnbounded<EmailMessage>());
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddHostedService<BackgroundEmailSender>();
 
             builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
             builder.Services.AddScoped<IProvinceService, ProvinceService>();
