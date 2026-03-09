@@ -21,7 +21,11 @@ namespace ePermitsApp.Mappings
 
             CreateMap<ApplicationDepartmentReview, ApplicationDepartmentReviewDto>()
                 .ForMember(dest => dest.DepartmentCode, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentCode : string.Empty))
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : string.Empty));
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentName : string.Empty))
+                .ForMember(dest => dest.AssignedReviewerName, opt => opt.MapFrom(src =>
+                    src.AssignedReviewer != null && src.AssignedReviewer.UserProfile != null
+                        ? $"{src.AssignedReviewer.UserProfile.FirstName} {src.AssignedReviewer.UserProfile.LastName}".Trim()
+                        : src.AssignedReviewer != null ? src.AssignedReviewer.Username : null));
 
             CreateMap<Application, ReviewerDashboardItemDto>()
                 .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src =>

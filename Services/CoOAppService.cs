@@ -57,15 +57,19 @@ namespace ePermitsApp.Services
             coOApp.Application = new Application
             {
                 UserId = currentUserId,
-                Type = "CertificateOfOccupancy",
-                Status = "submitted",
+                Type = ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy,
+                Status = ApplicationWorkflowDefinitions.OverallStatuses.Submitted,
                 CreatedAt = now,
                 CreatedBy = _currentUser.UserName ?? "System",
-                DepartmentReviews = new List<ApplicationDepartmentReview>
-                {
-                    new() { DepartmentId = 1, Status = "In Queue", CreatedAt = now },
-                    new() { DepartmentId = 2, Status = "In Queue", CreatedAt = now },
-                }
+                DepartmentReviews = ApplicationWorkflowDefinitions
+                    .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy)
+                    .Select(departmentId => new ApplicationDepartmentReview
+                    {
+                        DepartmentId = departmentId,
+                        Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
+                        CreatedAt = now
+                    })
+                    .ToList()
             };
 
             if (coOApp.CoOAppProf != null)

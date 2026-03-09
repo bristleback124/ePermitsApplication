@@ -34,6 +34,21 @@ namespace ePermits.Data
                 .ToListAsync();
         }
 
+        public async Task<List<User>> GetAssignableReviewersAsync(int departmentId)
+        {
+            return await _context.Users
+                .Include(u => u.UserRole)
+                .Include(u => u.UserProfile)
+                .Include(u => u.Department)
+                .Where(u =>
+                    u.UserRole != null &&
+                    (u.UserRole.UserRoleDesc == "admin"
+                    || (u.UserRole.UserRoleDesc == "user" && u.DepartmentId == departmentId)))
+                .OrderBy(u => u.UserProfile != null ? u.UserProfile.FirstName : u.Username)
+                .ThenBy(u => u.UserProfile != null ? u.UserProfile.LastName : u.Username)
+                .ToListAsync();
+        }
+
         public async Task<User?> GetByUsernameAsync(string username)
         {
             return await _context.Users

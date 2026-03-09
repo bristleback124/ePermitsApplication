@@ -9,7 +9,7 @@ namespace ePermits.Models
         public int UserId { get; set; } // Applicant
         public string Type { get; set; } = string.Empty; // "BuildingPermit" or "CertificateOfOccupancy"
         public string FormattedId { get; set; } = string.Empty;
-        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, etc.
+        public string Status { get; set; } = "Submitted";
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? UpdatedBy { get; set; }

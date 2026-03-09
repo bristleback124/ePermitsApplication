@@ -1,3 +1,4 @@
+using ePermitsApp.Entities;
 using ePermits.Models;
 
 namespace ePermits.Data
@@ -14,5 +15,6 @@ namespace ePermits.Data
         Task<IEnumerable<Application>> GetByUserIdAsync(int userId);
         Task<IEnumerable<Application>> GetByUserIdDetailedAsync(int userId);
         Task<IEnumerable<Application>> GetDashboardDetailedAsync();
+        Task<ApplicationDepartmentReview?> GetDepartmentReviewAsync(int applicationId, int departmentId);
     }
 }
