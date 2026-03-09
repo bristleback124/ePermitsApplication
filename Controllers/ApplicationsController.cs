@@ -31,6 +31,21 @@ namespace ePermitsApp.Controllers
             return Ok(applications);
         }
 
+        [HttpGet("status-options")]
+        public async Task<ActionResult<ApplicationStatusOptionsDto>> GetStatusOptions()
+        {
+            var options = await _service.GetStatusOptionsAsync();
+            return Ok(options);
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpGet("reviewers")]
+        public async Task<ActionResult<IEnumerable<ReviewAssignableUserDto>>> GetAssignableReviewers([FromQuery] int departmentId)
+        {
+            var reviewers = await _service.GetAssignableReviewersAsync(departmentId);
+            return Ok(reviewers);
+        }
+
         [HttpGet("building-permit/{applicationId}")]
         public async Task<ActionResult<ApplicationBuildingPermitDetailDto>> GetApplicationBuildingPermitById(int applicationId)
         {
@@ -49,6 +64,48 @@ namespace ePermitsApp.Controllers
                 return NotFound();
 
             return Ok(application);
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpPut("{applicationId}/reviews/{departmentId}/assign")]
+        public async Task<ActionResult<ApplicationDepartmentReviewDto>> AssignReviewer(int applicationId, int departmentId, [FromBody] AssignApplicationReviewerDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _service.AssignReviewerAsync(applicationId, departmentId, dto);
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message, data = result.Review });
+        }
+
+        [Authorize(Roles = "admin,user")]
+        [HttpPut("{applicationId}/reviews/{departmentId}/status")]
+        public async Task<ActionResult<ApplicationDepartmentReviewDto>> UpdateDepartmentReviewStatus(int applicationId, int departmentId, [FromBody] UpdateApplicationDepartmentReviewStatusDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _service.UpdateDepartmentReviewStatusAsync(applicationId, departmentId, dto);
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message, data = result.Review });
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpPut("{applicationId}/overall-status")]
+        public async Task<IActionResult> UpdateOverallStatus(int applicationId, [FromBody] UpdateApplicationOverallStatusDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _service.UpdateOverallStatusAsync(applicationId, dto);
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
         }
     }
 }

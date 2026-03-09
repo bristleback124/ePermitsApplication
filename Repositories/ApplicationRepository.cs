@@ -1,4 +1,5 @@
 using ePermits.Models;
+using ePermitsApp.Entities;
 using ePermitsApp.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,6 +61,9 @@ namespace ePermits.Data
                 .Include(a => a.CoOApp)
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.Department)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.AssignedReviewer)
+                        .ThenInclude(u => u!.UserProfile)
                 .Where(a => a.UserId == userId)
                 .ToListAsync();
         }
@@ -73,6 +77,9 @@ namespace ePermits.Data
                 .Include(a => a.CoOApp)
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.Department)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.AssignedReviewer)
+                        .ThenInclude(u => u!.UserProfile)
                 .OrderByDescending(a => a.UpdatedAt ?? a.CreatedAt)
                 .ToListAsync();
         }
@@ -92,6 +99,9 @@ namespace ePermits.Data
                     .ThenInclude(b => b!.OccupancyNature)
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.Department)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.AssignedReviewer)
+                        .ThenInclude(u => u!.UserProfile)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
@@ -114,7 +124,21 @@ namespace ePermits.Data
                     .ThenInclude(c => c!.Barangay)
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.Department)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.AssignedReviewer)
+                        .ThenInclude(u => u!.UserProfile)
                 .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public async Task<ApplicationDepartmentReview?> GetDepartmentReviewAsync(int applicationId, int departmentId)
+        {
+            return await _context.ApplicationDepartmentReviews
+                .Include(r => r.Application)
+                    .ThenInclude(a => a!.DepartmentReviews)
+                .Include(r => r.Department)
+                .Include(r => r.AssignedReviewer)
+                    .ThenInclude(u => u!.UserProfile)
+                .FirstOrDefaultAsync(r => r.ApplicationId == applicationId && r.DepartmentId == departmentId);
         }
     }
 }

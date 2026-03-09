@@ -57,16 +57,19 @@ namespace ePermitsApp.Services
             buildingPermit.Application = new Application
             {
                 UserId = currentUserId,
-                Type = "BuildingPermit",
-                Status = "submitted",
+                Type = ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit,
+                Status = ApplicationWorkflowDefinitions.OverallStatuses.Submitted,
                 CreatedAt = now,
                 CreatedBy = _currentUser.UserName ?? "System",
-                DepartmentReviews = new List<ApplicationDepartmentReview>
-                {
-                    new() { DepartmentId = 1, Status = "In Queue", CreatedAt = now },
-                    new() { DepartmentId = 2, Status = "In Queue", CreatedAt = now },
-                    new() { DepartmentId = 3, Status = "In Queue", CreatedAt = now },
-                }
+                DepartmentReviews = ApplicationWorkflowDefinitions
+                    .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit)
+                    .Select(departmentId => new ApplicationDepartmentReview
+                    {
+                        DepartmentId = departmentId,
+                        Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
+                        CreatedAt = now
+                    })
+                    .ToList()
             };
 
             if (buildingPermit.AppInfo != null)

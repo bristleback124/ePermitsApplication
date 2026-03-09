@@ -192,6 +192,12 @@ namespace ePermitsApp.Data
                     .WithMany()
                     .HasForeignKey(e => e.DepartmentId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.AssignedReviewer)
+                    .WithMany()
+                    .HasForeignKey(e => e.AssignedReviewerId)
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired(false);
             });
 
             // User configuration
