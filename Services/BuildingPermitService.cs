@@ -9,6 +9,7 @@ using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
+using ePermits.Data;
 
 namespace ePermitsApp.Services
 {
@@ -17,6 +18,7 @@ namespace ePermitsApp.Services
         private readonly IBuildingPermitRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly IUserRepository _userRepository;
         private readonly FileStorageSettings _fileSettings;
         private readonly IEmailService _emailService;
         private readonly ILogger<BuildingPermitService> _logger;
@@ -25,6 +27,7 @@ namespace ePermitsApp.Services
             IBuildingPermitRepository repository,
             IMapper mapper,
             ICurrentUserService currentUser,
+            IUserRepository userRepository,
             IOptions<FileStorageSettings> fileSettings,
             IEmailService emailService,
             ILogger<BuildingPermitService> logger)
@@ -32,6 +35,7 @@ namespace ePermitsApp.Services
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _userRepository = userRepository;
             _fileSettings = fileSettings.Value;
             _emailService = emailService;
             _logger = logger;
@@ -50,7 +54,7 @@ namespace ePermitsApp.Services
         public async Task<BuildingPermitEditDto?> GetEditByApplicationIdAsync(int applicationId)
         {
             var buildingPermit = await _repository.GetByApplicationIdAsync(applicationId);
-            if (!CanEdit(buildingPermit?.Application))
+            if (!await CanEditAsync(buildingPermit?.Application))
             {
                 return null;
             }
@@ -61,7 +65,7 @@ namespace ePermitsApp.Services
         public async Task<BuildingPermitEditDto?> GetFormByApplicationIdAsync(int applicationId)
         {
             var buildingPermit = await _repository.GetByApplicationIdAsync(applicationId);
-            if (!CanViewForm(buildingPermit?.Application))
+            if (!await CanViewFormAsync(buildingPermit?.Application))
             {
                 return null;
             }
@@ -161,29 +165,6 @@ namespace ePermitsApp.Services
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
 
-            // Send submission confirmation email
-            if (buildingPermit.AppInfo != null && !string.IsNullOrEmpty(buildingPermit.AppInfo.Email))
-            {
-                try
-                {
-                    await _emailService.SendTemplatedEmailAsync(
-                        buildingPermit.AppInfo.Email,
-                        "Your Building Permit Application Has Been Submitted",
-                        "ApplicationSubmitted",
-                        new ApplicationSubmittedModel
-                        {
-                            ApplicantName = buildingPermit.AppInfo.FullName,
-                            ApplicationType = "Building Permit",
-                            FormattedId = buildingPermit.Application.FormattedId,
-                            SubmittedAt = now
-                        });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send submission email for Building Permit {FormattedId}", buildingPermit.Application.FormattedId);
-                }
-            }
-
             return buildingPermit;
         }
 
@@ -195,7 +176,7 @@ namespace ePermitsApp.Services
                 return (false, "Application not found", null);
             }
 
-            if (!CanEdit(buildingPermit.Application))
+            if (!await CanEditAsync(buildingPermit.Application))
             {
                 return (false, "This application can no longer be edited", null);
             }
@@ -395,9 +376,19 @@ namespace ePermitsApp.Services
             return result;
         }
 
-        private bool CanEdit(Application? application)
+        private async Task<bool> CanEditAsync(Application? application)
         {
-            if (application == null || !string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+            if (application == null)
+            {
+                return false;
+            }
+
+            if (await IsAdminAsync())
+            {
+                return true;
+            }
+
+            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -406,15 +397,32 @@ namespace ePermitsApp.Services
             return currentUserId > 0 && application.UserId == currentUserId;
         }
 
-        private bool CanViewForm(Application? application)
+        private async Task<bool> CanViewFormAsync(Application? application)
         {
             if (application == null)
             {
                 return false;
             }
 
+            if (await IsAdminAsync())
+            {
+                return true;
+            }
+
             var currentUserId = TryGetCurrentUserId();
             return currentUserId > 0 && application.UserId == currentUserId;
+        }
+
+        private async Task<bool> IsAdminAsync()
+        {
+            var currentUserId = TryGetCurrentUserId();
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            var user = await _userRepository.GetByIdAsync(currentUserId);
+            return string.Equals(user?.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase);
         }
 
         private int TryGetCurrentUserId()

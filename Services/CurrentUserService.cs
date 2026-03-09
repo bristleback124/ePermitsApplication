@@ -21,6 +21,11 @@ namespace ePermitsApp.Services
             _httpContextAccessor.HttpContext?
                 .User?
                 .FindFirst(ClaimTypes.Name)?.Value;
+
+        public string? UserRole =>
+            _httpContextAccessor.HttpContext?
+                .User?
+                .FindFirst(ClaimTypes.Role)?.Value;
     }
 
 }

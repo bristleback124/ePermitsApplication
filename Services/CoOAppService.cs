@@ -9,6 +9,7 @@ using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
+using ePermits.Data;
 
 namespace ePermitsApp.Services
 {
@@ -17,6 +18,7 @@ namespace ePermitsApp.Services
         private readonly ICoOAppRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly IUserRepository _userRepository;
         private readonly FileStorageSettings _fileSettings;
         private readonly IEmailService _emailService;
         private readonly ILogger<CoOAppService> _logger;
@@ -25,6 +27,7 @@ namespace ePermitsApp.Services
             ICoOAppRepository repository,
             IMapper mapper,
             ICurrentUserService currentUser,
+            IUserRepository userRepository,
             IOptions<FileStorageSettings> fileSettings,
             IEmailService emailService,
             ILogger<CoOAppService> logger)
@@ -32,6 +35,7 @@ namespace ePermitsApp.Services
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _userRepository = userRepository;
             _fileSettings = fileSettings.Value;
             _emailService = emailService;
             _logger = logger;
@@ -50,7 +54,7 @@ namespace ePermitsApp.Services
         public async Task<CoOAppEditDto?> GetEditByApplicationIdAsync(int applicationId)
         {
             var coOApp = await _repository.GetByApplicationIdAsync(applicationId);
-            if (!CanEdit(coOApp?.Application))
+            if (!await CanEditAsync(coOApp?.Application))
             {
                 return null;
             }
@@ -61,7 +65,7 @@ namespace ePermitsApp.Services
         public async Task<CoOAppEditDto?> GetFormByApplicationIdAsync(int applicationId)
         {
             var coOApp = await _repository.GetByApplicationIdAsync(applicationId);
-            if (!CanViewForm(coOApp?.Application))
+            if (!await CanViewFormAsync(coOApp?.Application))
             {
                 return null;
             }
@@ -137,29 +141,6 @@ namespace ePermitsApp.Services
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
 
-            // Send submission confirmation email
-            if (!string.IsNullOrEmpty(coOApp.Email))
-            {
-                try
-                {
-                    await _emailService.SendTemplatedEmailAsync(
-                        coOApp.Email,
-                        "Your Certificate of Occupancy Application Has Been Submitted",
-                        "ApplicationSubmitted",
-                        new ApplicationSubmittedModel
-                        {
-                            ApplicantName = coOApp.FullName,
-                            ApplicationType = "Certificate of Occupancy",
-                            FormattedId = coOApp.Application.FormattedId,
-                            SubmittedAt = now
-                        });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send submission email for CoO {FormattedId}", coOApp.Application.FormattedId);
-                }
-            }
-
             return coOApp;
         }
 
@@ -171,7 +152,7 @@ namespace ePermitsApp.Services
                 return (false, "Application not found", null);
             }
 
-            if (!CanEdit(coOApp.Application))
+            if (!await CanEditAsync(coOApp.Application))
             {
                 return (false, "This application can no longer be edited", null);
             }
@@ -250,9 +231,19 @@ namespace ePermitsApp.Services
             property.SetValue(target, string.Empty);
         }
 
-        private bool CanEdit(Application? application)
+        private async Task<bool> CanEditAsync(Application? application)
         {
-            if (application == null || !string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+            if (application == null)
+            {
+                return false;
+            }
+
+            if (await IsAdminAsync())
+            {
+                return true;
+            }
+
+            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -261,15 +252,32 @@ namespace ePermitsApp.Services
             return currentUserId > 0 && application.UserId == currentUserId;
         }
 
-        private bool CanViewForm(Application? application)
+        private async Task<bool> CanViewFormAsync(Application? application)
         {
             if (application == null)
             {
                 return false;
             }
 
+            if (await IsAdminAsync())
+            {
+                return true;
+            }
+
             var currentUserId = TryGetCurrentUserId();
             return currentUserId > 0 && application.UserId == currentUserId;
+        }
+
+        private async Task<bool> IsAdminAsync()
+        {
+            var currentUserId = TryGetCurrentUserId();
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            var user = await _userRepository.GetByIdAsync(currentUserId);
+            return string.Equals(user?.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase);
         }
 
         private int TryGetCurrentUserId()

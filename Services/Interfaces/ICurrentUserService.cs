@@ -4,6 +4,7 @@
     {
         string? UserId { get; }
         string? UserName { get; }
+        string? UserRole { get; }
     }
 
 }
