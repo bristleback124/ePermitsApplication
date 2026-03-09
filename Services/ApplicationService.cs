@@ -152,6 +152,8 @@ namespace ePermitsApp.Services
 
             await _applicationRepository.UpdateAsync(review.Application!);
 
+            await SendReviewerAssignedEmailAsync(reviewer, review);
+
             var updatedReview = await _applicationRepository.GetDepartmentReviewAsync(applicationId, departmentId);
             return updatedReview == null
                 ? (true, "Reviewer assigned successfully", null)
@@ -330,6 +332,42 @@ namespace ePermitsApp.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send status update email for Application {ApplicationId}", applicationId);
+            }
+        }
+
+        private async Task SendReviewerAssignedEmailAsync(User reviewer, ApplicationDepartmentReview review)
+        {
+            try
+            {
+                var email = reviewer.UserProfile?.Email;
+                if (string.IsNullOrEmpty(email)) return;
+
+                var reviewerName = reviewer.UserProfile != null
+                    ? $"{reviewer.UserProfile.FirstName} {reviewer.UserProfile.LastName}".Trim()
+                    : reviewer.Username;
+
+                var applicationType = review.Application?.Type == ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit
+                    ? "Building Permit"
+                    : review.Application?.Type == ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy
+                        ? "Certificate of Occupancy"
+                        : "Application";
+
+                await _emailService.SendTemplatedEmailAsync(
+                    email,
+                    $"You Have Been Assigned to Review {applicationType} {review.Application?.FormattedId}",
+                    "ReviewerAssigned",
+                    new ReviewerAssignedModel
+                    {
+                        ReviewerName = reviewerName,
+                        ApplicationType = applicationType,
+                        FormattedId = review.Application?.FormattedId ?? string.Empty,
+                        DepartmentName = review.Department?.DepartmentName ?? string.Empty,
+                        AssignedAt = review.AssignedAt ?? DateTime.UtcNow
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send reviewer assigned email for Application {ApplicationId}", review.ApplicationId);
             }
         }
 
