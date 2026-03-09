@@ -152,6 +152,84 @@ namespace ePermitsApp.DTOs
         public BuildingPermitTechDocCreateDto TechDoc { get; set; } = null!;
     }
 
+    public class BuildingPermitEditDto
+    {
+        public int ApplicationId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public int PermitAppTypeId { get; set; }
+        public int OccupancyNatureId { get; set; }
+        public string ProjectTitle { get; set; } = string.Empty;
+        public int ProjectClassId { get; set; }
+        public decimal EstimatedCost { get; set; }
+        public int NoOfStoreys { get; set; }
+        public decimal FloorAreaPerStorey { get; set; }
+        public decimal TotalFloorArea { get; set; }
+        public decimal ProjectScopeLotArea { get; set; }
+        public string? PropertyAddBlock { get; set; }
+        public string PropertyAddLot { get; set; } = string.Empty;
+        public string PropertyAddStreet { get; set; } = string.Empty;
+        public int ProvinceId { get; set; }
+        public int LGUId { get; set; }
+        public int BarangayId { get; set; }
+        public decimal PropertyDetailLotArea { get; set; }
+        public string TCTNo { get; set; } = string.Empty;
+        public string TaxDeclarionNo { get; set; } = string.Empty;
+        public string? Coordinates { get; set; }
+        public string DigitalSignature { get; set; } = string.Empty;
+        public DateTime DateofSignature { get; set; }
+        public BuildingPermitAppInfoDto AppInfo { get; set; } = new();
+        public BuildingPermitDesignProfDto DesignProf { get; set; } = new();
+        public BuildingPermitTechDocDto TechDoc { get; set; } = new();
+    }
+
+    public class BuildingPermitUpdateDto
+    {
+        [Required]
+        public int PermitAppTypeId { get; set; }
+        [Required]
+        public int OccupancyNatureId { get; set; }
+        [Required]
+        public string ProjectTitle { get; set; } = string.Empty;
+        [Required]
+        public int ProjectClassId { get; set; }
+        [Required]
+        public decimal EstimatedCost { get; set; }
+        [Required]
+        public int NoOfStoreys { get; set; }
+        [Required]
+        public decimal FloorAreaPerStorey { get; set; }
+        [Required]
+        public decimal TotalFloorArea { get; set; }
+        [Required]
+        public decimal ProjectScopeLotArea { get; set; }
+        public string? PropertyAddBlock { get; set; }
+        [Required]
+        public string PropertyAddLot { get; set; } = string.Empty;
+        [Required]
+        public string PropertyAddStreet { get; set; } = string.Empty;
+        [Required]
+        public int ProvinceId { get; set; }
+        [Required]
+        public int LGUId { get; set; }
+        [Required]
+        public int BarangayId { get; set; }
+        [Required]
+        public decimal PropertyDetailLotArea { get; set; }
+        [Required]
+        public string TCTNo { get; set; } = string.Empty;
+        [Required]
+        public string TaxDeclarionNo { get; set; } = string.Empty;
+        public string? Coordinates { get; set; }
+        [Required]
+        public string DigitalSignature { get; set; } = string.Empty;
+        [Required]
+        public DateTime DateofSignature { get; set; }
+
+        public BuildingPermitAppInfoUpdateDto AppInfo { get; set; } = null!;
+        public BuildingPermitDesignProfUpdateDto DesignProf { get; set; } = null!;
+        public BuildingPermitTechDocUpdateDto TechDoc { get; set; } = null!;
+    }
+
     public class BuildingPermitAppInfoCreateDto
     {
         [Required]
@@ -177,6 +255,38 @@ namespace ePermitsApp.DTOs
         public IFormFile ReqDocTaxDeclaration { get; set; } = null!;
         [Required]
         public IFormFile ReqDocRealPropTaxReceipt { get; set; } = null!;
+        public IFormFile? ReqDocECCorCNC { get; set; }
+        public IFormFile? ReqDocSpecialClearances { get; set; }
+    }
+
+    public class BuildingPermitAppInfoUpdateDto
+    {
+        [Required]
+        public int ApplicantTypeId { get; set; }
+        [Required]
+        public string FullName { get; set; } = string.Empty;
+        [Required]
+        public string ContactNo { get; set; } = string.Empty;
+        [Required]
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        public string TIN { get; set; } = string.Empty;
+        [Required]
+        public string MailAddress { get; set; } = string.Empty;
+        [Required]
+        public int OwnershipTypeId { get; set; }
+
+        public bool KeepReqDocProofOwnership { get; set; }
+        public bool KeepReqDocBarangayClearance { get; set; }
+        public bool KeepReqDocTaxDeclaration { get; set; }
+        public bool KeepReqDocRealPropTaxReceipt { get; set; }
+        public bool KeepReqDocECCorCNC { get; set; }
+        public bool KeepReqDocSpecialClearances { get; set; }
+
+        public IFormFile? ReqDocProofOwnership { get; set; }
+        public IFormFile? ReqDocBarangayClearance { get; set; }
+        public IFormFile? ReqDocTaxDeclaration { get; set; }
+        public IFormFile? ReqDocRealPropTaxReceipt { get; set; }
         public IFormFile? ReqDocECCorCNC { get; set; }
         public IFormFile? ReqDocSpecialClearances { get; set; }
     }
@@ -229,6 +339,10 @@ namespace ePermitsApp.DTOs
         public DateTime? ContractorValidity { get; set; }
     }
 
+    public class BuildingPermitDesignProfUpdateDto : BuildingPermitDesignProfCreateDto
+    {
+    }
+
     public class BuildingPermitTechDocCreateDto
     {
         [Required]
@@ -243,6 +357,27 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection TechDocBOMCost { get; set; } = null!;
         [Required]
         public IFormFileCollection TechDocSoW { get; set; } = null!;
+        public IFormFileCollection? TechDocMEPlans { get; set; }
+        public IFormFileCollection? TechDocECEPlans { get; set; }
+    }
+
+    public class BuildingPermitTechDocUpdateDto
+    {
+        public string[] KeepTechDocIoCPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocSEPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocEEPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocSPPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocBOMCost { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocSoW { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocMEPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocECEPlans { get; set; } = Array.Empty<string>();
+
+        public IFormFileCollection? TechDocIoCPlans { get; set; }
+        public IFormFileCollection? TechDocSEPlans { get; set; }
+        public IFormFileCollection? TechDocEEPlans { get; set; }
+        public IFormFileCollection? TechDocSPPlans { get; set; }
+        public IFormFileCollection? TechDocBOMCost { get; set; }
+        public IFormFileCollection? TechDocSoW { get; set; }
         public IFormFileCollection? TechDocMEPlans { get; set; }
         public IFormFileCollection? TechDocECEPlans { get; set; }
     }

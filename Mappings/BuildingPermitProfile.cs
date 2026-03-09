@@ -54,6 +54,9 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.DesignProf, opt => opt.MapFrom(src => src.DesignProf))
                 .ForMember(dest => dest.TechDoc, opt => opt.MapFrom(src => src.TechDoc));
 
+            CreateMap<BuildingPermit, BuildingPermitEditDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Application != null ? src.Application.Status : string.Empty));
+
             CreateMap<BuildingPermitAppInfoCreateDto, BuildingPermitAppInfo>()
                 .ForMember(dest => dest.ReqDocProofOwnership, opt => opt.Ignore())
                 .ForMember(dest => dest.ReqDocBarangayClearance, opt => opt.Ignore())

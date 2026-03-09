@@ -43,10 +43,21 @@ namespace ePermitsApp.Repositories
         public async Task<BuildingPermit?> GetByIdAsync(int id)
         {
             return await _context.BuildingPermits
+                .Include(b => b.Application)
                 .Include(b => b.AppInfo)
                 .Include(b => b.DesignProf)
                 .Include(b => b.TechDoc)
                 .FirstOrDefaultAsync(b => b.Id == id);
+        }
+
+        public async Task<BuildingPermit?> GetByApplicationIdAsync(int applicationId)
+        {
+            return await _context.BuildingPermits
+                .Include(b => b.Application)
+                .Include(b => b.AppInfo)
+                .Include(b => b.DesignProf)
+                .Include(b => b.TechDoc)
+                .FirstOrDefaultAsync(b => b.ApplicationId == applicationId);
         }
 
         public async Task AddAsync(BuildingPermit buildingPermit)
