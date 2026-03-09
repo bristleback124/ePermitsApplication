@@ -170,11 +170,6 @@ namespace ePermitsApp.Services
                 return (false, "You are not allowed to update this department review", null);
             }
 
-            if (!ApplicationWorkflowDefinitions.CanTransitionDepartmentStatus(review.Status, dto.Status))
-            {
-                return (false, "Invalid department status transition", null);
-            }
-
             review.Status = dto.Status;
             review.UpdatedAt = DateTime.UtcNow;
             review.Application.UpdatedAt = DateTime.UtcNow;
