@@ -7,6 +7,7 @@ using ePermitsApp.Helpers;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
 
 namespace ePermitsApp.Services
@@ -17,17 +18,23 @@ namespace ePermitsApp.Services
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
         private readonly FileStorageSettings _fileSettings;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<CoOAppService> _logger;
 
         public CoOAppService(
             ICoOAppRepository repository,
             IMapper mapper,
             ICurrentUserService currentUser,
-            IOptions<FileStorageSettings> fileSettings)
+            IOptions<FileStorageSettings> fileSettings,
+            IEmailService emailService,
+            ILogger<CoOAppService> logger)
         {
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
             _fileSettings = fileSettings.Value;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<PagedResult<CoOApp>> GetAllAsync(PaginationParams pagination)
@@ -107,6 +114,29 @@ namespace ePermitsApp.Services
             // Update again with file paths
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
+
+            // Send submission confirmation email
+            if (!string.IsNullOrEmpty(coOApp.Email))
+            {
+                try
+                {
+                    await _emailService.SendTemplatedEmailAsync(
+                        coOApp.Email,
+                        "Your Certificate of Occupancy Application Has Been Submitted",
+                        "ApplicationSubmitted",
+                        new ApplicationSubmittedModel
+                        {
+                            ApplicantName = coOApp.FullName,
+                            ApplicationType = "Certificate of Occupancy",
+                            FormattedId = coOApp.Application.FormattedId,
+                            SubmittedAt = now
+                        });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send submission email for CoO {FormattedId}", coOApp.Application.FormattedId);
+                }
+            }
 
             return coOApp;
         }

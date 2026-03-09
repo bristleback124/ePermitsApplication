@@ -130,6 +130,15 @@ namespace ePermits.Data
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
+        public async Task<Application?> GetByIdWithApplicantInfoAsync(int id)
+        {
+            return await _context.Applications
+                .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.AppInfo)
+                .Include(a => a.CoOApp)
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
         public async Task<ApplicationDepartmentReview?> GetDepartmentReviewAsync(int applicationId, int departmentId)
         {
             return await _context.ApplicationDepartmentReviews

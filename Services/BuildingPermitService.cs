@@ -7,6 +7,7 @@ using ePermitsApp.Helpers;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
 
 namespace ePermitsApp.Services
@@ -17,17 +18,23 @@ namespace ePermitsApp.Services
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
         private readonly FileStorageSettings _fileSettings;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<BuildingPermitService> _logger;
 
         public BuildingPermitService(
             IBuildingPermitRepository repository,
             IMapper mapper,
             ICurrentUserService currentUser,
-            IOptions<FileStorageSettings> fileSettings)
+            IOptions<FileStorageSettings> fileSettings,
+            IEmailService emailService,
+            ILogger<BuildingPermitService> logger)
         {
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
             _fileSettings = fileSettings.Value;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<PagedResult<BuildingPermit>> GetAllAsync(PaginationParams pagination)
@@ -131,6 +138,29 @@ namespace ePermitsApp.Services
             _repository.Update(buildingPermit);
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
+
+            // Send submission confirmation email
+            if (buildingPermit.AppInfo != null && !string.IsNullOrEmpty(buildingPermit.AppInfo.Email))
+            {
+                try
+                {
+                    await _emailService.SendTemplatedEmailAsync(
+                        buildingPermit.AppInfo.Email,
+                        "Your Building Permit Application Has Been Submitted",
+                        "ApplicationSubmitted",
+                        new ApplicationSubmittedModel
+                        {
+                            ApplicantName = buildingPermit.AppInfo.FullName,
+                            ApplicationType = "Building Permit",
+                            FormattedId = buildingPermit.Application.FormattedId,
+                            SubmittedAt = now
+                        });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send submission email for Building Permit {FormattedId}", buildingPermit.Application.FormattedId);
+                }
+            }
 
             return buildingPermit;
         }
