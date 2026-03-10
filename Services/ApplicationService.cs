@@ -179,6 +179,7 @@ namespace ePermitsApp.Services
                 return (false, "You are not allowed to update this department review", null);
             }
 
+            var previousStatus = review.Status;
             review.Status = dto.Status;
             review.UpdatedAt = DateTime.UtcNow;
             review.Application.UpdatedAt = DateTime.UtcNow;
@@ -186,7 +187,7 @@ namespace ePermitsApp.Services
 
             await _applicationRepository.UpdateAsync(review.Application);
 
-            await SendStatusUpdateEmailAsync(applicationId, dto.Status);
+            await SendStatusUpdateEmailAsync(applicationId, dto.Status, departmentId: departmentId, previousStatus: previousStatus);
 
             var updatedReview = await _applicationRepository.GetDepartmentReviewAsync(applicationId, departmentId);
             return updatedReview == null
@@ -208,13 +209,14 @@ namespace ePermitsApp.Services
             }
 
             var currentUser = await GetCurrentUserAsync();
+            var previousStatus = application.Status;
             application.Status = dto.Status;
             application.UpdatedAt = DateTime.UtcNow;
             application.UpdatedBy = currentUser?.Username ?? "System";
 
             await _applicationRepository.UpdateAsync(application);
 
-            await SendStatusUpdateEmailAsync(applicationId, dto.Status);
+            await SendStatusUpdateEmailAsync(applicationId, dto.Status, previousStatus: previousStatus);
 
             return (true, "Overall status updated successfully");
         }
@@ -284,7 +286,7 @@ namespace ePermitsApp.Services
             reviews.RemoveAll(r => r.DepartmentId != currentUser.DepartmentId.Value);
         }
 
-        private async Task SendStatusUpdateEmailAsync(int applicationId, string newStatus)
+        private async Task SendStatusUpdateEmailAsync(int applicationId, string newStatus, int? departmentId = null, string? previousStatus = null)
         {
             try
             {
@@ -316,17 +318,43 @@ namespace ePermitsApp.Services
 
                 if (string.IsNullOrEmpty(email)) return;
 
+                // Resolve department info if a department-level update
+                string? departmentName = null;
+                string? departmentCode = null;
+                if (departmentId.HasValue)
+                {
+                    var review = await _applicationRepository.GetDepartmentReviewAsync(applicationId, departmentId.Value);
+                    departmentName = review?.Department?.DepartmentName;
+                    departmentCode = review?.Department?.DepartmentCode;
+                }
+
+                // Resolve current user's name
+                string? updatedByName = null;
+                var currentUser = await GetCurrentUserAsync();
+                if (currentUser?.UserProfile != null)
+                {
+                    updatedByName = $"{currentUser.UserProfile.FirstName} {currentUser.UserProfile.LastName}".Trim();
+                }
+
+                var subject = !string.IsNullOrEmpty(departmentName)
+                    ? $"Your {applicationType} Application Status Updated by {departmentName}"
+                    : $"Your {applicationType} Application Status Has Been Updated";
+
                 await _emailService.SendTemplatedEmailAsync(
                     email,
-                    $"Your {applicationType} Application Status Has Been Updated",
+                    subject,
                     "ApplicationStatusUpdated",
                     new ApplicationStatusUpdatedModel
                     {
                         ApplicantName = applicantName,
                         ApplicationType = applicationType,
                         FormattedId = application.FormattedId,
+                        PreviousStatus = previousStatus,
                         NewStatus = newStatus,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTime.UtcNow,
+                        DepartmentName = departmentName,
+                        DepartmentCode = departmentCode,
+                        UpdatedBy = updatedByName
                     });
             }
             catch (Exception ex)
