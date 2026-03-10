@@ -21,6 +21,7 @@ namespace ePermitsApp.Services
         private readonly IUserRepository _userRepository;
         private readonly FileStorageSettings _fileSettings;
         private readonly IEmailService _emailService;
+        private readonly IAdminEmailNotificationConfigService _adminEmailNotificationConfigService;
         private readonly ILogger<BuildingPermitService> _logger;
 
         public BuildingPermitService(
@@ -30,6 +31,7 @@ namespace ePermitsApp.Services
             IUserRepository userRepository,
             IOptions<FileStorageSettings> fileSettings,
             IEmailService emailService,
+            IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
             ILogger<BuildingPermitService> logger)
         {
             _repository = repository;
@@ -38,6 +40,7 @@ namespace ePermitsApp.Services
             _userRepository = userRepository;
             _fileSettings = fileSettings.Value;
             _emailService = emailService;
+            _adminEmailNotificationConfigService = adminEmailNotificationConfigService;
             _logger = logger;
         }
 
@@ -164,6 +167,12 @@ namespace ePermitsApp.Services
             _repository.Update(buildingPermit);
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
+
+            // Send admin notification emails
+            await SendAdminNotificationEmailsAsync(
+                buildingPermit.Application,
+                buildingPermit.AppInfo?.FullName ?? "Unknown Applicant",
+                "Building Permit");
 
             return buildingPermit;
         }
@@ -428,6 +437,36 @@ namespace ePermitsApp.Services
         private int TryGetCurrentUserId()
         {
             return int.TryParse(_currentUser.UserId, out var id) ? id : 0;
+        }
+
+        private async Task SendAdminNotificationEmailsAsync(Application app, string applicantName, string appTypeLabel)
+        {
+            try
+            {
+                var emails = await _adminEmailNotificationConfigService.GetRecipientEmailsAsync(app.Type);
+                if (emails.Count == 0) return;
+
+                var to = emails.First();
+                var cc = emails.Skip(1).ToList();
+
+                await _emailService.SendTemplatedEmailAsync(
+                    to,
+                    cc,
+                    $"New {appTypeLabel} Application: {app.FormattedId}",
+                    "AdminApplicationSubmitted",
+                    new AdminApplicationSubmittedModel
+                    {
+                        AdminName = "Admin",
+                        ApplicantName = applicantName,
+                        ApplicationType = appTypeLabel,
+                        FormattedId = app.FormattedId,
+                        SubmittedAt = app.CreatedAt
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send admin notification emails for application {FormattedId}", app.FormattedId);
+            }
         }
     }
 }

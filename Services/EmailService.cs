@@ -22,21 +22,33 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = true)
     {
+        await SendEmailAsync(to, new List<string>(), subject, body, isHtml);
+    }
+
+    public async Task SendEmailAsync(string to, List<string> cc, string subject, string body, bool isHtml = true)
+    {
         var email = new EmailMessage
         {
             To = to,
+            Cc = cc,
             Subject = subject,
             Body = body,
             IsHtml = isHtml
         };
 
         await _channel.Writer.WriteAsync(email);
-        _logger.LogInformation("Email to {To} with subject '{Subject}' enqueued", to, subject);
+        _logger.LogInformation("Email to {To} (CC: {Cc}) with subject '{Subject}' enqueued", to, string.Join(", ", cc), subject);
     }
 
     public async Task SendTemplatedEmailAsync<TModel>(string to, string subject, string templateName, TModel model)
     {
         var body = await _razorViewRenderer.RenderViewToStringAsync(templateName, model);
         await SendEmailAsync(to, subject, body);
+    }
+
+    public async Task SendTemplatedEmailAsync<TModel>(string to, List<string> cc, string subject, string templateName, TModel model)
+    {
+        var body = await _razorViewRenderer.RenderViewToStringAsync(templateName, model);
+        await SendEmailAsync(to, cc, subject, body);
     }
 }
