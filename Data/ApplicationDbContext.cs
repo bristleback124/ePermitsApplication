@@ -46,6 +46,8 @@ namespace ePermitsApp.Data
         public DbSet<CoOAppProf> CoOAppProfs => Set<CoOAppProf>();
         public DbSet<CoOAppReqDoc> CoOAppReqDocs => Set<CoOAppReqDoc>();
 
+        public DbSet<AdminEmailNotificationConfig> AdminEmailNotificationConfigs => Set<AdminEmailNotificationConfig>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Province>()
@@ -486,6 +488,19 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.ReqDocConsPhotos).IsRequired();
                 entity.Property(e => e.ReqDocBrgyClearance).IsRequired();
                 entity.Property(e => e.ReqDocFSIC).IsRequired();
+            });
+
+            // AdminEmailNotificationConfig configuration
+            modelBuilder.Entity<AdminEmailNotificationConfig>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ApplicationType).IsRequired().HasMaxLength(50);
+                entity.HasIndex(e => new { e.ApplicationType, e.UserId }).IsUnique();
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Run modular seeders (HasData calls)

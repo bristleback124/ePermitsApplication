@@ -34,6 +34,10 @@ public class BackgroundEmailSender : BackgroundService
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
                 message.To.Add(MailboxAddress.Parse(email.To));
+                foreach (var cc in email.Cc)
+                {
+                    message.Cc.Add(MailboxAddress.Parse(cc));
+                }
                 message.Subject = email.Subject;
                 message.Body = new TextPart(email.IsHtml ? "html" : "plain")
                 {
