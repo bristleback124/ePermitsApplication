@@ -144,10 +144,16 @@ namespace ePermitsApp.Services
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
 
-            // Send admin notification emails
+            // Send notification emails
+            var applicantName = coOApp.FullName ?? "Unknown Applicant";
             await SendAdminNotificationEmailsAsync(
                 coOApp.Application,
-                coOApp.FullName ?? "Unknown Applicant",
+                applicantName,
+                "Certificate of Occupancy");
+            await SendApplicantSubmissionEmailAsync(
+                coOApp.Email,
+                applicantName,
+                coOApp.Application,
                 "Certificate of Occupancy");
 
             return coOApp;
@@ -321,6 +327,30 @@ namespace ePermitsApp.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send admin notification emails for application {FormattedId}", app.FormattedId);
+            }
+        }
+
+        private async Task SendApplicantSubmissionEmailAsync(string? email, string applicantName, Application app, string appTypeLabel)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email)) return;
+
+                await _emailService.SendTemplatedEmailAsync(
+                    email,
+                    $"Your {appTypeLabel} Application Has Been Submitted — {app.FormattedId}",
+                    "ApplicationSubmitted",
+                    new ApplicationSubmittedModel
+                    {
+                        ApplicantName = applicantName,
+                        ApplicationType = appTypeLabel,
+                        FormattedId = app.FormattedId,
+                        SubmittedAt = app.CreatedAt
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send applicant submission email for application {FormattedId}", app.FormattedId);
             }
         }
     }

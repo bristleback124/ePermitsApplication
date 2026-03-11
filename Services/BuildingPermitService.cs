@@ -168,10 +168,16 @@ namespace ePermitsApp.Services
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
 
-            // Send admin notification emails
+            // Send notification emails
+            var applicantName = buildingPermit.AppInfo?.FullName ?? "Unknown Applicant";
             await SendAdminNotificationEmailsAsync(
                 buildingPermit.Application,
-                buildingPermit.AppInfo?.FullName ?? "Unknown Applicant",
+                applicantName,
+                "Building Permit");
+            await SendApplicantSubmissionEmailAsync(
+                buildingPermit.AppInfo?.Email,
+                applicantName,
+                buildingPermit.Application,
                 "Building Permit");
 
             return buildingPermit;
@@ -466,6 +472,30 @@ namespace ePermitsApp.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send admin notification emails for application {FormattedId}", app.FormattedId);
+            }
+        }
+
+        private async Task SendApplicantSubmissionEmailAsync(string? email, string applicantName, Application app, string appTypeLabel)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email)) return;
+
+                await _emailService.SendTemplatedEmailAsync(
+                    email,
+                    $"Your {appTypeLabel} Application Has Been Submitted — {app.FormattedId}",
+                    "ApplicationSubmitted",
+                    new ApplicationSubmittedModel
+                    {
+                        ApplicantName = applicantName,
+                        ApplicationType = appTypeLabel,
+                        FormattedId = app.FormattedId,
+                        SubmittedAt = app.CreatedAt
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send applicant submission email for application {FormattedId}", app.FormattedId);
             }
         }
     }
