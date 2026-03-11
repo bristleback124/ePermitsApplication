@@ -253,7 +253,7 @@ namespace ePermitsApp.Services
 
         private static bool CanUpdateDepartmentReview(User? currentUser, ApplicationDepartmentReview review)
         {
-            if (currentUser == null || review.AssignedReviewerId != currentUser.Id)
+            if (currentUser == null)
             {
                 return false;
             }
@@ -261,6 +261,11 @@ namespace ePermitsApp.Services
             if (IsAdmin(currentUser))
             {
                 return true;
+            }
+
+            if (review.AssignedReviewerId != currentUser.Id)
+            {
+                return false;
             }
 
             if (!IsDepartmentUser(currentUser) || !currentUser.DepartmentId.HasValue)
