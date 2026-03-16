@@ -253,7 +253,8 @@ namespace ePermitsApp.Services
                 return false;
             }
 
-            if (await IsAdminAsync())
+            var currentUser = await GetCurrentUserAsync();
+            if (IsGovernmentUser(currentUser))
             {
                 return true;
             }
@@ -263,7 +264,7 @@ namespace ePermitsApp.Services
                 return false;
             }
 
-            var currentUserId = TryGetCurrentUserId();
+            var currentUserId = currentUser?.Id ?? 0;
             return currentUserId > 0 && application.UserId == currentUserId;
         }
 
@@ -274,25 +275,32 @@ namespace ePermitsApp.Services
                 return false;
             }
 
-            if (await IsAdminAsync())
+            var currentUser = await GetCurrentUserAsync();
+            if (IsGovernmentUser(currentUser))
             {
                 return true;
             }
 
-            var currentUserId = TryGetCurrentUserId();
+            var currentUserId = currentUser?.Id ?? 0;
             return currentUserId > 0 && application.UserId == currentUserId;
         }
 
-        private async Task<bool> IsAdminAsync()
+        private async Task<User?> GetCurrentUserAsync()
         {
             var currentUserId = TryGetCurrentUserId();
             if (currentUserId <= 0)
             {
-                return false;
+                return null;
             }
 
-            var user = await _userRepository.GetByIdAsync(currentUserId);
-            return string.Equals(user?.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase);
+            return await _userRepository.GetByIdAsync(currentUserId);
+        }
+
+        private static bool IsGovernmentUser(User? user)
+        {
+            var role = user?.UserRole?.UserRoleDesc;
+            return string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(role, "user", StringComparison.OrdinalIgnoreCase);
         }
 
         private int TryGetCurrentUserId()

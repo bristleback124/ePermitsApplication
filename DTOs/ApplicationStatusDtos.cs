@@ -35,5 +35,6 @@ namespace ePermitsApp.DTOs
         public string Role { get; set; } = string.Empty;
         public int? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
+        public bool IsPlaceholder { get; set; }
     }
 }

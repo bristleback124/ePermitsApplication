@@ -14,9 +14,12 @@ public class FileController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetFile([FromQuery] string path)
+    public IActionResult GetFile([FromQuery] string path, [FromQuery] bool download = false)
     {
         var basePath = _configuration["FileStorage:BasePath"];
+
+        if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(basePath))
+            return BadRequest("Invalid path");
 
         var fullPath = Path.GetFullPath(path);
         var fullBasePath = Path.GetFullPath(basePath);
@@ -29,6 +32,16 @@ public class FileController : ControllerBase
             return NotFound("File not found");
 
         var mimeType = GetMimeType(fullPath);
+
+        if (download)
+        {
+            return PhysicalFile(
+                fullPath,
+                mimeType,
+                fileDownloadName: Path.GetFileName(fullPath),
+                enableRangeProcessing: true);
+        }
+
         return PhysicalFile(fullPath, mimeType, enableRangeProcessing: true);
     }
 
