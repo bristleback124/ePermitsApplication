@@ -24,9 +24,11 @@ namespace ePermitsApp.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LGUDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<LGUDto>>> GetAll([FromQuery] bool activeOnly = false)
         {
             var lgus = await _service.GetAllAsync();
+            if (activeOnly)
+                lgus = lgus.Where(x => x.IsActive);
             return Ok(_mapper.Map<IEnumerable<LGUDto>>(lgus));
         }
 
@@ -61,6 +63,7 @@ namespace ePermitsApp.Controllers
             return Ok(_mapper.Map<LGUDto>(lgu));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> Create(CreateLGUDto dto)
         {
@@ -71,6 +74,7 @@ namespace ePermitsApp.Controllers
                 _mapper.Map<LGUDto>(lgu));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, UpdateLGUDto dto)
         {
@@ -81,16 +85,25 @@ namespace ePermitsApp.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> SoftDelete(int id)
         {
-            var success = await _service.SoftDeleteAsync(id);
-            if (!success)
-                return NotFound();
+            try
+            {
+                var success = await _service.SoftDeleteAsync(id);
+                if (!success)
+                    return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
 
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost("{id}/restore")]
         public async Task<ActionResult> Restore(int id)
         {

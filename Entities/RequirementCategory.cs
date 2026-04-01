@@ -4,6 +4,8 @@
     {
         public int Id { get; set; }
         public string ReqCatDesc { get; set; } = null!;
+        public string ApplicationTypeScope { get; set; } = "Both";
+        public bool IsActive { get; set; } = true;
 
         public int ReqClassId { get; set; }
         public RequirementClassification RequirementClassification { get; set; } = null!;

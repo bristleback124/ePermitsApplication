@@ -3,6 +3,7 @@ using ePermitsApp.Entities.BuildingPermit;
 using ePermits.Models;
 using ePermitsApp.Entities.CoOApp;
 using ePermitsApp.Data.Seeders;
+using ePermitsApp.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Data
@@ -102,11 +103,21 @@ namespace ePermitsApp.Data
             modelBuilder.Entity<RequirementClassification>()
                 .HasQueryFilter(r => !r.IsDeleted);
 
+            modelBuilder.Entity<RequirementClassification>()
+                .Property(r => r.ApplicationTypeScope)
+                .HasMaxLength(50)
+                .HasDefaultValue(MaintenanceApplicationScopes.Both);
+
             modelBuilder.Entity<RequirementCategory>()
                 .HasIndex(r => new { r.ReqClassId, r.ReqCatDesc });
 
             modelBuilder.Entity<RequirementCategory>()
                 .HasQueryFilter(r => !r.IsDeleted);
+
+            modelBuilder.Entity<RequirementCategory>()
+                .Property(r => r.ApplicationTypeScope)
+                .HasMaxLength(50)
+                .HasDefaultValue(MaintenanceApplicationScopes.Both);
 
             modelBuilder.Entity<RequirementCategory>()
                 .HasOne(r => r.RequirementClassification)
@@ -119,6 +130,11 @@ namespace ePermitsApp.Data
 
             modelBuilder.Entity<Requirement>()
                 .HasQueryFilter(r => !r.IsDeleted);
+
+            modelBuilder.Entity<Requirement>()
+                .Property(r => r.ApplicationTypeScope)
+                .HasMaxLength(50)
+                .HasDefaultValue(MaintenanceApplicationScopes.Both);
 
             modelBuilder.Entity<Requirement>()
                 .HasOne(r => r.RequirementCategory)

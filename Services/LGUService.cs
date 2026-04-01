@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
@@ -14,19 +16,22 @@ namespace ePermitsApp.Services
         private readonly IBarangayRepository _barangayRepository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
 
         public LGUService(
             ILGURepository repository,
             IProvinceRepository provinceRepository,
             IBarangayRepository barangayRepository,
             IMapper mapper,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            ApplicationDbContext context)
         {
             _repository = repository;
             _provinceRepository = provinceRepository;
             _barangayRepository = barangayRepository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _context = context;
         }
 
         public async Task<IEnumerable<LGU>> GetAllAsync()
@@ -81,21 +86,23 @@ namespace ePermitsApp.Services
             if (lgu == null || lgu.IsDeleted)
                 return false;
 
-            // Block delete if Province already deleted (optional but consistent)
+            var hasReferences = await _context.BuildingPermits.AnyAsync(x => x.LGUId == id)
+                || await _context.CoOApps.AnyAsync(x => x.LGUId == id);
+            if (hasReferences)
+                throw new InvalidOperationException("This municipality is already referenced by existing applications. Deactivate it instead of deleting it.");
+
             if (lgu.Province.IsDeleted)
                 return false;
 
             var now = DateTime.UtcNow;
             var user = _currentUser.UserName ?? "System";
 
-            // Soft delete LGU
             lgu.IsDeleted = true;
             lgu.UpdatedAt = now;
             lgu.UpdatedBy = user;
 
             _repository.Update(lgu);
-                        
-            // Soft delete Barangays
+
             var barangays = await _barangayRepository.GetByLGUAsync(id);
             foreach (var barangay in barangays)
             {
@@ -115,25 +122,19 @@ namespace ePermitsApp.Services
             if (lgu == null || !lgu.IsDeleted)
                 return false;
 
-            // Prevent restore if Province is deleted
-            var province = await _provinceRepository
-                .GetByIdIncludingDeletedAsync(lgu.ProvinceId);
-
+            var province = await _provinceRepository.GetByIdIncludingDeletedAsync(lgu.ProvinceId);
             if (province == null || province.IsDeleted)
-                throw new InvalidOperationException(
-                    "Cannot restore LGU while parent Province is deleted.");
+                throw new InvalidOperationException("Cannot restore LGU while parent Province is deleted.");
 
             var now = DateTime.UtcNow;
             var user = _currentUser.UserName ?? "System";
 
-            // Restore LGU
             lgu.IsDeleted = false;
             lgu.UpdatedAt = now;
             lgu.UpdatedBy = user;
 
             _repository.Update(lgu);
 
-            // Restore Barangays
             var deletedBarangays = await _barangayRepository.GetDeletedByLGUAsync(id);
             foreach (var barangay in deletedBarangays)
             {
@@ -153,18 +154,18 @@ namespace ePermitsApp.Services
         }
 
         public async Task<IEnumerable<LGU>> GetByProvinceNameAsync(
-            string provinceName, 
+            string provinceName,
             PaginationParams pagination)
         {
             return await _repository.GetByProvinceNameAsync(provinceName, pagination);
         }
+
         public async Task<PagedResult<LGU>> FilterByProvinceNameAsync(
             string provinceName,
             PaginationParams pagination)
         {
             if (string.IsNullOrWhiteSpace(provinceName))
             {
-                // Optional: return empty result instead of querying everything
                 return new PagedResult<LGU>
                 {
                     Items = Enumerable.Empty<LGU>(),
@@ -174,9 +175,7 @@ namespace ePermitsApp.Services
                 };
             }
 
-            return await _repository.FilterByProvinceNameAsync(
-                provinceName,
-                pagination);
+            return await _repository.FilterByProvinceNameAsync(provinceName, pagination);
         }
     }
 }

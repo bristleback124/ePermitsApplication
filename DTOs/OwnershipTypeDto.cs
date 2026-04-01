@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string OwnershipTypeDesc { get; set; } = null!;
+        public bool IsActive { get; set; }
     }
 
     public class CreateOwnershipTypeDto

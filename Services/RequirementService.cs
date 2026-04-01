@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Helpers;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
@@ -43,17 +44,9 @@ namespace ePermitsApp.Services
                 throw new Exception("Requirement Category not found");
 
             var requirement = _mapper.Map<Requirement>(dto);
-
+            requirement.ApplicationTypeScope = NormalizeScope(dto.ApplicationTypeScope);
             requirement.CreatedAt = DateTime.UtcNow;
             requirement.CreatedBy = _currentUser.UserName ?? "System";
-
-            //var barangay = new Barangay
-            //{
-            //    BarangayName = dto.BarangayName,
-            //    LGUId = dto.LGUId,
-            //    CreatedAt = DateTime.UtcNow,
-            //    CreatedBy = _currentUser.UserName!
-            //};
 
             await _repository.AddAsync(requirement);
             await _repository.SaveChangesAsync();
@@ -72,7 +65,7 @@ namespace ePermitsApp.Services
                 throw new Exception("Requirement Category not found");
 
             _mapper.Map(dto, requirement);
-
+            requirement.ApplicationTypeScope = NormalizeScope(dto.ApplicationTypeScope);
             requirement.UpdatedAt = DateTime.UtcNow;
             requirement.UpdatedBy = _currentUser.UserName ?? "System";
 
@@ -100,7 +93,6 @@ namespace ePermitsApp.Services
             if (requirement == null || !requirement.IsDeleted)
                 return false;
 
-            // Prevent restore if parent Requirement Category or Requirement Classification is deleted
             if (requirement.RequirementCategory.IsDeleted || requirement.RequirementCategory.RequirementClassification.IsDeleted)
                 return false;
 
@@ -118,8 +110,15 @@ namespace ePermitsApp.Services
             string? reqClassDesc,
             PaginationParams pagination)
         {
-            return await _repository.FilterAsync(
-                reqDesc, reqCatId, reqClassDesc, pagination);
+            return await _repository.FilterAsync(reqDesc, reqCatId, reqClassDesc, pagination);
+        }
+
+        private static string NormalizeScope(string? scope)
+        {
+            if (!string.IsNullOrWhiteSpace(scope) && !MaintenanceApplicationScopes.IsValid(scope))
+                throw new InvalidOperationException("ApplicationTypeScope must be BuildingPermit, CertificateOfOccupancy, or Both.");
+
+            return MaintenanceApplicationScopes.Normalize(scope);
         }
     }
 }

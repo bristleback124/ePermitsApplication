@@ -4,6 +4,8 @@
     {
         public int Id { get; set; }
         public string ReqClassDesc { get; set; } = null!;
+        public string ApplicationTypeScope { get; set; } = "Both";
+        public bool IsActive { get; set; } = true;
 
         public ICollection<RequirementCategory> RequirementCategorys { get; set; } = new List<RequirementCategory>();
 

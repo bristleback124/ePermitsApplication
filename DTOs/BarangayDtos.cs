@@ -7,6 +7,7 @@
         public int LGUId { get; init; }
         public string LGUName { get; init; } = null!;
         public string ProvinceName { get; init; } = null!;
+        public bool IsActive { get; init; }
     }
     public class CreateBarangayDto
     {

@@ -25,9 +25,11 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProjectClassificationDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ProjectClassificationDto>>> GetAll([FromQuery] bool activeOnly = false)
         {
             var projectClassifications = await _service.GetAllAsync();
+            if (activeOnly)
+                projectClassifications = projectClassifications.Where(x => x.IsActive);
             return Ok(_mapper.Map<IEnumerable<ProjectClassificationDto>>(projectClassifications));
         }
 
@@ -41,6 +43,7 @@ namespace ePermitsApp.Controllers
             return Ok(_mapper.Map<ProjectClassificationDto>(projectClassification));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> Create(CreateProjectClassificationDto dto)
         {
@@ -51,6 +54,7 @@ namespace ePermitsApp.Controllers
                 _mapper.Map<ProjectClassificationDto>(projectClassification));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, UpdateProjectClassificationDto dto)
         {
@@ -61,16 +65,25 @@ namespace ePermitsApp.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> SoftDelete(int id)
         {
-            var success = await _service.SoftDeleteAsync(id);
-            if (!success)
-                return NotFound();
+            try
+            {
+                var success = await _service.SoftDeleteAsync(id);
+                if (!success)
+                    return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
 
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost("{id}/restore")]
         public async Task<ActionResult> Restore(int id)
         {

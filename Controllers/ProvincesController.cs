@@ -25,9 +25,11 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProvinceDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ProvinceDto>>> GetAll([FromQuery] bool activeOnly = false)
         {
             var provinces = await _service.GetAllAsync();
+            if (activeOnly)
+                provinces = provinces.Where(x => x.IsActive);
             return Ok(_mapper.Map<IEnumerable<ProvinceDto>>(provinces));
         }
 
@@ -56,6 +58,7 @@ namespace ePermitsApp.Controllers
             return Ok(_mapper.Map<ProvinceDto>(province));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> Create(CreateProvinceDto dto)
         {
@@ -66,6 +69,7 @@ namespace ePermitsApp.Controllers
                 _mapper.Map<ProvinceDto>(province));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, UpdateProvinceDto dto)
         {
@@ -76,16 +80,25 @@ namespace ePermitsApp.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> SoftDelete(int id)
         {
-            var success = await _service.SoftDeleteAsync(id);
-            if (!success)
-                return NotFound();
+            try
+            {
+                var success = await _service.SoftDeleteAsync(id);
+                if (!success)
+                    return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
 
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost("{id}/restore")]
         public async Task<ActionResult> Restore(int id)
         {

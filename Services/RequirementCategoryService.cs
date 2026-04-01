@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Helpers;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
@@ -46,7 +47,7 @@ namespace ePermitsApp.Services
                 throw new Exception("Requirement Classification not found");
 
             var reqCat = _mapper.Map<RequirementCategory>(dto);
-
+            reqCat.ApplicationTypeScope = NormalizeScope(dto.ApplicationTypeScope);
             reqCat.CreatedAt = DateTime.UtcNow;
             reqCat.CreatedBy = _currentUser.UserName ?? "System";
 
@@ -67,7 +68,7 @@ namespace ePermitsApp.Services
                 throw new Exception("Requirement Classification not found");
 
             _mapper.Map(dto, reqCat);
-
+            reqCat.ApplicationTypeScope = NormalizeScope(dto.ApplicationTypeScope);
             reqCat.UpdatedAt = DateTime.UtcNow;
             reqCat.UpdatedBy = _currentUser.UserName ?? "System";
 
@@ -81,28 +82,24 @@ namespace ePermitsApp.Services
             if (reqCat == null || reqCat.IsDeleted)
                 return false;
 
-            // Block delete if Requirement Classification already deleted (optional but consistent)
             if (reqCat.RequirementClassification.IsDeleted)
                 return false;
 
             var now = DateTime.UtcNow;
             var user = _currentUser.UserName ?? "System";
 
-            // Soft delete Requirement Category
             reqCat.IsDeleted = true;
             reqCat.UpdatedAt = now;
             reqCat.UpdatedBy = user;
 
             _repository.Update(reqCat);
 
-            // Soft delete Requirement
             var reqs = await _reqRepository.GetByReqCatAsync(id);
             foreach (var req in reqs)
             {
                 req.IsDeleted = true;
                 req.UpdatedAt = now;
                 req.UpdatedBy = user;
-
                 _reqRepository.Update(req);
             }
 
@@ -115,32 +112,25 @@ namespace ePermitsApp.Services
             if (reqCat == null || !reqCat.IsDeleted)
                 return false;
 
-            // Prevent restore if Requirement Classification is deleted
-            var reqClass = await _reqClassRepository
-                .GetByIdIncludingDeletedAsync(reqCat.ReqClassId);
-
+            var reqClass = await _reqClassRepository.GetByIdIncludingDeletedAsync(reqCat.ReqClassId);
             if (reqClass == null || reqClass.IsDeleted)
-                throw new InvalidOperationException(
-                    "Cannot restore Requirement Category while parent Requirement Classification is deleted.");
+                throw new InvalidOperationException("Cannot restore Requirement Category while parent Requirement Classification is deleted.");
 
             var now = DateTime.UtcNow;
             var user = _currentUser.UserName ?? "System";
 
-            // Restore Requirement Category
             reqCat.IsDeleted = false;
             reqCat.UpdatedAt = now;
             reqCat.UpdatedBy = user;
 
             _repository.Update(reqCat);
 
-            // Restore Requirement
             var deletedReqs = await _reqRepository.GetDeletedByReqCatAsync(id);
             foreach (var req in deletedReqs)
             {
                 req.IsDeleted = false;
                 req.UpdatedAt = now;
                 req.UpdatedBy = user;
-
                 _reqRepository.Update(req);
             }
 
@@ -158,13 +148,13 @@ namespace ePermitsApp.Services
         {
             return await _repository.GetByReqClassDescAsync(reqClassDesc, pagination);
         }
+
         public async Task<PagedResult<RequirementCategory>> FilterByReqClassDescAsync(
             string reqClassDesc,
             PaginationParams pagination)
         {
             if (string.IsNullOrWhiteSpace(reqClassDesc))
             {
-                // Optional: return empty result instead of querying everything
                 return new PagedResult<RequirementCategory>
                 {
                     Items = Enumerable.Empty<RequirementCategory>(),
@@ -174,9 +164,15 @@ namespace ePermitsApp.Services
                 };
             }
 
-            return await _repository.FilterByReqClassDescAsync(
-                reqClassDesc,
-                pagination);
+            return await _repository.FilterByReqClassDescAsync(reqClassDesc, pagination);
+        }
+
+        private static string NormalizeScope(string? scope)
+        {
+            if (!string.IsNullOrWhiteSpace(scope) && !MaintenanceApplicationScopes.IsValid(scope))
+                throw new InvalidOperationException("ApplicationTypeScope must be BuildingPermit, CertificateOfOccupancy, or Both.");
+
+            return MaintenanceApplicationScopes.Normalize(scope);
         }
     }
 }

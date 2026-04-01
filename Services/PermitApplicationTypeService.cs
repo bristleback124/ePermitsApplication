@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
@@ -12,15 +14,18 @@ namespace ePermitsApp.Services
         private readonly IPermitApplicationTypeRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
 
         public PermitApplicationTypeService(
             IPermitApplicationTypeRepository repository,
             IMapper mapper,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            ApplicationDbContext context)
         {
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _context = context;
         }
 
         public async Task<IEnumerable<PermitApplicationType>> GetAllAsync()
@@ -67,6 +72,10 @@ namespace ePermitsApp.Services
             if (permitApplicationType == null)
                 return false;
 
+            var hasReferences = await _context.BuildingPermits.AnyAsync(x => x.PermitAppTypeId == id);
+            if (hasReferences)
+                throw new InvalidOperationException("This type of application is already referenced by existing applications. Deactivate it instead of deleting it.");
+
             permitApplicationType.IsDeleted = true;
             permitApplicationType.UpdatedAt = DateTime.UtcNow;
             permitApplicationType.UpdatedBy = _currentUser.UserName ?? "System";
@@ -74,6 +83,7 @@ namespace ePermitsApp.Services
             _repository.Update(permitApplicationType);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<bool> RestoreAsync(int id)
         {
             var permitApplicationType = await _repository.GetByIdIncludingDeletedAsync(id);
@@ -87,12 +97,14 @@ namespace ePermitsApp.Services
             _repository.Update(permitApplicationType);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<PermitApplicationType>> GetByNameAsync(
             string permitAppTypeDesc,
             PaginationParams pagination)
         {
             return await _repository.GetByNameAsync(permitAppTypeDesc, pagination);
         }
+
         public async Task<PagedResult<PermitApplicationType>> FilterByNameAsync(
             string permitAppTypeDesc,
             PaginationParams pagination)
