@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string ApplicantTypeDesc { get; set; } = null!;
+        public bool IsActive { get; set; } = true;
 
         public string CreatedBy { get; set; } = null!;
         public DateTime CreatedAt { get; set; }

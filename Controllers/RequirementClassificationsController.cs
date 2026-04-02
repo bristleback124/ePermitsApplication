@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Helpers;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -26,9 +27,54 @@ namespace ePermitsApp.Controllers
 
         [AllowAnonymous]
         [HttpGet("hierarchy")]
-        public async Task<ActionResult<IEnumerable<RequirementClassificationHierarchyDto>>> GetHierarchy()
+        public async Task<ActionResult<IEnumerable<RequirementClassificationHierarchyDto>>> GetHierarchy(
+            [FromQuery] string? applicationType = null,
+            [FromQuery] bool activeOnly = true)
         {
             var classifications = await _service.GetAllWithHierarchyAsync();
+            if (activeOnly)
+            {
+                classifications = classifications
+                    .Where(c => c.IsActive)
+                    .Select(c =>
+                    {
+                        c.RequirementCategorys = c.RequirementCategorys
+                            .Where(cat => cat.IsActive)
+                            .Select(cat =>
+                            {
+                                cat.Requirements = cat.Requirements
+                                    .Where(req => req.IsActive)
+                                    .ToList();
+                                return cat;
+                            })
+                            .ToList();
+                        return c;
+                    })
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(applicationType))
+            {
+                classifications = classifications
+                    .Where(c => MaintenanceApplicationScopes.Matches(c.ApplicationTypeScope, applicationType))
+                    .Select(c =>
+                    {
+                        c.RequirementCategorys = c.RequirementCategorys
+                            .Where(cat => MaintenanceApplicationScopes.Matches(cat.ApplicationTypeScope, applicationType))
+                            .Select(cat =>
+                            {
+                                cat.Requirements = cat.Requirements
+                                    .Where(req => MaintenanceApplicationScopes.Matches(req.ApplicationTypeScope, applicationType))
+                                    .ToList();
+                                return cat;
+                            })
+                            .Where(cat => cat.Requirements.Count > 0)
+                            .ToList();
+                        return c;
+                    })
+                    .Where(c => c.RequirementCategorys.Count > 0)
+                    .ToList();
+            }
             return Ok(_mapper.Map<IEnumerable<RequirementClassificationHierarchyDto>>(classifications));
         }
 
@@ -49,6 +95,7 @@ namespace ePermitsApp.Controllers
             return Ok(_mapper.Map<RequirementClassificationDto>(reqClassification));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> Create(CreateRequirementClassificationDto dto)
         {
@@ -59,6 +106,7 @@ namespace ePermitsApp.Controllers
                 _mapper.Map<RequirementClassificationDto>(reqClassification));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, UpdateRequirementClassificationDto dto)
         {
@@ -69,16 +117,25 @@ namespace ePermitsApp.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> SoftDelete(int id)
         {
-            var success = await _service.SoftDeleteAsync(id);
-            if (!success)
-                return NotFound();
+            try
+            {
+                var success = await _service.SoftDeleteAsync(id);
+                if (!success)
+                    return NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
 
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost("{id}/restore")]
         public async Task<ActionResult> Restore(int id)
         {

@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Helpers;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
@@ -39,7 +40,7 @@ namespace ePermitsApp.Services
         public async Task<RequirementClassification> CreateAsync(CreateRequirementClassificationDto dto)
         {
             var reqClass = _mapper.Map<RequirementClassification>(dto);
-
+            reqClass.ApplicationTypeScope = NormalizeScope(dto.ApplicationTypeScope);
             reqClass.CreatedAt = DateTime.UtcNow;
             reqClass.CreatedBy = _currentUser.UserName ?? "System";
 
@@ -56,7 +57,7 @@ namespace ePermitsApp.Services
                 return false;
 
             _mapper.Map(dto, reqClass);
-
+            reqClass.ApplicationTypeScope = NormalizeScope(dto.ApplicationTypeScope);
             reqClass.UpdatedAt = DateTime.UtcNow;
             reqClass.UpdatedBy = _currentUser.UserName ?? "System";
 
@@ -77,6 +78,7 @@ namespace ePermitsApp.Services
             _repository.Update(reqClass);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<bool> RestoreAsync(int id)
         {
             var reqClass = await _repository.GetByIdIncludingDeletedAsync(id);
@@ -87,8 +89,7 @@ namespace ePermitsApp.Services
             reqClass.UpdatedAt = DateTime.UtcNow;
             reqClass.UpdatedBy = _currentUser.UserName ?? "System";
 
-           // Cascade restore RequirementCategory
-           var reqCats = await _reqCatRepository.GetByReqClassIncludingDeletedAsync(id);
+            var reqCats = await _reqCatRepository.GetByReqClassIncludingDeletedAsync(id);
             foreach (var reqCat in reqCats.Where(r => r.IsDeleted))
             {
                 reqCat.IsDeleted = false;
@@ -99,12 +100,14 @@ namespace ePermitsApp.Services
             _repository.Update(reqClass);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<RequirementClassification>> GetByNameAsync(
             string reqClassDesc,
             PaginationParams pagination)
         {
             return await _repository.GetByNameAsync(reqClassDesc, pagination);
         }
+
         public async Task<PagedResult<RequirementClassification>> FilterByNameAsync(
             string reqClassDesc,
             PaginationParams pagination)
@@ -115,6 +118,14 @@ namespace ePermitsApp.Services
         public async Task<IEnumerable<RequirementClassification>> GetAllWithHierarchyAsync()
         {
             return await _repository.GetAllWithHierarchyAsync();
+        }
+
+        private static string NormalizeScope(string? scope)
+        {
+            if (!string.IsNullOrWhiteSpace(scope) && !MaintenanceApplicationScopes.IsValid(scope))
+                throw new InvalidOperationException("ApplicationTypeScope must be BuildingPermit, CertificateOfOccupancy, or Both.");
+
+            return MaintenanceApplicationScopes.Normalize(scope);
         }
     }
 }

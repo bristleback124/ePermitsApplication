@@ -1,26 +1,32 @@
 using AutoMapper;
 using ePermits.Data;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Helpers;
 using ePermitsApp.Models.EmailModels;
 using ePermitsApp.Services.Interfaces;
 using ePermits.Models;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ePermitsApp.Services
 {
     public class ApplicationService : IApplicationService
     {
+        private const int DepartmentUserRoleId = 2;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserRepository _userRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly ILogger<ApplicationService> _logger;
+        private readonly ApplicationDbContext _dbContext;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
             IUserRepository userRepository,
+            ApplicationDbContext dbContext,
             ICurrentUserService currentUserService,
             IMapper mapper,
             IEmailService emailService,
@@ -28,6 +34,7 @@ namespace ePermitsApp.Services
         {
             _applicationRepository = applicationRepository;
             _userRepository = userRepository;
+            _dbContext = dbContext;
             _currentUserService = currentUserService;
             _mapper = mapper;
             _emailService = emailService;
@@ -101,8 +108,10 @@ namespace ePermitsApp.Services
 
         public async Task<IEnumerable<ReviewAssignableUserDto>> GetAssignableReviewersAsync(int departmentId)
         {
+            await EnsureDummyReviewersAsync(departmentId);
+
             var users = await _userRepository.GetAssignableReviewersAsync(departmentId);
-            return users.Select(u => new ReviewAssignableUserDto
+            var reviewers = users.Select(u => new ReviewAssignableUserDto
             {
                 Id = u.Id,
                 Username = u.Username,
@@ -111,8 +120,11 @@ namespace ePermitsApp.Services
                     : u.Username,
                 Role = u.UserRole?.UserRoleDesc ?? string.Empty,
                 DepartmentId = u.DepartmentId,
-                DepartmentName = u.Department?.DepartmentName
-            });
+                DepartmentName = u.Department?.DepartmentName,
+                IsPlaceholder = false
+            }).ToList();
+
+            return reviewers;
         }
 
         public async Task<(bool Success, string Message, ApplicationDepartmentReviewDto? Review)> AssignReviewerAsync(int applicationId, int departmentId, AssignApplicationReviewerDto dto)
@@ -231,6 +243,83 @@ namespace ePermitsApp.Services
             return await _userRepository.GetByIdAsync(userId);
         }
 
+        private async Task EnsureDummyReviewersAsync(int departmentId)
+        {
+            var reviewers = departmentId switch
+            {
+                ApplicationWorkflowDefinitions.DepartmentIds.OBO => new[]
+                {
+                    new DummyReviewerSeed("obo.rosa", "Rosa", "Martinez (OBO)", "obo.rosa@epermits.local", "09170001001"),
+                    new DummyReviewerSeed("obo.miguel", "Miguel", "Torres (OBO)", "obo.miguel@epermits.local", "09170001002"),
+                    new DummyReviewerSeed("obo.elena", "Elena", "Rodriguez (OBO)", "obo.elena@epermits.local", "09170001003"),
+                    new DummyReviewerSeed("obo.andres", "Andres", "Villanueva (OBO)", "obo.andres@epermits.local", "09170001004"),
+                    new DummyReviewerSeed("obo.carla", "Carla", "Domingo (OBO)", "obo.carla@epermits.local", "09170001005"),
+                },
+                ApplicationWorkflowDefinitions.DepartmentIds.CPDO => new[]
+                {
+                    new DummyReviewerSeed("cpdo.pedro", "Pedro", "Cruz (CPDO)", "cpdo.pedro@epermits.local", "09170002001"),
+                    new DummyReviewerSeed("cpdo.ana", "Ana", "Lopez (CPDO)", "cpdo.ana@epermits.local", "09170002002"),
+                    new DummyReviewerSeed("cpdo.carlos", "Carlos", "Wang (CPDO)", "cpdo.carlos@epermits.local", "09170002003"),
+                    new DummyReviewerSeed("cpdo.lianne", "Lianne", "Fernandez (CPDO)", "cpdo.lianne@epermits.local", "09170002004"),
+                    new DummyReviewerSeed("cpdo.marco", "Marco", "Reyes (CPDO)", "cpdo.marco@epermits.local", "09170002005"),
+                },
+                ApplicationWorkflowDefinitions.DepartmentIds.BFP => new[]
+                {
+                    new DummyReviewerSeed("bfp.maria", "Maria", "Santos (BFP)", "bfp.maria@epermits.local", "09170003001"),
+                    new DummyReviewerSeed("bfp.john", "John", "Doe (BFP)", "bfp.john@epermits.local", "09170003002"),
+                    new DummyReviewerSeed("bfp.lisa", "Lisa", "Garcia (BFP)", "bfp.lisa@epermits.local", "09170003003"),
+                    new DummyReviewerSeed("bfp.kevin", "Kevin", "Ramos (BFP)", "bfp.kevin@epermits.local", "09170003004"),
+                    new DummyReviewerSeed("bfp.nina", "Nina", "Aquino (BFP)", "bfp.nina@epermits.local", "09170003005"),
+                },
+                _ => Array.Empty<DummyReviewerSeed>()
+            };
+
+            if (reviewers.Length == 0)
+            {
+                return;
+            }
+
+            foreach (var reviewer in reviewers)
+            {
+                var existingUser = await _userRepository.GetByUsernameAsync(reviewer.Username);
+                if (existingUser != null)
+                {
+                    continue;
+                }
+
+                var user = new User
+                {
+                    Username = reviewer.Username,
+                    Password = HashPassword("password123"),
+                    UserRoleId = DepartmentUserRoleId,
+                    DepartmentId = departmentId,
+                    CreatedBy = "System",
+                    CreatedAt = DateTime.UtcNow,
+                    UserProfile = new UserProfile
+                    {
+                        FirstName = reviewer.FirstName,
+                        MiddleName = string.Empty,
+                        LastName = reviewer.LastName,
+                        Email = reviewer.Email,
+                        MobileNo = reviewer.MobileNo,
+                        CreatedBy = "System",
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                _dbContext.Users.Add(user);
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        private static string HashPassword(string password)
+        {
+            using var sha256 = SHA256.Create();
+            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(hashedBytes);
+        }
+
         private static bool IsDepartmentUser(User? user)
         {
             return string.Equals(user?.UserRole?.UserRoleDesc, "user", StringComparison.OrdinalIgnoreCase);
@@ -240,6 +329,13 @@ namespace ePermitsApp.Services
         {
             return string.Equals(user?.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase);
         }
+
+        private sealed record DummyReviewerSeed(
+            string Username,
+            string FirstName,
+            string LastName,
+            string Email,
+            string MobileNo);
 
         private static bool CanAccessApplication(User? currentUser, Application application)
         {

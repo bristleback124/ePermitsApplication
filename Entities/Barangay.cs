@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string BarangayName { get; set; } = null!;
+        public bool IsActive { get; set; } = true;
 
         public int LGUId { get; set; }
         public LGU LGU { get; set; } = null!;

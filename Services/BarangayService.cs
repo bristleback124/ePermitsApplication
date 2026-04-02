@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
@@ -13,17 +15,20 @@ namespace ePermitsApp.Services
         private readonly ILGURepository _lguRepository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
 
         public BarangayService(
             IBarangayRepository repository,
             ILGURepository lguRepository,
             IMapper mapper,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            ApplicationDbContext context)
         {
             _repository = repository;
             _lguRepository = lguRepository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _context = context;
         }
 
         public async Task<IEnumerable<Barangay>> GetAllAsync()
@@ -47,14 +52,6 @@ namespace ePermitsApp.Services
             barangay.CreatedAt = DateTime.UtcNow;
             barangay.CreatedBy = _currentUser.UserName ?? "System";
 
-            //var barangay = new Barangay
-            //{
-            //    BarangayName = dto.BarangayName,
-            //    LGUId = dto.LGUId,
-            //    CreatedAt = DateTime.UtcNow,
-            //    CreatedBy = _currentUser.UserName!
-            //};
-
             await _repository.AddAsync(barangay);
             await _repository.SaveChangesAsync();
 
@@ -64,7 +61,7 @@ namespace ePermitsApp.Services
         public async Task<bool> UpdateAsync(int id, UpdateBarangayDto dto)
         {
             var barangay = await _repository.GetByIdAsync(id);
-            if (barangay == null) 
+            if (barangay == null)
                 return false;
 
             var lguExists = await _lguRepository.GetByIdAsync(dto.LGUId);
@@ -83,8 +80,13 @@ namespace ePermitsApp.Services
         public async Task<bool> SoftDeleteAsync(int id)
         {
             var barangay = await _repository.GetByIdAsync(id);
-            if (barangay == null) 
+            if (barangay == null)
                 return false;
+
+            var hasReferences = await _context.BuildingPermits.AnyAsync(x => x.BarangayId == id)
+                || await _context.CoOApps.AnyAsync(x => x.BarangayId == id);
+            if (hasReferences)
+                throw new InvalidOperationException("This barangay is already referenced by existing applications. Deactivate it instead of deleting it.");
 
             barangay.IsDeleted = true;
             barangay.UpdatedAt = DateTime.UtcNow;
@@ -97,10 +99,9 @@ namespace ePermitsApp.Services
         public async Task<bool> RestoreAsync(int id)
         {
             var barangay = await _repository.GetByIdIncludingDeletedAsync(id);
-            if (barangay == null || !barangay.IsDeleted) 
+            if (barangay == null || !barangay.IsDeleted)
                 return false;
 
-            // Prevent restore if parent LGU or Province is deleted
             if (barangay.LGU.IsDeleted || barangay.LGU.Province.IsDeleted)
                 return false;
 
@@ -118,8 +119,7 @@ namespace ePermitsApp.Services
             string? provinceName,
             PaginationParams pagination)
         {
-            return await _repository.FilterAsync(
-                barangayName, lguId, provinceName, pagination);
+            return await _repository.FilterAsync(barangayName, lguId, provinceName, pagination);
         }
     }
 }

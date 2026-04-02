@@ -6,6 +6,7 @@
         public string LGUName { get; set; } = null!;
         public int ProvinceId { get; set; }
         public string ProvinceName { get; set; } = null!;
+        public bool IsActive { get; set; }
     }
 
     public class CreateLGUDto

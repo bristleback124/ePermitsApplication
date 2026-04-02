@@ -87,6 +87,7 @@ namespace ePermitsApp
             builder.Services.AddScoped<ICoOAppService, CoOAppService>();
             builder.Services.AddScoped<IAdminEmailNotificationConfigRepository, AdminEmailNotificationConfigRepository>();
             builder.Services.AddScoped<IAdminEmailNotificationConfigService, AdminEmailNotificationConfigService>();
+            builder.Services.AddScoped<IAdminMaintenanceService, AdminMaintenanceService>();
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();

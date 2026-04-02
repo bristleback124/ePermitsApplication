@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
@@ -12,15 +14,18 @@ namespace ePermitsApp.Services
         private readonly IOwnershipTypeRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
 
         public OwnershipTypeService(
             IOwnershipTypeRepository repository,
             IMapper mapper,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            ApplicationDbContext context)
         {
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _context = context;
         }
 
         public async Task<IEnumerable<OwnershipType>> GetAllAsync()
@@ -67,6 +72,10 @@ namespace ePermitsApp.Services
             if (ownershipType == null)
                 return false;
 
+            var hasReferences = await _context.BuildingPermitAppInfos.AnyAsync(x => x.OwnershipTypeId == id);
+            if (hasReferences)
+                throw new InvalidOperationException("This ownership type is already referenced by existing applications. Deactivate it instead of deleting it.");
+
             ownershipType.IsDeleted = true;
             ownershipType.UpdatedAt = DateTime.UtcNow;
             ownershipType.UpdatedBy = _currentUser.UserName ?? "System";
@@ -74,6 +83,7 @@ namespace ePermitsApp.Services
             _repository.Update(ownershipType);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<bool> RestoreAsync(int id)
         {
             var ownershipType = await _repository.GetByIdIncludingDeletedAsync(id);
@@ -87,12 +97,14 @@ namespace ePermitsApp.Services
             _repository.Update(ownershipType);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<OwnershipType>> GetByNameAsync(
             string ownershipTypeDesc,
             PaginationParams pagination)
         {
             return await _repository.GetByNameAsync(ownershipTypeDesc, pagination);
         }
+
         public async Task<PagedResult<OwnershipType>> FilterByNameAsync(
             string ownershipTypeDesc,
             PaginationParams pagination)

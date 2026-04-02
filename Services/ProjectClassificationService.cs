@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
@@ -12,15 +14,18 @@ namespace ePermitsApp.Services
         private readonly IProjectClassificationRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
 
         public ProjectClassificationService(
             IProjectClassificationRepository repository,
             IMapper mapper,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            ApplicationDbContext context)
         {
             _repository = repository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _context = context;
         }
 
         public async Task<IEnumerable<ProjectClassification>> GetAllAsync()
@@ -67,6 +72,10 @@ namespace ePermitsApp.Services
             if (projectClassification == null)
                 return false;
 
+            var hasReferences = await _context.BuildingPermits.AnyAsync(x => x.ProjectClassId == id);
+            if (hasReferences)
+                throw new InvalidOperationException("This project classification is already referenced by existing applications. Deactivate it instead of deleting it.");
+
             projectClassification.IsDeleted = true;
             projectClassification.UpdatedAt = DateTime.UtcNow;
             projectClassification.UpdatedBy = _currentUser.UserName ?? "System";
@@ -74,6 +83,7 @@ namespace ePermitsApp.Services
             _repository.Update(projectClassification);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<bool> RestoreAsync(int id)
         {
             var projectClassification = await _repository.GetByIdIncludingDeletedAsync(id);
@@ -87,12 +97,14 @@ namespace ePermitsApp.Services
             _repository.Update(projectClassification);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<ProjectClassification>> GetByNameAsync(
             string projectClassDesc,
             PaginationParams pagination)
         {
             return await _repository.GetByNameAsync(projectClassDesc, pagination);
         }
+
         public async Task<PagedResult<ProjectClassification>> FilterByNameAsync(
             string projectClassDesc,
             PaginationParams pagination)

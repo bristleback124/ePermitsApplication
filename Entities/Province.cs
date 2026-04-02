@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string ProvinceName { get; set; } = null!;
+        public bool IsActive { get; set; } = true;
 
         public ICollection<LGU> LGUs { get; set; } = new List<LGU>();
 

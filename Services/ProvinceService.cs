@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
+using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Repositories;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
@@ -13,17 +15,20 @@ namespace ePermitsApp.Services
         private readonly ILGURepository _lguRepository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
+        private readonly ApplicationDbContext _context;
 
         public ProvinceService(
             IProvinceRepository repository,
             ILGURepository lguRepository,
             IMapper mapper,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            ApplicationDbContext context)
         {
             _repository = repository;
             _lguRepository = lguRepository;
             _mapper = mapper;
             _currentUser = currentUser;
+            _context = context;
         }
 
         public async Task<IEnumerable<Province>> GetAllAsync()
@@ -70,6 +75,11 @@ namespace ePermitsApp.Services
             if (province == null)
                 return false;
 
+            var hasReferences = await _context.BuildingPermits.AnyAsync(x => x.ProvinceId == id)
+                || await _context.CoOApps.AnyAsync(x => x.ProvinceId == id);
+            if (hasReferences)
+                throw new InvalidOperationException("This province is already referenced by existing applications. Deactivate it instead of deleting it.");
+
             province.IsDeleted = true;
             province.UpdatedAt = DateTime.UtcNow;
             province.UpdatedBy = _currentUser.UserName ?? "System";
@@ -77,6 +87,7 @@ namespace ePermitsApp.Services
             _repository.Update(province);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<bool> RestoreAsync(int id)
         {
             var province = await _repository.GetByIdIncludingDeletedAsync(id);
@@ -87,7 +98,6 @@ namespace ePermitsApp.Services
             province.UpdatedAt = DateTime.UtcNow;
             province.UpdatedBy = _currentUser.UserName ?? "System";
 
-            // Cascade restore LGUs
             var lgus = await _lguRepository.GetByProvinceIncludingDeletedAsync(id);
             foreach (var lgu in lgus.Where(l => l.IsDeleted))
             {
@@ -99,12 +109,14 @@ namespace ePermitsApp.Services
             _repository.Update(province);
             return await _repository.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<Province>> GetByNameAsync(
             string provinceName,
             PaginationParams pagination)
         {
             return await _repository.GetByNameAsync(provinceName, pagination);
         }
+
         public async Task<PagedResult<Province>> FilterByNameAsync(
             string provinceName,
             PaginationParams pagination)

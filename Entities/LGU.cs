@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string LGUName { get; set; } = null!;
+        public bool IsActive { get; set; } = true;
 
         public int ProvinceId { get; set; }
         public Province Province { get; set; } = null!;
