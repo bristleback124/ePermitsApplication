@@ -29,7 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. An assigned reviewer-side user can only retrieve unread applicant chat activity for applications they are authorized to review under existing assignment rules.
   3. Opening or marking one application chat as read clears only that actor's opposite-side unread state for that application and leaves unrelated applications unchanged.
   4. Unauthorized users cannot observe or clear unread chat state for applications outside their existing access scope.
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md - Add the Phase 1 backend test project, fixture host, and failing unread-scope tests
+- [ ] 01-02-PLAN.md - Add recipient-state persistence, migration, and recipient-aware repository contracts
+- [ ] 01-03-PLAN.md - Implement canonical unread scope in ChatService and keep controller contracts stable
 
 ### Phase 2: Unread Persistence Foundations
 **Goal**: New chat messages immediately create the correct unread state for the opposite side through the existing chat, assignment, authorization, DTO, and repository patterns.
