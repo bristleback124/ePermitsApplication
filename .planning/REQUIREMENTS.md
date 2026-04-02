@@ -55,23 +55,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CHAT-01 | Unmapped | Pending |
-| CHAT-02 | Unmapped | Pending |
-| CHAT-03 | Unmapped | Pending |
-| NOTF-01 | Unmapped | Pending |
-| NOTF-02 | Unmapped | Pending |
-| NOTF-03 | Unmapped | Pending |
-| BADG-01 | Unmapped | Pending |
-| BADG-02 | Unmapped | Pending |
-| INTE-01 | Unmapped | Pending |
-| INTE-02 | Unmapped | Pending |
-| INTE-03 | Unmapped | Pending |
+| CHAT-01 | Phase 1 | Pending |
+| CHAT-02 | Phase 1 | Pending |
+| CHAT-03 | Phase 1 | Pending |
+| NOTF-01 | Phase 3 | Pending |
+| NOTF-02 | Phase 3 | Pending |
+| NOTF-03 | Phase 3 | Pending |
+| BADG-01 | Phase 4 | Pending |
+| BADG-02 | Phase 4 | Pending |
+| INTE-01 | Phase 2 | Pending |
+| INTE-02 | Phase 2 | Pending |
+| INTE-03 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-02 after initial definition*
+*Last updated: 2026-04-02 after roadmap creation*
