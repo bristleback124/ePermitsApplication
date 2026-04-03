@@ -437,14 +437,31 @@ namespace ePermitsApp.Services
                     updatedByName = $"{currentUser.UserProfile.FirstName} {currentUser.UserProfile.LastName}".Trim();
                 }
 
-                var subject = !string.IsNullOrEmpty(departmentName)
-                    ? $"Your {applicationType} Application Status Updated by {departmentName}"
-                    : $"Your {applicationType} Application Status Has Been Updated";
+                var isApproved = string.Equals(newStatus, ApplicationWorkflowDefinitions.OverallStatuses.Approved, StringComparison.OrdinalIgnoreCase);
+
+                string subject;
+                string templateName;
+
+                if (isApproved && !departmentId.HasValue)
+                {
+                    subject = $"Congratulations! Your {applicationType} Application Has Been Approved — {application.FormattedId}";
+                    templateName = "ApplicationApproved";
+                }
+                else if (!string.IsNullOrEmpty(departmentName))
+                {
+                    subject = $"Your {applicationType} Application Status Updated by {departmentName}";
+                    templateName = "ApplicationStatusUpdated";
+                }
+                else
+                {
+                    subject = $"Your {applicationType} Application Status Has Been Updated";
+                    templateName = "ApplicationStatusUpdated";
+                }
 
                 await _emailService.SendTemplatedEmailAsync(
                     email,
                     subject,
-                    "ApplicationStatusUpdated",
+                    templateName,
                     new ApplicationStatusUpdatedModel
                     {
                         ApplicantName = applicantName,
