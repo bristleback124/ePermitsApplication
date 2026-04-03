@@ -4,6 +4,7 @@ using ePermitsApp.Data;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 using ePermitsApp.Helpers;
+using ePermitsApp.Constants;
 using ePermitsApp.Models.EmailModels;
 using ePermitsApp.Services.Interfaces;
 using ePermits.Models;
@@ -22,6 +23,7 @@ namespace ePermitsApp.Services
         private readonly IEmailService _emailService;
         private readonly ILogger<ApplicationService> _logger;
         private readonly ApplicationDbContext _dbContext;
+        private readonly IAuditTrailService _auditTrailService;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
@@ -30,7 +32,8 @@ namespace ePermitsApp.Services
             ICurrentUserService currentUserService,
             IMapper mapper,
             IEmailService emailService,
-            ILogger<ApplicationService> logger)
+            ILogger<ApplicationService> logger,
+            IAuditTrailService auditTrailService)
         {
             _applicationRepository = applicationRepository;
             _userRepository = userRepository;
@@ -39,6 +42,7 @@ namespace ePermitsApp.Services
             _mapper = mapper;
             _emailService = emailService;
             _logger = logger;
+            _auditTrailService = auditTrailService;
         }
 
         public async Task<IEnumerable<ApplicationDtoShort>> GetApplicationsByUserIdAsync(int userId)
@@ -201,6 +205,16 @@ namespace ePermitsApp.Services
 
             await SendStatusUpdateEmailAsync(applicationId, dto.Status, departmentId: departmentId, previousStatus: previousStatus);
 
+            var userId = int.TryParse(_currentUserService.UserId, out var uid) ? uid : 0;
+            var userName = currentUser?.Username ?? "System";
+            await _auditTrailService.LogAsync(
+                applicationId,
+                AuditActionTypes.StatusChange,
+                $"Department status changed to {dto.Status}",
+                $"Previous status: {previousStatus}",
+                userId,
+                userName);
+
             var updatedReview = await _applicationRepository.GetDepartmentReviewAsync(applicationId, departmentId);
             return updatedReview == null
                 ? (true, "Department status updated successfully", null)
@@ -229,6 +243,16 @@ namespace ePermitsApp.Services
             await _applicationRepository.UpdateAsync(application);
 
             await SendStatusUpdateEmailAsync(applicationId, dto.Status, previousStatus: previousStatus);
+
+            var overallUserId = int.TryParse(_currentUserService.UserId, out var ouid) ? ouid : 0;
+            var overallUserName = currentUser?.Username ?? "System";
+            await _auditTrailService.LogAsync(
+                applicationId,
+                AuditActionTypes.StatusChange,
+                $"Overall status changed to {dto.Status}",
+                $"Previous status: {previousStatus}",
+                overallUserId,
+                overallUserName);
 
             return (true, "Overall status updated successfully");
         }

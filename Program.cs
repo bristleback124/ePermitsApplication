@@ -108,6 +108,8 @@ namespace ePermitsApp
             builder.Services.AddScoped<IPaymentDocumentService, PaymentDocumentService>();
             builder.Services.AddScoped<IDocumentDownloadService, DocumentDownloadService>();
             builder.Services.AddScoped<IApplicationPdfService, ApplicationPdfService>();
+            builder.Services.AddScoped<IAuditTrailRepository, AuditTrailRepository>();
+            builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -124,6 +126,7 @@ namespace ePermitsApp
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(OwnershipTypeProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(BuildingPermitProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(CoOAppProfile).Assembly));
+            builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(AuditTrailProfile).Assembly));
 
             builder.Services.AddControllers();
 

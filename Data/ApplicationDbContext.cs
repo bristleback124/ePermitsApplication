@@ -54,6 +54,8 @@ namespace ePermitsApp.Data
 
         public DbSet<PaymentDocument> PaymentDocuments => Set<PaymentDocument>();
 
+        public DbSet<AuditTrail> AuditTrails => Set<AuditTrail>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Province>()
@@ -583,6 +585,23 @@ namespace ePermitsApp.Data
                 entity.HasOne(e => e.UploadedBy)
                     .WithMany()
                     .HasForeignKey(e => e.UploadedById)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<AuditTrail>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ActionType).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Action).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Details).HasMaxLength(1000);
+                entity.Property(e => e.PerformedByName).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasIndex(e => new { e.ApplicationId, e.CreatedAt });
+
+                entity.HasOne(e => e.Application)
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicationId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
