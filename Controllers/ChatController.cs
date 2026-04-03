@@ -60,9 +60,7 @@ namespace ePermits.Controllers
             var userId = int.Parse(
                 User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "applicant";
-            // Admin and User (govt roles) read applicant messages, Applicant reads govt messages
-            var senderType = (userRole == "admin" || userRole == "user") ? "Applicant" : "Government";
-            await _chatService.MarkAsReadAsync(applicationId, userId, userRole, senderType);
+            await _chatService.MarkAsReadAsync(applicationId, userId, userRole);
             return Ok();
         }
 
@@ -72,9 +70,7 @@ namespace ePermits.Controllers
             var userId = int.Parse(
                 User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "applicant";
-            // Admin and User (govt roles) count unread applicant messages, Applicant counts govt messages
-            var senderType = (userRole == "admin" || userRole == "user") ? "Applicant" : "Government";
-            var count = await _chatService.GetUnreadCountAsync(applicationId, userId, userRole, senderType);
+            var count = await _chatService.GetUnreadCountAsync(applicationId, userId, userRole);
             return Ok(new { UnreadCount = count });
         }
     }

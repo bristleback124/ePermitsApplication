@@ -17,5 +17,6 @@ namespace ePermits.Data
         Task<IEnumerable<Application>> GetDashboardDetailedAsync();
         Task<ApplicationDepartmentReview?> GetDepartmentReviewAsync(int applicationId, int departmentId);
         Task<Application?> GetByIdWithApplicantInfoAsync(int id);
+        Task<Application?> GetUnreadScopeApplicationAsync(int id);
     }
 }

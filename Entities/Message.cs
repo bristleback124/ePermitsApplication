@@ -1,4 +1,5 @@
 using System;
+using ePermitsApp.Entities;
 
 namespace ePermits.Models
 {
@@ -15,5 +16,6 @@ namespace ePermits.Models
         // Navigation properties
         public Application? Application { get; set; }
         public User? Sender { get; set; }
+        public ICollection<MessageRecipientState> RecipientStates { get; set; } = new List<MessageRecipientState>();
     }
 }

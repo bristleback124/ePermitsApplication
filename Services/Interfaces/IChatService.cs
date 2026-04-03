@@ -6,7 +6,7 @@ namespace ePermits.Services
     {
         Task<IEnumerable<MessageDto>> GetMessagesAsync(int applicationId, int userId, string userRole);
         Task<MessageDto> SendMessageAsync(SendMessageDto dto, int userId, string userRole);
-        Task MarkAsReadAsync(int applicationId, int userId, string userRole, string senderType);
-        Task<int> GetUnreadCountAsync(int applicationId, int userId, string userRole, string senderType);
+        Task MarkAsReadAsync(int applicationId, int userId, string userRole);
+        Task<int> GetUnreadCountAsync(int applicationId, int userId, string userRole);
     }
 }
