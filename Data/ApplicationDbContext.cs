@@ -50,6 +50,8 @@ namespace ePermitsApp.Data
 
         public DbSet<AdminEmailNotificationConfig> AdminEmailNotificationConfigs => Set<AdminEmailNotificationConfig>();
 
+        public DbSet<ApplicationNote> ApplicationNotes => Set<ApplicationNote>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Province>()
@@ -545,6 +547,23 @@ namespace ePermitsApp.Data
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ApplicationNote>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Content).IsRequired();
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasOne(e => e.Application)
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.CreatedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedById)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Run modular seeders (HasData calls)
