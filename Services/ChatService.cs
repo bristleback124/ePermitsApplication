@@ -2,6 +2,9 @@ using ePermits.Data;
 using ePermits.Models;
 using ePermits.Models.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Models.EmailModels;
+using ePermitsApp.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ePermits.Services
 {
@@ -10,15 +13,21 @@ namespace ePermits.Services
         private readonly IMessageRepository _messageRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<ChatService> _logger;
 
         public ChatService(
             IMessageRepository messageRepository,
             IApplicationRepository applicationRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IEmailService emailService,
+            ILogger<ChatService> logger)
         {
             _messageRepository = messageRepository;
             _applicationRepository = applicationRepository;
             _userRepository = userRepository;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<MessageDto>> GetMessagesAsync(int applicationId, int userId, string userRole)
@@ -71,6 +80,8 @@ namespace ePermits.Services
                     SenderType = senderType,
                     IsRead = false
                 }));
+
+            await SendNewMessageEmailsAsync(application, savedMessage, recipients);
 
             return new MessageDto
             {
@@ -184,6 +195,61 @@ namespace ePermits.Services
                 .FirstOrDefault(state => state.RecipientUserId == userId);
 
             return recipientState?.IsRead ?? message.IsRead;
+        }
+
+        private async Task SendNewMessageEmailsAsync(
+            Application application,
+            Message savedMessage,
+            List<UnreadRecipientTarget> recipients)
+        {
+            try
+            {
+                var senderProfile = savedMessage.Sender?.UserProfile;
+                var senderName = senderProfile != null
+                    ? $"{senderProfile.FirstName} {senderProfile.LastName}".Trim()
+                    : savedMessage.Sender?.Username ?? "Unknown";
+
+                var senderRole = savedMessage.SenderType;
+
+                var appTypeLabel = application.Type switch
+                {
+                    "BuildingPermit" => "Building Permit",
+                    "CertificateOfOccupancy" => "Certificate of Occupancy",
+                    _ => "Application"
+                };
+
+                var preview = savedMessage.Content.Length > 200
+                    ? savedMessage.Content[..200] + "..."
+                    : savedMessage.Content;
+
+                foreach (var recipient in recipients)
+                {
+                    var user = await _userRepository.GetByIdAsync(recipient.UserId);
+                    var email = user?.UserProfile?.Email;
+                    if (string.IsNullOrWhiteSpace(email)) continue;
+
+                    var recipientName = $"{user!.UserProfile!.FirstName} {user.UserProfile.LastName}".Trim();
+
+                    await _emailService.SendTemplatedEmailAsync(
+                        email,
+                        $"New Message on Application {application.FormattedId}",
+                        "NewChatMessage",
+                        new NewChatMessageModel
+                        {
+                            RecipientName = recipientName,
+                            SenderName = senderName,
+                            SenderRole = senderRole,
+                            MessagePreview = preview,
+                            ApplicationFormattedId = application.FormattedId,
+                            ApplicationType = appTypeLabel,
+                            SentAt = savedMessage.Timestamp
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send new message email notifications for application {ApplicationId}", application.Id);
+            }
         }
 
         private sealed record UnreadRecipientTarget(int UserId, string RecipientRole);
