@@ -139,6 +139,24 @@ namespace ePermits.Data
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
+        public async Task<Application?> GetUnreadScopeApplicationAsync(int id)
+        {
+            return await _context.Applications
+                .Include(a => a.User)
+                    .ThenInclude(u => u!.UserRole)
+                .Include(a => a.User)
+                    .ThenInclude(u => u!.Department)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.Department)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.AssignedReviewer)
+                        .ThenInclude(u => u!.UserRole)
+                .Include(a => a.DepartmentReviews)
+                    .ThenInclude(r => r.AssignedReviewer)
+                        .ThenInclude(u => u!.Department)
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
         public async Task<ApplicationDepartmentReview?> GetDepartmentReviewAsync(int applicationId, int departmentId)
         {
             return await _context.ApplicationDepartmentReviews

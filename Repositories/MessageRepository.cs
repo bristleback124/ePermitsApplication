@@ -1,5 +1,6 @@
 using ePermits.Models;
 using ePermitsApp.Data;
+using ePermitsApp.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ePermits.Data
@@ -36,6 +37,7 @@ namespace ePermits.Data
                     .ThenInclude(s => s!.UserProfile)
                 .Include(m => m.Sender)
                     .ThenInclude(s => s!.UserRole)
+                .Include(m => m.RecipientStates)
                 .OrderBy(m => m.Timestamp)
                 .ToListAsync();
         }
@@ -45,6 +47,18 @@ namespace ePermits.Data
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
             return await GetDetailedByIdAsync(message.Id) ?? message;
+        }
+
+        public async Task AddRecipientStatesAsync(IEnumerable<MessageRecipientState> recipientStates)
+        {
+            var states = recipientStates.ToList();
+            if (states.Count == 0)
+            {
+                return;
+            }
+
+            _context.MessageRecipientStates.AddRange(states);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Message message)
@@ -63,22 +77,33 @@ namespace ePermits.Data
             }
         }
 
-        public async Task<int> GetUnreadCountAsync(int applicationId, string senderType)
+        public async Task<int> GetUnreadCountAsync(int applicationId, int recipientUserId, string senderType)
         {
-            return await _context.Messages
-                .Where(m => m.ApplicationId == applicationId && m.SenderType == senderType && !m.IsRead)
+            return await _context.MessageRecipientStates
+                .Where(state =>
+                    state.RecipientUserId == recipientUserId &&
+                    state.SenderType == senderType &&
+                    !state.IsRead &&
+                    state.Message != null &&
+                    state.Message.ApplicationId == applicationId)
                 .CountAsync();
         }
 
-        public async Task MarkAsReadAsync(int applicationId, string senderType)
+        public async Task MarkAsReadAsync(int applicationId, int recipientUserId, string senderType)
         {
-            var messages = await _context.Messages
-                .Where(m => m.ApplicationId == applicationId && m.SenderType == senderType && !m.IsRead)
+            var recipientStates = await _context.MessageRecipientStates
+                .Where(state =>
+                    state.RecipientUserId == recipientUserId &&
+                    state.SenderType == senderType &&
+                    !state.IsRead &&
+                    state.Message != null &&
+                    state.Message.ApplicationId == applicationId)
                 .ToListAsync();
 
-            foreach (var message in messages)
+            foreach (var recipientState in recipientStates)
             {
-                message.IsRead = true;
+                recipientState.IsRead = true;
+                recipientState.ReadAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();

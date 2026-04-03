@@ -37,6 +37,7 @@ namespace ePermitsApp.Data
         public DbSet<Application> Applications { get; set; }
         public DbSet<ApplicationDepartmentReview> ApplicationDepartmentReviews => Set<ApplicationDepartmentReview>();
         public DbSet<Message> Messages { get; set; }
+        public DbSet<MessageRecipientState> MessageRecipientStates => Set<MessageRecipientState>();
 
         public DbSet<BuildingPermit> BuildingPermits => Set<BuildingPermit>();
         public DbSet<BuildingPermitAppInfo> BuildingPermitAppInfos => Set<BuildingPermitAppInfo>();
@@ -216,6 +217,33 @@ namespace ePermitsApp.Data
                     .HasForeignKey(e => e.AssignedReviewerId)
                     .OnDelete(DeleteBehavior.Restrict)
                     .IsRequired(false);
+            });
+
+            modelBuilder.Entity<MessageRecipientState>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.RecipientRole)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.Property(e => e.SenderType)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.HasIndex(e => new { e.RecipientUserId, e.IsRead, e.SenderType });
+                entity.HasIndex(e => new { e.MessageId, e.RecipientUserId })
+                    .IsUnique();
+
+                entity.HasOne(e => e.Message)
+                    .WithMany(m => m.RecipientStates)
+                    .HasForeignKey(e => e.MessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.RecipientUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.RecipientUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // User configuration
