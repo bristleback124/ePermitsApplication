@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260405052408_AddBuildingPermitCategoryScopedRequirements")]
+    partial class AddBuildingPermitCategoryScopedRequirements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2717,9 +2720,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Both");
 
-                    b.Property<int?>("BuildingPermitCategoryId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -2747,8 +2747,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BuildingPermitCategoryId");
 
                     b.HasIndex("ReqClassId", "ReqCatDesc");
 
@@ -2893,9 +2891,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Both");
 
-                    b.Property<int?>("BuildingPermitCategoryId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -2920,8 +2915,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BuildingPermitCategoryId");
 
                     b.HasIndex("ReqClassDesc");
 
@@ -3348,30 +3341,13 @@ namespace ePermitsApp.Migrations
 
             modelBuilder.Entity("ePermitsApp.Entities.RequirementCategory", b =>
                 {
-                    b.HasOne("ePermitsApp.Entities.BuildingPermitCategory", "BuildingPermitCategory")
-                        .WithMany()
-                        .HasForeignKey("BuildingPermitCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ePermitsApp.Entities.RequirementClassification", "RequirementClassification")
                         .WithMany("RequirementCategorys")
                         .HasForeignKey("ReqClassId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("BuildingPermitCategory");
-
                     b.Navigation("RequirementClassification");
-                });
-
-            modelBuilder.Entity("ePermitsApp.Entities.RequirementClassification", b =>
-                {
-                    b.HasOne("ePermitsApp.Entities.BuildingPermitCategory", "BuildingPermitCategory")
-                        .WithMany()
-                        .HasForeignKey("BuildingPermitCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("BuildingPermitCategory");
                 });
 
             modelBuilder.Entity("ePermits.Models.Application", b =>

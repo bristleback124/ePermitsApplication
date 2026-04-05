@@ -29,6 +29,7 @@ namespace ePermitsApp.Controllers
         [HttpGet("hierarchy")]
         public async Task<ActionResult<IEnumerable<RequirementClassificationHierarchyDto>>> GetHierarchy(
             [FromQuery] string? applicationType = null,
+            [FromQuery] int? buildingPermitCategoryId = null,
             [FromQuery] bool activeOnly = true)
         {
             var classifications = await _service.GetAllWithHierarchyAsync();
@@ -57,14 +58,29 @@ namespace ePermitsApp.Controllers
             {
                 classifications = classifications
                     .Where(c => MaintenanceApplicationScopes.Matches(c.ApplicationTypeScope, applicationType))
+                    .Where(c =>
+                        string.Equals(applicationType, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase) == false
+                        || buildingPermitCategoryId == null
+                        || c.BuildingPermitCategoryId == null
+                        || c.BuildingPermitCategoryId == buildingPermitCategoryId)
                     .Select(c =>
                     {
                         c.RequirementCategorys = c.RequirementCategorys
                             .Where(cat => MaintenanceApplicationScopes.Matches(cat.ApplicationTypeScope, applicationType))
+                            .Where(cat =>
+                                string.Equals(applicationType, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase) == false
+                                || buildingPermitCategoryId == null
+                                || cat.BuildingPermitCategoryId == null
+                                || cat.BuildingPermitCategoryId == buildingPermitCategoryId)
                             .Select(cat =>
                             {
                                 cat.Requirements = cat.Requirements
                                     .Where(req => MaintenanceApplicationScopes.Matches(req.ApplicationTypeScope, applicationType))
+                                    .Where(req =>
+                                        string.Equals(applicationType, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase) == false
+                                        || buildingPermitCategoryId == null
+                                        || req.BuildingPermitCategoryId == null
+                                        || req.BuildingPermitCategoryId == buildingPermitCategoryId)
                                     .ToList();
                                 return cat;
                             })

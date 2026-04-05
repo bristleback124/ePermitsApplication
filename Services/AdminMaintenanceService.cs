@@ -19,6 +19,7 @@ namespace ePermitsApp.Services
         private const string OwnershipTypes = "ownership-types";
         private const string OccupancyNatures = "occupancy-natures";
         private const string ApplicantTypes = "applicant-types";
+        private const string BuildingPermitCategories = "building-permit-categories";
         private const string Provinces = "provinces";
         private const string Lgus = "lgus";
         private const string Barangays = "barangays";
@@ -55,6 +56,7 @@ namespace ePermitsApp.Services
                 OwnershipTypes => await GetOwnershipTypesAsync(includeInactive, includeDeleted, normalizedSearch),
                 OccupancyNatures => await GetOccupancyNaturesAsync(includeInactive, includeDeleted, normalizedSearch),
                 ApplicantTypes => await GetApplicantTypesAsync(includeInactive, includeDeleted, normalizedSearch),
+                BuildingPermitCategories => await GetBuildingPermitCategoriesAsync(includeInactive, includeDeleted, normalizedSearch),
                 Provinces => await GetProvincesAsync(includeInactive, includeDeleted, normalizedSearch),
                 Lgus => await GetLgusAsync(includeInactive, includeDeleted, normalizedSearch),
                 Barangays => await GetBarangaysAsync(includeInactive, includeDeleted, normalizedSearch),
@@ -93,6 +95,14 @@ namespace ePermitsApp.Services
                     _context.OwnershipTypes.IgnoreQueryFilters(),
                     id,
                     item => item.OwnershipTypeDesc,
+                    normalizedEntityType,
+                    isActive,
+                    now,
+                    actor),
+                BuildingPermitCategories => await SetSimpleStatusAsync(
+                    _context.BuildingPermitCategories.IgnoreQueryFilters(),
+                    id,
+                    item => item.CategoryName,
                     normalizedEntityType,
                     isActive,
                     now,
@@ -174,6 +184,15 @@ namespace ePermitsApp.Services
                         await BuildUsageItemAsync("Building permit applicant info", _context.BuildingPermitAppInfos.CountAsync(x => x.ApplicantTypeId == id)),
                         await BuildUsageItemAsync("Certificate of occupancy", _context.CoOApps.CountAsync(x => x.ApplicantTypeId == id))
                     }),
+                BuildingPermitCategories => await BuildUsageAsync(
+                    normalizedEntityType,
+                    id,
+                    await _context.BuildingPermitCategories.IgnoreQueryFilters().Where(x => x.Id == id).Select(x => x.CategoryName).FirstOrDefaultAsync(),
+                    new[]
+                    {
+                        await BuildUsageItemAsync("Building permits", _context.BuildingPermits.CountAsync(x => x.BuildingPermitCategoryId == id)),
+                        await BuildUsageItemAsync("Requirements", _context.Requirements.IgnoreQueryFilters().CountAsync(x => x.BuildingPermitCategoryId == id))
+                    }),
                 Provinces => await BuildUsageAsync(
                     normalizedEntityType,
                     id,
@@ -209,7 +228,8 @@ namespace ePermitsApp.Services
                     await _context.RequirementClassifications.IgnoreQueryFilters().Where(x => x.Id == id).Select(x => x.ReqClassDesc).FirstOrDefaultAsync(),
                     new[]
                     {
-                        await BuildUsageItemAsync("Requirement categories", _context.RequirementCategorys.IgnoreQueryFilters().CountAsync(x => x.ReqClassId == id))
+                        await BuildUsageItemAsync("Requirement categories", _context.RequirementCategorys.IgnoreQueryFilters().CountAsync(x => x.ReqClassId == id)),
+                        await BuildUsageItemAsync("Requirements", _context.Requirements.IgnoreQueryFilters().CountAsync(x => x.RequirementCategory.ReqClassId == id))
                     }),
                 RequirementCategories => await BuildUsageAsync(
                     normalizedEntityType,
@@ -234,6 +254,7 @@ namespace ePermitsApp.Services
             var name = RequiredString(values, "name");
             var parentId = OptionalInt(values, "parentId");
             var scope = NormalizeOptionalScope(values, "applicationTypeScope");
+            var buildingPermitCategoryId = OptionalInt(values, "buildingPermitCategoryId");
 
             return normalizedEntityType switch
             {
@@ -279,6 +300,21 @@ namespace ePermitsApp.Services
                         .Select(x => new { x.Id, Name = x.OwnershipTypeDesc, x.IsActive })
                         .FirstAsync(),
                     "Ownership type"),
+                BuildingPermitCategories => await CreateSimpleItemAsync(
+                    _context.BuildingPermitCategories.IgnoreQueryFilters().AnyAsync(x => x.CategoryName == name),
+                    () => _context.BuildingPermitCategories.Add(new BuildingPermitCategory
+                    {
+                        CategoryName = name,
+                        Description = string.Empty,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = _currentUser.UserName ?? "System"
+                    }),
+                    async () => (object)await _context.BuildingPermitCategories.IgnoreQueryFilters()
+                        .Where(x => x.CategoryName == name)
+                        .Select(x => new { x.Id, Name = x.CategoryName, x.IsActive })
+                        .FirstAsync(),
+                    "Building permit category"),
                 OccupancyNatures => await CreateSimpleItemAsync(
                     _context.OccupancyNatures.IgnoreQueryFilters().AnyAsync(x => x.OccupancyNatureDesc == name),
                     () => _context.OccupancyNatures.Add(new OccupancyNature
@@ -323,9 +359,9 @@ namespace ePermitsApp.Services
                     "Province"),
                 Lgus => await CreateLguAsync(name, parentId),
                 Barangays => await CreateBarangayAsync(name, parentId),
-                RequirementClassifications => await CreateRequirementClassificationAsync(name, scope),
-                RequirementCategories => await CreateRequirementCategoryAsync(name, parentId, scope),
-                Requirements => await CreateRequirementAsync(name, parentId, scope),
+                RequirementClassifications => await CreateRequirementClassificationAsync(name, scope, buildingPermitCategoryId),
+                RequirementCategories => await CreateRequirementCategoryAsync(name, parentId, scope, buildingPermitCategoryId),
+                Requirements => await CreateRequirementAsync(name, parentId, scope, buildingPermitCategoryId),
                 _ => throw new InvalidOperationException($"Unsupported maintenance entity type '{entityType}'.")
             };
         }
@@ -384,6 +420,9 @@ namespace ePermitsApp.Services
                                 break;
                             case "ApplicantTypes":
                                 await UpsertApplicantTypeAsync(rowData, now, actor, result);
+                                break;
+                            case "BuildingPermitCategories":
+                                await UpsertBuildingPermitCategoryAsync(rowData, now, actor, result);
                                 break;
                             case "Provinces":
                                 await UpsertProvinceAsync(rowData, now, actor, result);
@@ -451,12 +490,13 @@ namespace ePermitsApp.Services
                     new[] { "OwnershipTypes", "Seed mode of ownership values", "OwnershipTypeDesc, IsActive" },
                     new[] { "OccupancyNatures", "Seed occupancy classifications", "OccupancyNatureDesc, IsActive" },
                     new[] { "ApplicantTypes", "Seed applicant types", "ApplicantTypeDesc, IsActive" },
+                    new[] { "BuildingPermitCategories", "Seed building permit categories", "CategoryName, IsActive" },
                     new[] { "Provinces", "Seed provinces", "ProvinceName, IsActive" },
                     new[] { "LGUs", "Seed municipalities or cities", "ProvinceName, LGUName, IsActive" },
                     new[] { "Barangays", "Seed barangays", "ProvinceName, LGUName, BarangayName, IsActive" },
-                    new[] { "RequirementClassifications", "Seed requirement classifications", "ReqClassDesc, ApplicationTypeScope, IsActive" },
-                    new[] { "RequirementCategories", "Seed requirement categories", "ReqClassDesc, ReqCatDesc, ApplicationTypeScope, IsActive" },
-                    new[] { "Requirements", "Seed requirements", "ReqClassDesc, ReqCatDesc, ReqDesc, ApplicationTypeScope, IsActive" },
+                    new[] { "RequirementClassifications", "Seed requirement classifications", "ReqClassDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
+                    new[] { "RequirementCategories", "Seed requirement categories", "ReqClassDesc, ReqCatDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
+                    new[] { "Requirements", "Seed requirements", "ReqClassDesc, ReqCatDesc, ReqDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
                     new[] { "ApplicationTypeScope", "Allowed values", "BuildingPermit, CertificateOfOccupancy, Both" },
                     new[] { "IsActive", "Allowed values", "TRUE or FALSE" },
                     new[] { "Notes", "Behavior", "Existing referenced values should be deactivated instead of deleted." }
@@ -467,12 +507,13 @@ namespace ePermitsApp.Services
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "OwnershipTypes", BuildSheet(new[] { "OwnershipTypeDesc", "IsActive" }, new[] { "Single Ownership", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "OccupancyNatures", BuildSheet(new[] { "OccupancyNatureDesc", "IsActive" }, new[] { "Residential Dwelling", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "ApplicantTypes", BuildSheet(new[] { "ApplicantTypeDesc", "IsActive" }, new[] { "Owner", "TRUE" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, "BuildingPermitCategories", BuildSheet(new[] { "CategoryName", "IsActive" }, new[] { "Simple", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "Provinces", BuildSheet(new[] { "ProvinceName", "IsActive" }, new[] { "Batangas", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "LGUs", BuildSheet(new[] { "ProvinceName", "LGUName", "IsActive" }, new[] { "Batangas", "Batangas City", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "Barangays", BuildSheet(new[] { "ProvinceName", "LGUName", "BarangayName", "IsActive" }, new[] { "Batangas", "Batangas City", "Pallocan West", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementClassifications", BuildSheet(new[] { "ReqClassDesc", "ApplicationTypeScope", "IsActive" }, new[] { "Administrative", "Both", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementCategories", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ApplicationTypeScope", "IsActive" }, new[] { "Administrative", "General Documents", "BuildingPermit", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "Requirements", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ReqDesc", "ApplicationTypeScope", "IsActive" }, new[] { "Administrative", "General Documents", "Signed application form", "BuildingPermit", "TRUE" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementClassifications", BuildSheet(new[] { "ReqClassDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "BuildingPermit", "Simple", "TRUE" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementCategories", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "BuildingPermit", "Simple", "TRUE" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, "Requirements", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ReqDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "Signed application form", "BuildingPermit", "Simple", "TRUE" }));
 
                 workbookPart.Workbook.Save();
             }
@@ -591,6 +632,28 @@ namespace ePermitsApp.Services
             }).ToListAsync();
         }
 
+        private async Task<IEnumerable<MaintenanceLookupItemDto>> GetBuildingPermitCategoriesAsync(bool includeInactive, bool includeDeleted, string? search)
+        {
+            var query = includeDeleted
+                ? _context.BuildingPermitCategories.IgnoreQueryFilters()
+                : _context.BuildingPermitCategories.AsQueryable();
+
+            if (!includeInactive)
+                query = query.Where(x => x.IsActive);
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(x => x.CategoryName.Contains(search) || x.Description.Contains(search));
+
+            return await query.OrderBy(x => x.CategoryName).Select(x => new MaintenanceLookupItemDto
+            {
+                EntityType = BuildingPermitCategories,
+                Id = x.Id,
+                Name = x.CategoryName,
+                IsActive = x.IsActive,
+                IsDeleted = x.IsDeleted
+            }).ToListAsync();
+        }
+
         private async Task<IEnumerable<MaintenanceLookupItemDto>> GetProvincesAsync(bool includeInactive, bool includeDeleted, string? search)
         {
             var query = includeDeleted
@@ -671,6 +734,8 @@ namespace ePermitsApp.Services
                 ? _context.RequirementClassifications.IgnoreQueryFilters()
                 : _context.RequirementClassifications.AsQueryable();
 
+            query = query.Include(x => x.BuildingPermitCategory);
+
             if (!includeInactive)
                 query = query.Where(x => x.IsActive);
 
@@ -687,7 +752,9 @@ namespace ePermitsApp.Services
                 Name = x.ReqClassDesc,
                 IsActive = x.IsActive,
                 IsDeleted = x.IsDeleted,
-                ApplicationTypeScope = x.ApplicationTypeScope
+                ApplicationTypeScope = x.ApplicationTypeScope,
+                BuildingPermitCategoryId = x.BuildingPermitCategoryId,
+                BuildingPermitCategoryName = x.BuildingPermitCategory != null ? x.BuildingPermitCategory.CategoryName : null
             }).ToListAsync();
         }
 
@@ -697,7 +764,9 @@ namespace ePermitsApp.Services
                 ? _context.RequirementCategorys.IgnoreQueryFilters()
                 : _context.RequirementCategorys.AsQueryable();
 
-            query = query.Include(x => x.RequirementClassification);
+            query = query
+                .Include(x => x.RequirementClassification)
+                .Include(x => x.BuildingPermitCategory);
 
             if (!includeInactive)
                 query = query.Where(x => x.IsActive);
@@ -716,6 +785,8 @@ namespace ePermitsApp.Services
                 IsActive = x.IsActive,
                 IsDeleted = x.IsDeleted,
                 ApplicationTypeScope = x.ApplicationTypeScope,
+                BuildingPermitCategoryId = x.BuildingPermitCategoryId,
+                BuildingPermitCategoryName = x.BuildingPermitCategory != null ? x.BuildingPermitCategory.CategoryName : null,
                 ParentId = x.ReqClassId,
                 ParentName = x.RequirementClassification.ReqClassDesc
             }).ToListAsync();
@@ -727,7 +798,9 @@ namespace ePermitsApp.Services
                 ? _context.Requirements.IgnoreQueryFilters()
                 : _context.Requirements.AsQueryable();
 
-            query = query.Include(x => x.RequirementCategory);
+            query = query
+                .Include(x => x.RequirementCategory)
+                .Include(x => x.BuildingPermitCategory);
 
             if (!includeInactive)
                 query = query.Where(x => x.IsActive);
@@ -746,6 +819,8 @@ namespace ePermitsApp.Services
                 IsActive = x.IsActive,
                 IsDeleted = x.IsDeleted,
                 ApplicationTypeScope = x.ApplicationTypeScope,
+                BuildingPermitCategoryId = x.BuildingPermitCategoryId,
+                BuildingPermitCategoryName = x.BuildingPermitCategory != null ? x.BuildingPermitCategory.CategoryName : null,
                 ParentId = x.ReqCatId,
                 ParentName = x.RequirementCategory.ReqCatDesc
             }).ToListAsync();
@@ -834,7 +909,9 @@ namespace ePermitsApp.Services
 
         private async Task<MaintenanceLookupItemDto> SetRequirementClassificationStatusAsync(int id, bool isActive, DateTime now, string actor)
         {
-            var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.Id == id)
+            var classification = await _context.RequirementClassifications.IgnoreQueryFilters()
+                .Include(x => x.BuildingPermitCategory)
+                .FirstOrDefaultAsync(x => x.Id == id)
                 ?? throw new InvalidOperationException("Requirement classification not found.");
 
             ApplyStatus(classification, isActive, now, actor);
@@ -859,7 +936,9 @@ namespace ePermitsApp.Services
                 Name = classification.ReqClassDesc,
                 IsActive = classification.IsActive,
                 IsDeleted = classification.IsDeleted,
-                ApplicationTypeScope = classification.ApplicationTypeScope
+                ApplicationTypeScope = classification.ApplicationTypeScope,
+                BuildingPermitCategoryId = classification.BuildingPermitCategoryId,
+                BuildingPermitCategoryName = classification.BuildingPermitCategory != null ? classification.BuildingPermitCategory.CategoryName : null
             };
         }
 
@@ -867,6 +946,7 @@ namespace ePermitsApp.Services
         {
             var category = await _context.RequirementCategorys.IgnoreQueryFilters()
                 .Include(x => x.RequirementClassification)
+                .Include(x => x.BuildingPermitCategory)
                 .FirstOrDefaultAsync(x => x.Id == id)
                 ?? throw new InvalidOperationException("Requirement category not found.");
 
@@ -890,6 +970,8 @@ namespace ePermitsApp.Services
                 IsActive = category.IsActive,
                 IsDeleted = category.IsDeleted,
                 ApplicationTypeScope = category.ApplicationTypeScope,
+                BuildingPermitCategoryId = category.BuildingPermitCategoryId,
+                BuildingPermitCategoryName = category.BuildingPermitCategory != null ? category.BuildingPermitCategory.CategoryName : null,
                 ParentId = category.ReqClassId,
                 ParentName = category.RequirementClassification.ReqClassDesc
             };
@@ -899,6 +981,7 @@ namespace ePermitsApp.Services
         {
             var requirement = await _context.Requirements.IgnoreQueryFilters()
                 .Include(x => x.RequirementCategory)
+                .Include(x => x.BuildingPermitCategory)
                 .FirstOrDefaultAsync(x => x.Id == id)
                 ?? throw new InvalidOperationException("Requirement not found.");
 
@@ -915,6 +998,8 @@ namespace ePermitsApp.Services
                 IsActive = requirement.IsActive,
                 IsDeleted = requirement.IsDeleted,
                 ApplicationTypeScope = requirement.ApplicationTypeScope,
+                BuildingPermitCategoryId = requirement.BuildingPermitCategoryId,
+                BuildingPermitCategoryName = requirement.BuildingPermitCategory != null ? requirement.BuildingPermitCategory.CategoryName : null,
                 ParentId = requirement.ReqCatId,
                 ParentName = requirement.RequirementCategory.ReqCatDesc
             };
@@ -1127,17 +1212,28 @@ namespace ePermitsApp.Services
                 .FirstAsync();
         }
 
-        private async Task<object> CreateRequirementClassificationAsync(string name, string scope)
+        private async Task<object> CreateRequirementClassificationAsync(string name, string scope, int? buildingPermitCategoryId)
         {
             var exists = await _context.RequirementClassifications.IgnoreQueryFilters()
-                .AnyAsync(x => x.ReqClassDesc == name);
+                .AnyAsync(x => x.ReqClassDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
             if (exists)
                 throw new InvalidOperationException("Requirement classification already exists.");
+
+            if (buildingPermitCategoryId.HasValue)
+            {
+                if (!string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Building permit category can only be assigned to Building Permit classifications.");
+
+                var categoryExists = await _context.BuildingPermitCategories.IgnoreQueryFilters().AnyAsync(x => x.Id == buildingPermitCategoryId.Value);
+                if (!categoryExists)
+                    throw new InvalidOperationException("Building permit category not found.");
+            }
 
             _context.RequirementClassifications.Add(new RequirementClassification
             {
                 ReqClassDesc = name,
                 ApplicationTypeScope = scope,
+                BuildingPermitCategoryId = buildingPermitCategoryId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = _currentUser.UserName ?? "System"
@@ -1146,26 +1242,37 @@ namespace ePermitsApp.Services
             await _context.SaveChangesAsync();
 
             return await _context.RequirementClassifications.IgnoreQueryFilters()
-                .Where(x => x.ReqClassDesc == name)
-                .Select(x => new { x.Id, Name = x.ReqClassDesc, x.IsActive, x.ApplicationTypeScope })
+                .Where(x => x.ReqClassDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId)
+                .Select(x => new { x.Id, Name = x.ReqClassDesc, x.IsActive, x.ApplicationTypeScope, x.BuildingPermitCategoryId })
                 .FirstAsync();
         }
 
-        private async Task<object> CreateRequirementCategoryAsync(string name, int? parentId, string scope)
+        private async Task<object> CreateRequirementCategoryAsync(string name, int? parentId, string scope, int? buildingPermitCategoryId)
         {
             if (!parentId.HasValue)
                 throw new InvalidOperationException("Requirement classification is required.");
 
             var exists = await _context.RequirementCategorys.IgnoreQueryFilters()
-                .AnyAsync(x => x.ReqClassId == parentId.Value && x.ReqCatDesc == name);
+                .AnyAsync(x => x.ReqClassId == parentId.Value && x.ReqCatDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
             if (exists)
                 throw new InvalidOperationException("Requirement category already exists.");
+
+            if (buildingPermitCategoryId.HasValue)
+            {
+                if (!string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Building permit category can only be assigned to Building Permit categories.");
+
+                var categoryExists = await _context.BuildingPermitCategories.IgnoreQueryFilters().AnyAsync(x => x.Id == buildingPermitCategoryId.Value);
+                if (!categoryExists)
+                    throw new InvalidOperationException("Building permit category not found.");
+            }
 
             _context.RequirementCategorys.Add(new RequirementCategory
             {
                 ReqClassId = parentId.Value,
                 ReqCatDesc = name,
                 ApplicationTypeScope = scope,
+                BuildingPermitCategoryId = buildingPermitCategoryId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = _currentUser.UserName ?? "System"
@@ -1174,18 +1281,29 @@ namespace ePermitsApp.Services
             await _context.SaveChangesAsync();
 
             return await _context.RequirementCategorys.IgnoreQueryFilters()
-                .Where(x => x.ReqClassId == parentId.Value && x.ReqCatDesc == name)
-                .Select(x => new { x.Id, Name = x.ReqCatDesc, x.IsActive, ParentId = x.ReqClassId, x.ApplicationTypeScope })
+                .Where(x => x.ReqClassId == parentId.Value && x.ReqCatDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId)
+                .Select(x => new { x.Id, Name = x.ReqCatDesc, x.IsActive, ParentId = x.ReqClassId, x.ApplicationTypeScope, x.BuildingPermitCategoryId })
                 .FirstAsync();
         }
 
-        private async Task<object> CreateRequirementAsync(string name, int? parentId, string scope)
+        private async Task<object> CreateRequirementAsync(string name, int? parentId, string scope, int? buildingPermitCategoryId)
         {
             if (!parentId.HasValue)
                 throw new InvalidOperationException("Requirement category is required.");
 
+            if (buildingPermitCategoryId.HasValue && !string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Building permit category can only be assigned to Building Permit requirements.");
+
+            if (buildingPermitCategoryId.HasValue)
+            {
+                var categoryExists = await _context.BuildingPermitCategories.IgnoreQueryFilters()
+                    .AnyAsync(x => x.Id == buildingPermitCategoryId.Value);
+                if (!categoryExists)
+                    throw new InvalidOperationException("Building permit category not found.");
+            }
+
             var exists = await _context.Requirements.IgnoreQueryFilters()
-                .AnyAsync(x => x.ReqCatId == parentId.Value && x.ReqDesc == name);
+                .AnyAsync(x => x.ReqCatId == parentId.Value && x.ReqDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
             if (exists)
                 throw new InvalidOperationException("Requirement already exists.");
 
@@ -1194,6 +1312,7 @@ namespace ePermitsApp.Services
                 ReqCatId = parentId.Value,
                 ReqDesc = name,
                 ApplicationTypeScope = scope,
+                BuildingPermitCategoryId = buildingPermitCategoryId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = _currentUser.UserName ?? "System"
@@ -1202,8 +1321,8 @@ namespace ePermitsApp.Services
             await _context.SaveChangesAsync();
 
             return await _context.Requirements.IgnoreQueryFilters()
-                .Where(x => x.ReqCatId == parentId.Value && x.ReqDesc == name)
-                .Select(x => new { x.Id, Name = x.ReqDesc, x.IsActive, ParentId = x.ReqCatId, x.ApplicationTypeScope })
+                .Where(x => x.ReqCatId == parentId.Value && x.ReqDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId)
+                .Select(x => new { x.Id, Name = x.ReqDesc, x.IsActive, ParentId = x.ReqCatId, x.ApplicationTypeScope, x.BuildingPermitCategoryId })
                 .FirstAsync();
         }
 
@@ -1239,6 +1358,19 @@ namespace ePermitsApp.Services
                 throw new InvalidOperationException("ApplicationTypeScope must be BuildingPermit, CertificateOfOccupancy, or Both.");
 
             return normalized;
+        }
+
+        private async Task<BuildingPermitCategory?> ResolveBuildingPermitCategoryByNameAsync(string? categoryName, string scope)
+        {
+            if (string.IsNullOrWhiteSpace(categoryName))
+                return null;
+
+            if (!string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("BuildingPermitCategoryName can only be used for Building Permit requirements.");
+
+            return await _context.BuildingPermitCategories.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(x => x.CategoryName == categoryName.Trim())
+                ?? throw new InvalidOperationException($"Building permit category '{categoryName}' does not exist.");
         }
 
         private async Task UpsertPermitApplicationTypeAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
@@ -1326,6 +1458,30 @@ namespace ePermitsApp.Services
             entity.IsActive = ParseBoolean(row, "IsActive");
         }
 
+        private async Task UpsertBuildingPermitCategoryAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        {
+            var name = RequiredValue(row, "CategoryName");
+            var entity = await _context.BuildingPermitCategories.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.CategoryName == name);
+
+            if (entity == null)
+            {
+                _context.BuildingPermitCategories.Add(new BuildingPermitCategory
+                {
+                    CategoryName = name,
+                    Description = string.Empty,
+                    IsActive = ParseBoolean(row, "IsActive"),
+                    CreatedAt = now,
+                    CreatedBy = actor
+                });
+                result.CreatedCount++;
+                return;
+            }
+
+            UpdateImportAudit(entity, now, actor, result);
+            entity.CategoryName = name;
+            entity.IsActive = ParseBoolean(row, "IsActive");
+        }
+
         private async Task UpsertProvinceAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
         {
             var name = RequiredValue(row, "ProvinceName");
@@ -1392,11 +1548,14 @@ namespace ePermitsApp.Services
         {
             var name = RequiredValue(row, "ReqClassDesc");
             var scope = NormalizeScope(row);
-            var entity = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == name);
+            row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
+            var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
+            var buildingPermitCategoryId = buildingPermitCategory?.Id;
+            var entity = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
 
             if (entity == null)
             {
-                _context.RequirementClassifications.Add(new RequirementClassification { ReqClassDesc = name, ApplicationTypeScope = scope, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
+                _context.RequirementClassifications.Add(new RequirementClassification { ReqClassDesc = name, ApplicationTypeScope = scope, BuildingPermitCategoryId = buildingPermitCategoryId, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
                 result.CreatedCount++;
                 return;
             }
@@ -1404,6 +1563,7 @@ namespace ePermitsApp.Services
             UpdateImportAudit(entity, now, actor, result);
             entity.ReqClassDesc = name;
             entity.ApplicationTypeScope = scope;
+            entity.BuildingPermitCategoryId = buildingPermitCategoryId;
             entity.IsActive = ParseBoolean(row, "IsActive");
         }
 
@@ -1412,13 +1572,16 @@ namespace ePermitsApp.Services
             var className = RequiredValue(row, "ReqClassDesc");
             var categoryName = RequiredValue(row, "ReqCatDesc");
             var scope = NormalizeScope(row);
+            row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
             var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == className)
                 ?? throw new InvalidOperationException($"Requirement classification '{className}' does not exist.");
-            var entity = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName);
+            var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
+            var buildingPermitCategoryId = buildingPermitCategory?.Id;
+            var entity = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
 
             if (entity == null)
             {
-                _context.RequirementCategorys.Add(new RequirementCategory { ReqClassId = classification.Id, ReqCatDesc = categoryName, ApplicationTypeScope = scope, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
+                _context.RequirementCategorys.Add(new RequirementCategory { ReqClassId = classification.Id, ReqCatDesc = categoryName, ApplicationTypeScope = scope, BuildingPermitCategoryId = buildingPermitCategoryId, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
                 result.CreatedCount++;
                 return;
             }
@@ -1427,6 +1590,7 @@ namespace ePermitsApp.Services
             entity.ReqClassId = classification.Id;
             entity.ReqCatDesc = categoryName;
             entity.ApplicationTypeScope = scope;
+            entity.BuildingPermitCategoryId = buildingPermitCategoryId;
             entity.IsActive = ParseBoolean(row, "IsActive");
         }
 
@@ -1436,15 +1600,18 @@ namespace ePermitsApp.Services
             var categoryName = RequiredValue(row, "ReqCatDesc");
             var reqName = RequiredValue(row, "ReqDesc");
             var scope = NormalizeScope(row);
+            row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
             var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == className)
                 ?? throw new InvalidOperationException($"Requirement classification '{className}' does not exist.");
             var category = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName)
                 ?? throw new InvalidOperationException($"Requirement category '{categoryName}' does not exist in classification '{className}'.");
-            var entity = await _context.Requirements.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqCatId == category.Id && x.ReqDesc == reqName);
+            var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
+            var buildingPermitCategoryId = buildingPermitCategory?.Id;
+            var entity = await _context.Requirements.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqCatId == category.Id && x.ReqDesc == reqName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
 
             if (entity == null)
             {
-                _context.Requirements.Add(new Requirement { ReqCatId = category.Id, ReqDesc = reqName, ApplicationTypeScope = scope, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
+                _context.Requirements.Add(new Requirement { ReqCatId = category.Id, ReqDesc = reqName, ApplicationTypeScope = scope, BuildingPermitCategoryId = buildingPermitCategoryId, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
                 result.CreatedCount++;
                 return;
             }
@@ -1453,6 +1620,7 @@ namespace ePermitsApp.Services
             entity.ReqCatId = category.Id;
             entity.ReqDesc = reqName;
             entity.ApplicationTypeScope = scope;
+            entity.BuildingPermitCategoryId = buildingPermitCategoryId;
             entity.IsActive = ParseBoolean(row, "IsActive");
         }
 
@@ -1517,6 +1685,7 @@ namespace ePermitsApp.Services
                 "ownershiptypes" or "ownership-types" => OwnershipTypes,
                 "occupancynatures" or "occupancy-natures" => OccupancyNatures,
                 "applicanttypes" or "applicant-types" => ApplicantTypes,
+                "buildingpermitcategories" or "building-permit-categories" => BuildingPermitCategories,
                 "provinces" => Provinces,
                 "lgus" or "municipalities" => Lgus,
                 "barangays" => Barangays,

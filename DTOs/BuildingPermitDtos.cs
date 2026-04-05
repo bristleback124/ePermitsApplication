@@ -7,6 +7,7 @@ namespace ePermitsApp.DTOs
     {
         public int Id { get; set; }
         public int PermitAppTypeId { get; set; }
+        public int BuildingPermitCategoryId { get; set; }
         public int OccupancyNatureId { get; set; }
         public string ProjectTitle { get; set; } = string.Empty;
         public int ProjectClassId { get; set; }
@@ -109,6 +110,8 @@ namespace ePermitsApp.DTOs
         [Required]
         public int PermitAppTypeId { get; set; }
         [Required]
+        public int BuildingPermitCategoryId { get; set; }
+        [Required]
         public int OccupancyNatureId { get; set; }
         [Required]
         public string ProjectTitle { get; set; } = string.Empty;
@@ -157,6 +160,7 @@ namespace ePermitsApp.DTOs
         public int ApplicationId { get; set; }
         public string Status { get; set; } = string.Empty;
         public int PermitAppTypeId { get; set; }
+        public int BuildingPermitCategoryId { get; set; }
         public int OccupancyNatureId { get; set; }
         public string ProjectTitle { get; set; } = string.Empty;
         public int ProjectClassId { get; set; }
@@ -186,6 +190,8 @@ namespace ePermitsApp.DTOs
     {
         [Required]
         public int PermitAppTypeId { get; set; }
+        [Required]
+        public int BuildingPermitCategoryId { get; set; }
         [Required]
         public int OccupancyNatureId { get; set; }
         [Required]

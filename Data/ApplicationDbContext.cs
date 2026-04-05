@@ -30,6 +30,7 @@ namespace ePermitsApp.Data
         public DbSet<ProjectClassification> ProjectClassifications => Set<ProjectClassification>();
         public DbSet<ApplicantType> ApplicantTypes => Set<ApplicantType>();
         public DbSet<OwnershipType> OwnershipTypes => Set<OwnershipType>();
+        public DbSet<BuildingPermitCategory> BuildingPermitCategories => Set<BuildingPermitCategory>();
         public DbSet<User> Users => Set<User>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
@@ -115,6 +116,13 @@ namespace ePermitsApp.Data
                 .HasMaxLength(50)
                 .HasDefaultValue(MaintenanceApplicationScopes.Both);
 
+            modelBuilder.Entity<RequirementClassification>()
+                .HasOne(r => r.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(r => r.BuildingPermitCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             modelBuilder.Entity<RequirementCategory>()
                 .HasIndex(r => new { r.ReqClassId, r.ReqCatDesc });
 
@@ -125,6 +133,13 @@ namespace ePermitsApp.Data
                 .Property(r => r.ApplicationTypeScope)
                 .HasMaxLength(50)
                 .HasDefaultValue(MaintenanceApplicationScopes.Both);
+
+            modelBuilder.Entity<RequirementCategory>()
+                .HasOne(r => r.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(r => r.BuildingPermitCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             modelBuilder.Entity<RequirementCategory>()
                 .HasOne(r => r.RequirementClassification)
@@ -147,6 +162,35 @@ namespace ePermitsApp.Data
                 .HasOne(r => r.RequirementCategory)
                 .WithMany(c => c.Requirements)
                 .HasForeignKey(r => r.ReqCatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Requirement>()
+                .HasOne(r => r.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(r => r.BuildingPermitCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .HasIndex(x => x.CategoryName)
+                .IsUnique();
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .HasQueryFilter(x => !x.IsDeleted);
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .Property(x => x.CategoryName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .Property(x => x.Description)
+                .HasMaxLength(250);
+
+            modelBuilder.Entity<BuildingPermit>()
+                .HasOne(e => e.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(e => e.BuildingPermitCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Requirement>()

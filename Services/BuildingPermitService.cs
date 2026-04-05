@@ -291,6 +291,7 @@ namespace ePermitsApp.Services
         private static void UpdateBuildingPermitFields(BuildingPermit buildingPermit, BuildingPermitUpdateDto dto, DateTime now, int currentUserId)
         {
             buildingPermit.PermitAppTypeId = dto.PermitAppTypeId;
+            buildingPermit.BuildingPermitCategoryId = dto.BuildingPermitCategoryId;
             buildingPermit.OccupancyNatureId = dto.OccupancyNatureId;
             buildingPermit.ProjectTitle = dto.ProjectTitle;
             buildingPermit.ProjectClassId = dto.ProjectClassId;

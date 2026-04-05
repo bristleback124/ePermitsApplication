@@ -14,6 +14,7 @@ namespace ePermitsApp.Data.Seeders
             {
                 new GeographicSeeder(),
                 new DepartmentSeeder(),
+                new BuildingPermitCategorySeeder(),
                 new RequirementSeeder(),
                 new PermitApplicationTypeSeeder(),
                 new ProjectClassificationSeeder(),
