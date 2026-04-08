@@ -26,6 +26,8 @@ namespace ePermitsApp.Services
         private const string RequirementClassifications = "requirement-classifications";
         private const string RequirementCategories = "requirement-categories";
         private const string Requirements = "requirements";
+        private const string CertificateOfOccupancyRequirementsClassification = "Certificate of Occupancy Requirements";
+        private const string CertificateOfOccupancyGeneralCategory = "General Requirements";
 
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUser;
@@ -495,8 +497,8 @@ namespace ePermitsApp.Services
                     new[] { "LGUs", "Seed municipalities or cities", "ProvinceName, LGUName, IsActive" },
                     new[] { "Barangays", "Seed barangays", "ProvinceName, LGUName, BarangayName, IsActive" },
                     new[] { "RequirementClassifications", "Seed requirement classifications", "ReqClassDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
-                    new[] { "RequirementCategories", "Seed requirement categories", "ReqClassDesc, ReqCatDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
-                    new[] { "Requirements", "Seed requirements", "ReqClassDesc, ReqCatDesc, ReqDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
+                    new[] { "RequirementCategories", "Seed building permit requirement categories only", "ReqClassDesc, ReqCatDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
+                    new[] { "Requirements", "Seed requirements", "ReqClassDesc, ReqCatDesc (optional for CertificateOfOccupancy), ReqDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
                     new[] { "ApplicationTypeScope", "Allowed values", "BuildingPermit, CertificateOfOccupancy, Both" },
                     new[] { "IsActive", "Allowed values", "TRUE or FALSE" },
                     new[] { "Notes", "Behavior", "Existing referenced values should be deactivated instead of deleted." }
@@ -513,7 +515,7 @@ namespace ePermitsApp.Services
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "Barangays", BuildSheet(new[] { "ProvinceName", "LGUName", "BarangayName", "IsActive" }, new[] { "Batangas", "Batangas City", "Pallocan West", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementClassifications", BuildSheet(new[] { "ReqClassDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "BuildingPermit", "Simple", "TRUE" }));
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementCategories", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "BuildingPermit", "Simple", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "Requirements", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ReqDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "Signed application form", "BuildingPermit", "Simple", "TRUE" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, "Requirements", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ReqDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "Signed application form", "BuildingPermit", "Simple", "TRUE" }, new[] { "Certificate of Occupancy Requirements", string.Empty, "Fire Safety Inspection Certificate (FSIC) from BFP", "CertificateOfOccupancy", string.Empty, "TRUE" }));
 
                 workbookPart.Workbook.Save();
             }
@@ -743,7 +745,9 @@ namespace ePermitsApp.Services
                 query = query.Where(x => x.ReqClassDesc.Contains(search));
 
             if (!string.IsNullOrWhiteSpace(applicationType))
-                query = query.Where(x => MaintenanceApplicationScopes.Matches(x.ApplicationTypeScope, applicationType));
+                query = query.Where(x =>
+                    x.ApplicationTypeScope == MaintenanceApplicationScopes.Both ||
+                    x.ApplicationTypeScope == applicationType);
 
             return await query.OrderBy(x => x.ReqClassDesc).Select(x => new MaintenanceLookupItemDto
             {
@@ -760,6 +764,9 @@ namespace ePermitsApp.Services
 
         private async Task<IEnumerable<MaintenanceLookupItemDto>> GetRequirementCategoriesAsync(bool includeInactive, bool includeDeleted, string? search, string? applicationType)
         {
+            if (string.Equals(applicationType, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase))
+                return Array.Empty<MaintenanceLookupItemDto>();
+
             var query = includeDeleted
                 ? _context.RequirementCategorys.IgnoreQueryFilters()
                 : _context.RequirementCategorys.AsQueryable();
@@ -775,7 +782,9 @@ namespace ePermitsApp.Services
                 query = query.Where(x => x.ReqCatDesc.Contains(search) || x.RequirementClassification.ReqClassDesc.Contains(search));
 
             if (!string.IsNullOrWhiteSpace(applicationType))
-                query = query.Where(x => MaintenanceApplicationScopes.Matches(x.ApplicationTypeScope, applicationType));
+                query = query.Where(x =>
+                    x.ApplicationTypeScope == MaintenanceApplicationScopes.Both ||
+                    x.ApplicationTypeScope == applicationType);
 
             return await query.OrderBy(x => x.RequirementClassification.ReqClassDesc).ThenBy(x => x.ReqCatDesc).Select(x => new MaintenanceLookupItemDto
             {
@@ -809,9 +818,16 @@ namespace ePermitsApp.Services
                 query = query.Where(x => x.ReqDesc.Contains(search) || x.RequirementCategory.ReqCatDesc.Contains(search));
 
             if (!string.IsNullOrWhiteSpace(applicationType))
-                query = query.Where(x => MaintenanceApplicationScopes.Matches(x.ApplicationTypeScope, applicationType));
+                query = query.Where(x =>
+                    x.ApplicationTypeScope == MaintenanceApplicationScopes.Both ||
+                    x.ApplicationTypeScope == applicationType);
 
-            return await query.OrderBy(x => x.RequirementCategory.ReqCatDesc).ThenBy(x => x.ReqDesc).Select(x => new MaintenanceLookupItemDto
+            var isCertificateOfOccupancy = string.Equals(applicationType, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase);
+
+            return await query
+                .OrderBy(x => isCertificateOfOccupancy ? x.ReqDesc : x.RequirementCategory.ReqCatDesc)
+                .ThenBy(x => x.ReqDesc)
+                .Select(x => new MaintenanceLookupItemDto
             {
                 EntityType = Requirements,
                 Id = x.Id,
@@ -822,7 +838,7 @@ namespace ePermitsApp.Services
                 BuildingPermitCategoryId = x.BuildingPermitCategoryId,
                 BuildingPermitCategoryName = x.BuildingPermitCategory != null ? x.BuildingPermitCategory.CategoryName : null,
                 ParentId = x.ReqCatId,
-                ParentName = x.RequirementCategory.ReqCatDesc
+                ParentName = isCertificateOfOccupancy ? null : x.RequirementCategory.ReqCatDesc
             }).ToListAsync();
         }
 
@@ -1252,6 +1268,9 @@ namespace ePermitsApp.Services
             if (!parentId.HasValue)
                 throw new InvalidOperationException("Requirement classification is required.");
 
+            if (!string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Requirement categories are only supported for Building Permit.");
+
             var exists = await _context.RequirementCategorys.IgnoreQueryFilters()
                 .AnyAsync(x => x.ReqClassId == parentId.Value && x.ReqCatDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
             if (exists)
@@ -1288,8 +1307,16 @@ namespace ePermitsApp.Services
 
         private async Task<object> CreateRequirementAsync(string name, int? parentId, string scope, int? buildingPermitCategoryId)
         {
-            if (!parentId.HasValue)
+            if (!parentId.HasValue && !string.Equals(scope, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Requirement category is required.");
+
+            var resolvedParentId = parentId;
+
+            if (string.Equals(scope, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase))
+            {
+                resolvedParentId = await ResolveCertificateOfOccupancyGeneralCategoryIdAsync();
+                buildingPermitCategoryId = null;
+            }
 
             if (buildingPermitCategoryId.HasValue && !string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Building permit category can only be assigned to Building Permit requirements.");
@@ -1303,13 +1330,13 @@ namespace ePermitsApp.Services
             }
 
             var exists = await _context.Requirements.IgnoreQueryFilters()
-                .AnyAsync(x => x.ReqCatId == parentId.Value && x.ReqDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
+                .AnyAsync(x => x.ReqCatId == resolvedParentId!.Value && x.ReqDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
             if (exists)
                 throw new InvalidOperationException("Requirement already exists.");
 
             _context.Requirements.Add(new Requirement
             {
-                ReqCatId = parentId.Value,
+                ReqCatId = resolvedParentId.Value,
                 ReqDesc = name,
                 ApplicationTypeScope = scope,
                 BuildingPermitCategoryId = buildingPermitCategoryId,
@@ -1321,7 +1348,7 @@ namespace ePermitsApp.Services
             await _context.SaveChangesAsync();
 
             return await _context.Requirements.IgnoreQueryFilters()
-                .Where(x => x.ReqCatId == parentId.Value && x.ReqDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId)
+                .Where(x => x.ReqCatId == resolvedParentId.Value && x.ReqDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId)
                 .Select(x => new { x.Id, Name = x.ReqDesc, x.IsActive, ParentId = x.ReqCatId, x.ApplicationTypeScope, x.BuildingPermitCategoryId })
                 .FirstAsync();
         }
@@ -1371,6 +1398,19 @@ namespace ePermitsApp.Services
             return await _context.BuildingPermitCategories.IgnoreQueryFilters()
                 .FirstOrDefaultAsync(x => x.CategoryName == categoryName.Trim())
                 ?? throw new InvalidOperationException($"Building permit category '{categoryName}' does not exist.");
+        }
+
+        private async Task<int> ResolveCertificateOfOccupancyGeneralCategoryIdAsync()
+        {
+            var categoryId = await _context.RequirementCategorys.IgnoreQueryFilters()
+                .Where(x =>
+                    x.ReqCatDesc == CertificateOfOccupancyGeneralCategory
+                    && x.ApplicationTypeScope == MaintenanceApplicationScopes.CertificateOfOccupancy
+                    && x.RequirementClassification.ReqClassDesc == CertificateOfOccupancyRequirementsClassification)
+                .Select(x => (int?)x.Id)
+                .FirstOrDefaultAsync();
+
+            return categoryId ?? throw new InvalidOperationException("Certificate of Occupancy general requirements category is not configured.");
         }
 
         private async Task UpsertPermitApplicationTypeAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
@@ -1572,6 +1612,8 @@ namespace ePermitsApp.Services
             var className = RequiredValue(row, "ReqClassDesc");
             var categoryName = RequiredValue(row, "ReqCatDesc");
             var scope = NormalizeScope(row);
+            if (!string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Requirement categories are only supported for Building Permit.");
             row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
             var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == className)
                 ?? throw new InvalidOperationException($"Requirement classification '{className}' does not exist.");
@@ -1597,14 +1639,26 @@ namespace ePermitsApp.Services
         private async Task UpsertRequirementAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
         {
             var className = RequiredValue(row, "ReqClassDesc");
-            var categoryName = RequiredValue(row, "ReqCatDesc");
             var reqName = RequiredValue(row, "ReqDesc");
             var scope = NormalizeScope(row);
             row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
             var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == className)
                 ?? throw new InvalidOperationException($"Requirement classification '{className}' does not exist.");
-            var category = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName)
-                ?? throw new InvalidOperationException($"Requirement category '{categoryName}' does not exist in classification '{className}'.");
+            RequirementCategory category;
+            if (string.Equals(scope, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase))
+            {
+                var categoryId = await ResolveCertificateOfOccupancyGeneralCategoryIdAsync();
+                category = await _context.RequirementCategorys.IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(x => x.Id == categoryId)
+                    ?? throw new InvalidOperationException("Certificate of Occupancy general requirements category is not configured.");
+                buildingPermitCategoryName = null;
+            }
+            else
+            {
+                var categoryName = RequiredValue(row, "ReqCatDesc");
+                category = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName)
+                    ?? throw new InvalidOperationException($"Requirement category '{categoryName}' does not exist in classification '{className}'.");
+            }
             var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
             var buildingPermitCategoryId = buildingPermitCategory?.Id;
             var entity = await _context.Requirements.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqCatId == category.Id && x.ReqDesc == reqName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
@@ -1708,9 +1762,9 @@ namespace ePermitsApp.Services
             return normalized == MaintenanceApplicationScopes.Both ? null : normalized;
         }
 
-        private static IEnumerable<string[]> BuildSheet(string[] header, string[] sample)
+        private static IEnumerable<string[]> BuildSheet(string[] header, params string[][] samples)
         {
-            return new[] { header, sample };
+            return new[] { header }.Concat(samples);
         }
 
         private static void AppendWorksheet(WorkbookPart workbookPart, Sheets sheets, ref uint sheetId, string sheetName, IEnumerable<string[]> rows)

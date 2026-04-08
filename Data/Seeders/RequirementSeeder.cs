@@ -40,10 +40,7 @@ namespace ePermitsApp.Data.Seeders
                 new RequirementCategory { Id = 5, ReqClassId = 1, ReqCatDesc = "E. Proof of Payment", ApplicationTypeScope = MaintenanceApplicationScopes.BuildingPermit, CreatedBy = createdBy, CreatedAt = now },
                 new RequirementCategory { Id = 6, ReqClassId = 1, ReqCatDesc = "F. Additional Technical & Regulatory Requirements", ApplicationTypeScope = MaintenanceApplicationScopes.BuildingPermit, CreatedBy = createdBy, CreatedAt = now },
                 new RequirementCategory { Id = 7, ReqClassId = 1, ReqCatDesc = "G. Specialized Technical Requirements", ApplicationTypeScope = MaintenanceApplicationScopes.BuildingPermit, CreatedBy = createdBy, CreatedAt = now },
-                new RequirementCategory { Id = 8, ReqClassId = 2, ReqCatDesc = "Completion Documents", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new RequirementCategory { Id = 9, ReqClassId = 2, ReqCatDesc = "Inspection Certificates", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new RequirementCategory { Id = 10, ReqClassId = 2, ReqCatDesc = "Compliance Documents", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new RequirementCategory { Id = 11, ReqClassId = 2, ReqCatDesc = "Additional Requirements", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now }
+                new RequirementCategory { Id = 8, ReqClassId = 2, ReqCatDesc = "General Requirements", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now }
             );
 
             modelBuilder.Entity<Requirement>().HasData(
@@ -91,25 +88,13 @@ namespace ePermitsApp.Data.Seeders
 
                 new Requirement { Id = 36, ReqCatId = 7, ReqDesc = "Field Density Test / Soil Test", ApplicationTypeScope = MaintenanceApplicationScopes.BuildingPermit, BuildingPermitCategoryId = 3, CreatedBy = createdBy, CreatedAt = now },
 
-                new Requirement { Id = 37, ReqCatId = 8, ReqDesc = "Copy of approved Building Permit", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 38, ReqCatId = 8, ReqDesc = "As-Built Plans (signed & sealed by professionals)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 39, ReqCatId = 8, ReqDesc = "Construction completion certificate", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 40, ReqCatId = 8, ReqDesc = "Material test certificates (concrete, steel, etc.)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-
-                new Requirement { Id = 41, ReqCatId = 9, ReqDesc = "Fire Safety Inspection Certificate (FSIC)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 42, ReqCatId = 9, ReqDesc = "Electrical Safety Inspection Certificate", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 43, ReqCatId = 9, ReqDesc = "Structural inspection report", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 44, ReqCatId = 9, ReqDesc = "Plumbing inspection certificate", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 45, ReqCatId = 9, ReqDesc = "Mechanical systems inspection (if applicable)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-
-                new Requirement { Id = 46, ReqCatId = 10, ReqDesc = "Environmental compliance monitoring report (if required)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 47, ReqCatId = 10, ReqDesc = "Accessibility compliance certificate (for public buildings)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 48, ReqCatId = 10, ReqDesc = "Waste management compliance certificate", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 49, ReqCatId = 10, ReqDesc = "Building maintenance plan", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-
-                new Requirement { Id = 50, ReqCatId = 11, ReqDesc = "Updated tax declaration reflecting improvements", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 51, ReqCatId = 11, ReqDesc = "Insurance coverage for the structure", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
-                new Requirement { Id = 52, ReqCatId = 11, ReqDesc = "Business permits (for commercial/industrial buildings)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now }
+                new Requirement { Id = 37, ReqCatId = 8, ReqDesc = "Approved Building Permit & Stamped Plans (or reference number if filed within this portal)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
+                new Requirement { Id = 38, ReqCatId = 8, ReqDesc = "As-Built Plans (if different from approved plans)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
+                new Requirement { Id = 39, ReqCatId = 8, ReqDesc = "Construction Logbook (signed and sealed by the architect/engineer of record)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
+                new Requirement { Id = 40, ReqCatId = 8, ReqDesc = "Construction Photos (progress and completion)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
+                new Requirement { Id = 41, ReqCatId = 8, ReqDesc = "Barangay Clearance (Occupancy)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
+                new Requirement { Id = 42, ReqCatId = 8, ReqDesc = "Fire Safety Inspection Certificate (FSIC) from BFP", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now },
+                new Requirement { Id = 43, ReqCatId = 8, ReqDesc = "Other Agency Clearances (if applicable: DPWH, CAAP, DENR, etc.)", ApplicationTypeScope = MaintenanceApplicationScopes.CertificateOfOccupancy, CreatedBy = createdBy, CreatedAt = now }
             );
         }
     }
