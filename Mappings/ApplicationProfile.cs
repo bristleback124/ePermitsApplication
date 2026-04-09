@@ -17,7 +17,8 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.ProjectTitle, opt => opt.MapFrom(src =>
                     src.BuildingPermit != null ? src.BuildingPermit.ProjectTitle
                     : src.CoOApp != null ? src.CoOApp.ProjectTitle
-                    : string.Empty));
+                    : string.Empty))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt));
 
             CreateMap<ApplicationDepartmentReview, ApplicationDepartmentReviewDto>()
                 .ForMember(dest => dest.DepartmentCode, opt => opt.MapFrom(src => src.Department != null ? src.Department.DepartmentCode : string.Empty))

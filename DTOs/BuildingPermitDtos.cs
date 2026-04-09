@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using System.ComponentModel.DataAnnotations;
 
 namespace ePermitsApp.DTOs
 {
@@ -132,55 +131,34 @@ namespace ePermitsApp.DTOs
 
     public class BuildingPermitCreateDto
     {
-        [Required]
         public int PermitAppTypeId { get; set; }
-        [Required]
         public int BuildingPermitCategoryId { get; set; }
-        [Required]
         public int OccupancyNatureId { get; set; }
-        [Required]
-        public string ProjectTitle { get; set; } = string.Empty;
-        [Required]
+        public string? ProjectTitle { get; set; }
         public int ProjectClassId { get; set; }
-        [Required]
         public decimal EstimatedCost { get; set; }
-        [Required]
         public int NoOfStoreys { get; set; }
-        [Required]
         public decimal FloorAreaPerStorey { get; set; }
-        [Required]
         public decimal TotalFloorArea { get; set; }
-        [Required]
         public decimal ProjectScopeLotArea { get; set; }
         public string? PropertyAddBlock { get; set; }
-        [Required]
-        public string PropertyAddLot { get; set; } = string.Empty;
-        [Required]
-        public string PropertyAddStreet { get; set; } = string.Empty;
-        [Required]
+        public string? PropertyAddLot { get; set; }
+        public string? PropertyAddStreet { get; set; }
         public int ProvinceId { get; set; }
-        [Required]
         public int LGUId { get; set; }
-        [Required]
         public int BarangayId { get; set; }
-        [Required]
         public decimal PropertyDetailLotArea { get; set; }
-        [Required]
-        public string TCTNo { get; set; } = string.Empty;
-        [Required]
-        public string TaxDeclarionNo { get; set; } = string.Empty;
+        public string? TCTNo { get; set; }
+        public string? TaxDeclarionNo { get; set; }
         public string? Coordinates { get; set; }
-        [Required]
         public string[] Accessories { get; set; } = Array.Empty<string>();
-        [Required]
-        public string DigitalSignature { get; set; } = string.Empty;
-        [Required]
-        public DateTime DateofSignature { get; set; }
+        public string? DigitalSignature { get; set; }
+        public DateTime? DateofSignature { get; set; }
 
-        public BuildingPermitAppInfoCreateDto AppInfo { get; set; } = null!;
-        public BuildingPermitDesignProfCreateDto DesignProf { get; set; } = null!;
-        public BuildingPermitTechDocCreateDto TechDoc { get; set; } = null!;
-        public BuildingPermitSupportingDocCreateDto SupportingDoc { get; set; } = null!;
+        public BuildingPermitAppInfoCreateDto AppInfo { get; set; } = new();
+        public BuildingPermitDesignProfCreateDto DesignProf { get; set; } = new();
+        public BuildingPermitTechDocCreateDto TechDoc { get; set; } = new();
+        public BuildingPermitSupportingDocCreateDto SupportingDoc { get; set; } = new();
     }
 
     public class BuildingPermitEditDto
@@ -218,101 +196,62 @@ namespace ePermitsApp.DTOs
 
     public class BuildingPermitUpdateDto
     {
-        [Required]
         public int PermitAppTypeId { get; set; }
-        [Required]
         public int BuildingPermitCategoryId { get; set; }
-        [Required]
         public int OccupancyNatureId { get; set; }
-        [Required]
-        public string ProjectTitle { get; set; } = string.Empty;
-        [Required]
+        public string? ProjectTitle { get; set; }
         public int ProjectClassId { get; set; }
-        [Required]
         public decimal EstimatedCost { get; set; }
-        [Required]
         public int NoOfStoreys { get; set; }
-        [Required]
         public decimal FloorAreaPerStorey { get; set; }
-        [Required]
         public decimal TotalFloorArea { get; set; }
-        [Required]
         public decimal ProjectScopeLotArea { get; set; }
         public string? PropertyAddBlock { get; set; }
-        [Required]
-        public string PropertyAddLot { get; set; } = string.Empty;
-        [Required]
-        public string PropertyAddStreet { get; set; } = string.Empty;
-        [Required]
+        public string? PropertyAddLot { get; set; }
+        public string? PropertyAddStreet { get; set; }
         public int ProvinceId { get; set; }
-        [Required]
         public int LGUId { get; set; }
-        [Required]
         public int BarangayId { get; set; }
-        [Required]
         public decimal PropertyDetailLotArea { get; set; }
-        [Required]
-        public string TCTNo { get; set; } = string.Empty;
-        [Required]
-        public string TaxDeclarionNo { get; set; } = string.Empty;
+        public string? TCTNo { get; set; }
+        public string? TaxDeclarionNo { get; set; }
         public string? Coordinates { get; set; }
-        [Required]
         public string[] Accessories { get; set; } = Array.Empty<string>();
-        [Required]
-        public string DigitalSignature { get; set; } = string.Empty;
-        [Required]
-        public DateTime DateofSignature { get; set; }
+        public string? DigitalSignature { get; set; }
+        public DateTime? DateofSignature { get; set; }
 
-        public BuildingPermitAppInfoUpdateDto AppInfo { get; set; } = null!;
-        public BuildingPermitDesignProfUpdateDto DesignProf { get; set; } = null!;
-        public BuildingPermitTechDocUpdateDto TechDoc { get; set; } = null!;
-        public BuildingPermitSupportingDocUpdateDto SupportingDoc { get; set; } = null!;
+        public BuildingPermitAppInfoUpdateDto AppInfo { get; set; } = new();
+        public BuildingPermitDesignProfUpdateDto DesignProf { get; set; } = new();
+        public BuildingPermitTechDocUpdateDto TechDoc { get; set; } = new();
+        public BuildingPermitSupportingDocUpdateDto SupportingDoc { get; set; } = new();
     }
 
     public class BuildingPermitAppInfoCreateDto
     {
-        [Required]
         public int ApplicantTypeId { get; set; }
-        [Required]
-        public string FullName { get; set; } = string.Empty;
-        [Required]
-        public string ContactNo { get; set; } = string.Empty;
-        [Required]
-        public string Email { get; set; } = string.Empty;
-        [Required]
-        public string TIN { get; set; } = string.Empty;
-        [Required]
-        public string MailAddress { get; set; } = string.Empty;
-        [Required]
+        public string? FullName { get; set; }
+        public string? ContactNo { get; set; }
+        public string? Email { get; set; }
+        public string? TIN { get; set; }
+        public string? MailAddress { get; set; }
         public int OwnershipTypeId { get; set; }
 
-        [Required]
-        public IFormFile ReqDocProofOwnership { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocBarangayClearance { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocTaxDeclaration { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocRealPropTaxReceipt { get; set; } = null!;
+        public IFormFile? ReqDocProofOwnership { get; set; }
+        public IFormFile? ReqDocBarangayClearance { get; set; }
+        public IFormFile? ReqDocTaxDeclaration { get; set; }
+        public IFormFile? ReqDocRealPropTaxReceipt { get; set; }
         public IFormFile? ReqDocECCorCNC { get; set; }
         public IFormFile? ReqDocSpecialClearances { get; set; }
     }
 
     public class BuildingPermitAppInfoUpdateDto
     {
-        [Required]
         public int ApplicantTypeId { get; set; }
-        [Required]
-        public string FullName { get; set; } = string.Empty;
-        [Required]
-        public string ContactNo { get; set; } = string.Empty;
-        [Required]
-        public string Email { get; set; } = string.Empty;
-        [Required]
-        public string TIN { get; set; } = string.Empty;
-        [Required]
-        public string MailAddress { get; set; } = string.Empty;
-        [Required]
+        public string? FullName { get; set; }
+        public string? ContactNo { get; set; }
+        public string? Email { get; set; }
+        public string? TIN { get; set; }
+        public string? MailAddress { get; set; }
         public int OwnershipTypeId { get; set; }
 
         public bool KeepReqDocProofOwnership { get; set; }
@@ -332,38 +271,22 @@ namespace ePermitsApp.DTOs
 
     public class BuildingPermitDesignProfCreateDto
     {
-        [Required]
-        public string IoCFullName { get; set; } = string.Empty;
-        [Required]
-        public string IoCPRCNo { get; set; } = string.Empty;
-        [Required]
-        public string IoCPTRNo { get; set; } = string.Empty;
-        [Required]
-        public DateTime IOCValidity { get; set; }
-        [Required]
-        public string SEFullName { get; set; } = string.Empty;
-        [Required]
-        public string SEPRCNo { get; set; } = string.Empty;
-        [Required]
-        public string SEPTRNo { get; set; } = string.Empty;
-        [Required]
-        public DateTime SEValidity { get; set; }
-        [Required]
-        public string EEFullName { get; set; } = string.Empty;
-        [Required]
-        public string EEPRCNo { get; set; } = string.Empty;
-        [Required]
-        public string EEPTRNo { get; set; } = string.Empty;
-        [Required]
-        public DateTime EEValidity { get; set; }
-        [Required]
-        public string SPEFullName { get; set; } = string.Empty;
-        [Required]
-        public string SPEPRCNo { get; set; } = string.Empty;
-        [Required]
-        public string SPEPTRNo { get; set; } = string.Empty;
-        [Required]
-        public DateTime SPEValidity { get; set; }
+        public string? IoCFullName { get; set; }
+        public string? IoCPRCNo { get; set; }
+        public string? IoCPTRNo { get; set; }
+        public DateTime? IOCValidity { get; set; }
+        public string? SEFullName { get; set; }
+        public string? SEPRCNo { get; set; }
+        public string? SEPTRNo { get; set; }
+        public DateTime? SEValidity { get; set; }
+        public string? EEFullName { get; set; }
+        public string? EEPRCNo { get; set; }
+        public string? EEPTRNo { get; set; }
+        public DateTime? EEValidity { get; set; }
+        public string? SPEFullName { get; set; }
+        public string? SPEPRCNo { get; set; }
+        public string? SPEPTRNo { get; set; }
+        public DateTime? SPEValidity { get; set; }
         public string? MEFullName { get; set; }
         public string? MEPRCNo { get; set; }
         public string? MEPTRNo { get; set; }
@@ -388,22 +311,16 @@ namespace ePermitsApp.DTOs
 
     public class BuildingPermitTechDocCreateDto
     {
-        [Required]
-        public IFormFileCollection TechDocIoCPlans { get; set; } = null!;
-        [Required]
-        public IFormFileCollection TechDocSEPlans { get; set; } = null!;
-        [Required]
-        public IFormFileCollection TechDocEEPlans { get; set; } = null!;
-        [Required]
-        public IFormFileCollection TechDocSPPlans { get; set; } = null!;
+        public IFormFileCollection? TechDocIoCPlans { get; set; }
+        public IFormFileCollection? TechDocSEPlans { get; set; }
+        public IFormFileCollection? TechDocEEPlans { get; set; }
+        public IFormFileCollection? TechDocSPPlans { get; set; }
         public IFormFileCollection? TechDocStructuralAnalysisDesign { get; set; }
         public IFormFileCollection? TechDocFireSafetyPlans { get; set; }
         public IFormFileCollection? TechDocEnvironmentalDocuments { get; set; }
         public IFormFileCollection? TechDocSoilTestFieldDensityTest { get; set; }
-        [Required]
-        public IFormFileCollection TechDocBOMCost { get; set; } = null!;
-        [Required]
-        public IFormFileCollection TechDocSoW { get; set; } = null!;
+        public IFormFileCollection? TechDocBOMCost { get; set; }
+        public IFormFileCollection? TechDocSoW { get; set; }
         public IFormFileCollection? TechDocMEPlans { get; set; }
         public IFormFileCollection? TechDocECEPlans { get; set; }
     }

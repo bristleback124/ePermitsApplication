@@ -58,48 +58,29 @@ namespace ePermitsApp.DTOs
 
     public class CoOAppCreateDto
     {
-        [Required]
-        public string BldgPermitNo { get; set; } = string.Empty;
-        [Required]
-        public string ProjectTitle { get; set; } = string.Empty;
+        public string? BldgPermitNo { get; set; }
+        public string? ProjectTitle { get; set; }
         public string? ProjLocBlock { get; set; }
-        [Required]
-        public string ProjLocLot { get; set; } = string.Empty;
-        [Required]
-        public string ProjLocStreet { get; set; } = string.Empty;
-        [Required]
+        public string? ProjLocLot { get; set; }
+        public string? ProjLocStreet { get; set; }
         public int ProvinceId { get; set; }
-        [Required]
         public int LGUId { get; set; }
-        [Required]
         public int BarangayId { get; set; }
-        [Required]
         public int OccupancyNatureId { get; set; }
-        [Required]
         public decimal FloorArea { get; set; }
-        [Required]
         public int NoOfStoreys { get; set; }
-        [Required]
-        public DateTime CompletionDate { get; set; }
-        [Required]
+        public DateTime? CompletionDate { get; set; }
         public int ApplicantTypeId { get; set; }
-        [Required]
-        public string FullName { get; set; } = string.Empty;
-        [Required]
-        public string ContactNo { get; set; } = string.Empty;
-        [Required]
-        public string Email { get; set; } = string.Empty;
-        [Required]
-        public string TIN { get; set; } = string.Empty;
-        [Required]
-        public string MailAddress { get; set; } = string.Empty;
-        [Required]
-        public string DigitalSignature { get; set; } = string.Empty;
-        [Required]
-        public DateTime DateOfSignature { get; set; }
+        public string? FullName { get; set; }
+        public string? ContactNo { get; set; }
+        public string? Email { get; set; }
+        public string? TIN { get; set; }
+        public string? MailAddress { get; set; }
+        public string? DigitalSignature { get; set; }
+        public DateTime? DateOfSignature { get; set; }
 
-        public CoOAppProfCreateDto CoOAppProf { get; set; } = null!;
-        public CoOAppReqDocCreateDto CoOAppReqDoc { get; set; } = null!;
+        public CoOAppProfCreateDto CoOAppProf { get; set; } = new();
+        public CoOAppReqDocCreateDto CoOAppReqDoc { get; set; } = new();
     }
 
     public class CoOAppEditDto
@@ -132,67 +113,40 @@ namespace ePermitsApp.DTOs
 
     public class CoOAppUpdateDto
     {
-        [Required]
-        public string BldgPermitNo { get; set; } = string.Empty;
-        [Required]
-        public string ProjectTitle { get; set; } = string.Empty;
+        public string? BldgPermitNo { get; set; }
+        public string? ProjectTitle { get; set; }
         public string? ProjLocBlock { get; set; }
-        [Required]
-        public string ProjLocLot { get; set; } = string.Empty;
-        [Required]
-        public string ProjLocStreet { get; set; } = string.Empty;
-        [Required]
+        public string? ProjLocLot { get; set; }
+        public string? ProjLocStreet { get; set; }
         public int ProvinceId { get; set; }
-        [Required]
         public int LGUId { get; set; }
-        [Required]
         public int BarangayId { get; set; }
-        [Required]
         public int OccupancyNatureId { get; set; }
-        [Required]
         public decimal FloorArea { get; set; }
-        [Required]
         public int NoOfStoreys { get; set; }
-        [Required]
-        public DateTime CompletionDate { get; set; }
-        [Required]
+        public DateTime? CompletionDate { get; set; }
         public int ApplicantTypeId { get; set; }
-        [Required]
-        public string FullName { get; set; } = string.Empty;
-        [Required]
-        public string ContactNo { get; set; } = string.Empty;
-        [Required]
-        public string Email { get; set; } = string.Empty;
-        [Required]
-        public string TIN { get; set; } = string.Empty;
-        [Required]
-        public string MailAddress { get; set; } = string.Empty;
-        [Required]
-        public string DigitalSignature { get; set; } = string.Empty;
-        [Required]
-        public DateTime DateOfSignature { get; set; }
-        public CoOAppProfUpdateDto CoOAppProf { get; set; } = null!;
-        public CoOAppReqDocUpdateDto CoOAppReqDoc { get; set; } = null!;
+        public string? FullName { get; set; }
+        public string? ContactNo { get; set; }
+        public string? Email { get; set; }
+        public string? TIN { get; set; }
+        public string? MailAddress { get; set; }
+        public string? DigitalSignature { get; set; }
+        public DateTime? DateOfSignature { get; set; }
+        public CoOAppProfUpdateDto CoOAppProf { get; set; } = new();
+        public CoOAppReqDocUpdateDto CoOAppReqDoc { get; set; } = new();
     }
 
     public class CoOAppProfCreateDto
     {
-        [Required]
-        public string IoCFullName { get; set; } = string.Empty;
-        [Required]
-        public string IoCPRCNo { get; set; } = string.Empty;
-        [Required]
-        public string IoCPTRNo { get; set; } = string.Empty;
-        [Required]
-        public DateTime IOCValidity { get; set; }
-        [Required]
-        public string EoRFullName { get; set; } = string.Empty;
-        [Required]
-        public string EoRPRCorPTRNo { get; set; } = string.Empty;
-        [Required]
-        public DateTime EoRValidity { get; set; }
-        [Required]
-        public string EoRSpecialization { get; set; } = string.Empty;
+        public string? IoCFullName { get; set; }
+        public string? IoCPRCNo { get; set; }
+        public string? IoCPTRNo { get; set; }
+        public DateTime? IOCValidity { get; set; }
+        public string? EoRFullName { get; set; }
+        public string? EoRPRCorPTRNo { get; set; }
+        public DateTime? EoRValidity { get; set; }
+        public string? EoRSpecialization { get; set; }
     }
 
     public class CoOAppProfEditDto : CoOAppProfCreateDto
@@ -205,18 +159,12 @@ namespace ePermitsApp.DTOs
 
     public class CoOAppReqDocCreateDto
     {
-        [Required]
-        public IFormFile ReqDocBldgPermitSPlans { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocAsBuiltPlans { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocConsLogbook { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocConsPhotos { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocBrgyClearance { get; set; } = null!;
-        [Required]
-        public IFormFile ReqDocFSIC { get; set; } = null!;
+        public IFormFile? ReqDocBldgPermitSPlans { get; set; }
+        public IFormFile? ReqDocAsBuiltPlans { get; set; }
+        public IFormFile? ReqDocConsLogbook { get; set; }
+        public IFormFile? ReqDocConsPhotos { get; set; }
+        public IFormFile? ReqDocBrgyClearance { get; set; }
+        public IFormFile? ReqDocFSIC { get; set; }
         public IFormFile? ReqDocOthers { get; set; }
     }
 

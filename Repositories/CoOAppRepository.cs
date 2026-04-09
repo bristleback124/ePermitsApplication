@@ -57,6 +57,19 @@ namespace ePermitsApp.Repositories
                 .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
         }
 
+        public async Task<CoOApp?> GetDraftByUserIdAsync(int userId)
+        {
+            return await _context.CoOApps
+                .Include(c => c.Application)
+                .Include(c => c.CoOAppProf)
+                .Include(c => c.CoOAppReqDoc)
+                .FirstOrDefaultAsync(c =>
+                    c.Application != null &&
+                    c.Application.UserId == userId &&
+                    c.Application.Type == Helpers.ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy &&
+                    c.Application.Status == Helpers.ApplicationWorkflowDefinitions.OverallStatuses.Draft);
+        }
+
         public async Task AddAsync(CoOApp coOApp)
         {
             await _context.CoOApps.AddAsync(coOApp);
