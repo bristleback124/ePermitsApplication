@@ -22,6 +22,7 @@ namespace ePermitsApp.Services
         private readonly FileStorageSettings _fileSettings;
         private readonly IEmailService _emailService;
         private readonly IAdminEmailNotificationConfigService _adminEmailNotificationConfigService;
+        private readonly IApplicationFormattedIdService _applicationFormattedIdService;
         private readonly ILogger<CoOAppService> _logger;
 
         public CoOAppService(
@@ -32,6 +33,7 @@ namespace ePermitsApp.Services
             IOptions<FileStorageSettings> fileSettings,
             IEmailService emailService,
             IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
+            IApplicationFormattedIdService applicationFormattedIdService,
             ILogger<CoOAppService> logger)
         {
             _repository = repository;
@@ -41,6 +43,7 @@ namespace ePermitsApp.Services
             _fileSettings = fileSettings.Value;
             _emailService = emailService;
             _adminEmailNotificationConfigService = adminEmailNotificationConfigService;
+            _applicationFormattedIdService = applicationFormattedIdService;
             _logger = logger;
         }
 
@@ -123,8 +126,7 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(coOApp);
             await _repository.SaveChangesAsync();
 
-            // Set formatted ID now that we have the auto-generated Id
-            coOApp.Application.FormattedId = $"CO-{coOApp.Application.CreatedAt.Year}-{coOApp.Application.Id:D3}";
+            await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
 
             // Save files
             if (coOApp.CoOAppReqDoc != null)

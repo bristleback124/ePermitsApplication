@@ -102,6 +102,7 @@ namespace ePermitsApp
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
             builder.Services.AddScoped<IApplicationService, ApplicationService>();
+            builder.Services.AddScoped<IApplicationFormattedIdService, ApplicationFormattedIdService>();
             builder.Services.AddScoped<IApplicationNoteRepository, ApplicationNoteRepository>();
             builder.Services.AddScoped<IApplicationNoteService, ApplicationNoteService>();
             builder.Services.AddScoped<IPaymentDocumentRepository, PaymentDocumentRepository>();

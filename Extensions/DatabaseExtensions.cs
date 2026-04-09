@@ -22,6 +22,52 @@ namespace ePermitsApp.Extensions
             {
                 logger.LogInformation("Database is up to date. No pending migrations.");
             }
+
+            logger.LogInformation("Using database: {Database}", db.Database.GetDbConnection().Database);
+
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                ;WITH RankedApplications AS (
+                    SELECT
+                        Id,
+                        Type,
+                        CreatedAt,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY Type, YEAR(CreatedAt), MONTH(CreatedAt)
+                            ORDER BY CreatedAt, Id
+                        ) AS SequenceNumber
+                    FROM Applications
+                )
+                UPDATE app
+                SET FormattedId =
+                    CASE
+                        WHEN ranked.Type = 'BuildingPermit' THEN 'BP'
+                        WHEN ranked.Type = 'CertificateOfOccupancy' THEN 'CO'
+                        ELSE ranked.Type
+                    END
+                    + '-01-'
+                    + RIGHT('0' + CAST(YEAR(ranked.CreatedAt) % 100 AS varchar(2)), 2)
+                    + '-'
+                    + RIGHT('0' + CAST(MONTH(ranked.CreatedAt) AS varchar(2)), 2)
+                    + '-'
+                    + RIGHT('00' + CAST(ranked.SequenceNumber AS varchar(3)), 3)
+                FROM Applications app
+                INNER JOIN RankedApplications ranked ON ranked.Id = app.Id
+                WHERE app.FormattedId <> 
+                    CASE
+                        WHEN ranked.Type = 'BuildingPermit' THEN 'BP'
+                        WHEN ranked.Type = 'CertificateOfOccupancy' THEN 'CO'
+                        ELSE ranked.Type
+                    END
+                    + '-01-'
+                    + RIGHT('0' + CAST(YEAR(ranked.CreatedAt) % 100 AS varchar(2)), 2)
+                    + '-'
+                    + RIGHT('0' + CAST(MONTH(ranked.CreatedAt) AS varchar(2)), 2)
+                    + '-'
+                    + RIGHT('00' + CAST(ranked.SequenceNumber AS varchar(3)), 3);
+                """);
+
+            logger.LogInformation("Application formatted IDs normalized.");
         }
     }
 }

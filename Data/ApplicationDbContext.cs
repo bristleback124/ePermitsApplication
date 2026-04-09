@@ -232,6 +232,13 @@ namespace ePermitsApp.Data
             modelBuilder.Entity<Application>(entity =>
             {
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.FormattedId)
+                    .IsRequired()
+                    .HasMaxLength(32);
+                entity.HasIndex(e => e.FormattedId)
+                    .IsUnique()
+                    .HasFilter("[FormattedId] IS NOT NULL AND [FormattedId] <> ''");
+
                 entity.HasOne(e => e.BuildingPermit)
                     .WithOne(b => b.Application)
                     .HasForeignKey<BuildingPermit>(b => b.ApplicationId)
