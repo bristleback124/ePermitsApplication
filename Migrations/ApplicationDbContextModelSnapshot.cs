@@ -39,7 +39,8 @@ namespace ePermitsApp.Migrations
 
                     b.Property<string>("FormattedId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -59,6 +60,10 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FormattedId")
+                        .IsUnique()
+                        .HasFilter("[FormattedId] IS NOT NULL AND [FormattedId] <> ''");
 
                     b.HasIndex("UserId");
 
