@@ -245,6 +245,11 @@ namespace ePermitsApp
             app.UseAuthorization();
 
             app.MapGet("/", () => Results.Ok("running"));
+            app.MapGet("/health", () => Results.Ok(new
+            {
+                status = "Healthy",
+                timestampUtc = DateTime.UtcNow
+            })).AllowAnonymous();
 
             app.MapControllers();
 
