@@ -12,6 +12,10 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string TechDocSEPlans { get; set; } = string.Empty;
         public string TechDocEEPlans { get; set; } = string.Empty;
         public string TechDocSPPlans { get; set; } = string.Empty;
+        public string? TechDocStructuralAnalysisDesign { get; set; }
+        public string? TechDocFireSafetyPlans { get; set; }
+        public string? TechDocEnvironmentalDocuments { get; set; }
+        public string? TechDocSoilTestFieldDensityTest { get; set; }
         public string TechDocBOMCost { get; set; } = string.Empty;
         public string TechDocSoW { get; set; } = string.Empty;
 

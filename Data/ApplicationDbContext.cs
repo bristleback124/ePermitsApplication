@@ -30,6 +30,7 @@ namespace ePermitsApp.Data
         public DbSet<ProjectClassification> ProjectClassifications => Set<ProjectClassification>();
         public DbSet<ApplicantType> ApplicantTypes => Set<ApplicantType>();
         public DbSet<OwnershipType> OwnershipTypes => Set<OwnershipType>();
+        public DbSet<BuildingPermitCategory> BuildingPermitCategories => Set<BuildingPermitCategory>();
         public DbSet<User> Users => Set<User>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
@@ -43,6 +44,7 @@ namespace ePermitsApp.Data
         public DbSet<BuildingPermitAppInfo> BuildingPermitAppInfos => Set<BuildingPermitAppInfo>();
         public DbSet<BuildingPermitDesignProf> BuildingPermitDesignProfs => Set<BuildingPermitDesignProf>();
         public DbSet<BuildingPermitTechDoc> BuildingPermitTechDocs => Set<BuildingPermitTechDoc>();
+        public DbSet<BuildingPermitSupportingDoc> BuildingPermitSupportingDocs => Set<BuildingPermitSupportingDoc>();
 
         public DbSet<CoOApp> CoOApps => Set<CoOApp>();
         public DbSet<CoOAppProf> CoOAppProfs => Set<CoOAppProf>();
@@ -115,6 +117,13 @@ namespace ePermitsApp.Data
                 .HasMaxLength(50)
                 .HasDefaultValue(MaintenanceApplicationScopes.Both);
 
+            modelBuilder.Entity<RequirementClassification>()
+                .HasOne(r => r.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(r => r.BuildingPermitCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
             modelBuilder.Entity<RequirementCategory>()
                 .HasIndex(r => new { r.ReqClassId, r.ReqCatDesc });
 
@@ -125,6 +134,13 @@ namespace ePermitsApp.Data
                 .Property(r => r.ApplicationTypeScope)
                 .HasMaxLength(50)
                 .HasDefaultValue(MaintenanceApplicationScopes.Both);
+
+            modelBuilder.Entity<RequirementCategory>()
+                .HasOne(r => r.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(r => r.BuildingPermitCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
 
             modelBuilder.Entity<RequirementCategory>()
                 .HasOne(r => r.RequirementClassification)
@@ -147,6 +163,35 @@ namespace ePermitsApp.Data
                 .HasOne(r => r.RequirementCategory)
                 .WithMany(c => c.Requirements)
                 .HasForeignKey(r => r.ReqCatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Requirement>()
+                .HasOne(r => r.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(r => r.BuildingPermitCategoryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .HasIndex(x => x.CategoryName)
+                .IsUnique();
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .HasQueryFilter(x => !x.IsDeleted);
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .Property(x => x.CategoryName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<BuildingPermitCategory>()
+                .Property(x => x.Description)
+                .HasMaxLength(250);
+
+            modelBuilder.Entity<BuildingPermit>()
+                .HasOne(e => e.BuildingPermitCategory)
+                .WithMany()
+                .HasForeignKey(e => e.BuildingPermitCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Requirement>()
@@ -346,6 +391,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.TCTNo).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.TaxDeclarionNo).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Coordinates).HasMaxLength(100);
+                entity.Property(e => e.Accessories).IsRequired();
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
                 entity.Property(e => e.EstimatedCost).HasPrecision(18, 10);
@@ -367,6 +413,11 @@ namespace ePermitsApp.Data
                 entity.HasOne(e => e.TechDoc)
                     .WithOne(t => t.BuildingPermit)
                     .HasForeignKey<BuildingPermitTechDoc>(t => t.BuildingPermitId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.SupportingDoc)
+                    .WithOne(s => s.BuildingPermit)
+                    .HasForeignKey<BuildingPermitSupportingDoc>(s => s.BuildingPermitId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 // FKs with navigation properties
@@ -445,6 +496,8 @@ namespace ePermitsApp.Data
 
                 entity.Property(e => e.MEPRCNo).HasMaxLength(20);
                 entity.Property(e => e.MEPTRNo).HasMaxLength(20);
+                entity.Property(e => e.GSEPRCNo).HasMaxLength(20);
+                entity.Property(e => e.GSEPTRNo).HasMaxLength(20);
                 entity.Property(e => e.ECEPRCNo).HasMaxLength(20);
                 entity.Property(e => e.ECEPTRNo).HasMaxLength(20);
                 entity.Property(e => e.ContractorPCABNo).HasMaxLength(20);
@@ -461,6 +514,11 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.TechDocSPPlans).IsRequired();
                 entity.Property(e => e.TechDocBOMCost).IsRequired();
                 entity.Property(e => e.TechDocSoW).IsRequired();
+            });
+
+            modelBuilder.Entity<BuildingPermitSupportingDoc>(entity =>
+            {
+                entity.HasKey(e => e.Id);
             });
 
             // CoOApp configuration

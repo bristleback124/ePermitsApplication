@@ -8,6 +8,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public int Id { get; set; }
         public int ApplicationId { get; set; }
         public int PermitAppTypeId { get; set; }
+        public int BuildingPermitCategoryId { get; set; }
         public int OccupancyNatureId { get; set; }
         public string ProjectTitle { get; set; } = string.Empty;
         public int ProjectClassId { get; set; }
@@ -26,6 +27,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string TCTNo { get; set; } = string.Empty;
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
+        public string Accessories { get; set; } = string.Empty;
         public string DigitalSignature { get; set; } = string.Empty;
         public DateTime DateofSignature { get; set; }
         
@@ -33,9 +35,11 @@ namespace ePermitsApp.Entities.BuildingPermit
         public BuildingPermitAppInfo? AppInfo { get; set; }
         public BuildingPermitDesignProf? DesignProf { get; set; }
         public BuildingPermitTechDoc? TechDoc { get; set; }
+        public BuildingPermitSupportingDoc? SupportingDoc { get; set; }
 
         // Navigation Properties for lookups
         public PermitApplicationType? PermitApplicationType { get; set; }
+        public BuildingPermitCategory? BuildingPermitCategory { get; set; }
         public OccupancyNature? OccupancyNature { get; set; }
         public ProjectClassification? ProjectClassification { get; set; }
         public Province? Province { get; set; }

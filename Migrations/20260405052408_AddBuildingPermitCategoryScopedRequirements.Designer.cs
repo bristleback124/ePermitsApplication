@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260405052408_AddBuildingPermitCategoryScopedRequirements")]
+    partial class AddBuildingPermitCategoryScopedRequirements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -799,10 +802,6 @@ namespace ePermitsApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Accessories")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("ApplicationId")
                         .HasColumnType("int");
 
@@ -1068,20 +1067,6 @@ namespace ePermitsApp.Migrations
                     b.Property<DateTime>("EEValidity")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("GSEFullName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GSEPRCNo")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("GSEPTRNo")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("GSEValidity")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("IOCValidity")
                         .HasColumnType("datetime2");
 
@@ -1161,67 +1146,6 @@ namespace ePermitsApp.Migrations
                     b.ToTable("BuildingPermitDesignProfs");
                 });
 
-            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitSupportingDoc", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BuildingPermitId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CreatedBy")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SupportDocBoardResolution")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocDENRClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocECCorCNC")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocFireSafetyClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocHOAClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocHeightClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocHighwayClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocLocationalClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocSECRegistration")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SupportDocZoningClearance")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UpdatedBy")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BuildingPermitId")
-                        .IsUnique();
-
-                    b.ToTable("BuildingPermitSupportingDocs");
-                });
-
             modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitTechDoc", b =>
                 {
                     b.Property<int>("Id")
@@ -1250,12 +1174,6 @@ namespace ePermitsApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TechDocEnvironmentalDocuments")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TechDocFireSafetyPlans")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("TechDocIoCPlans")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1273,12 +1191,6 @@ namespace ePermitsApp.Migrations
 
                     b.Property<string>("TechDocSoW")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TechDocSoilTestFieldDensityTest")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TechDocStructuralAnalysisDesign")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -2624,7 +2536,7 @@ namespace ePermitsApp.Migrations
                             IsActive = true,
                             IsDeleted = false,
                             ReqCatId = 8,
-                            ReqDesc = "Approved Building Permit & Stamped Plans (or reference number if filed within this portal)"
+                            ReqDesc = "Copy of approved Building Permit"
                         },
                         new
                         {
@@ -2635,7 +2547,7 @@ namespace ePermitsApp.Migrations
                             IsActive = true,
                             IsDeleted = false,
                             ReqCatId = 8,
-                            ReqDesc = "As-Built Plans (if different from approved plans)"
+                            ReqDesc = "As-Built Plans (signed & sealed by professionals)"
                         },
                         new
                         {
@@ -2646,7 +2558,7 @@ namespace ePermitsApp.Migrations
                             IsActive = true,
                             IsDeleted = false,
                             ReqCatId = 8,
-                            ReqDesc = "Construction Logbook (signed and sealed by the architect/engineer of record)"
+                            ReqDesc = "Construction completion certificate"
                         },
                         new
                         {
@@ -2657,7 +2569,7 @@ namespace ePermitsApp.Migrations
                             IsActive = true,
                             IsDeleted = false,
                             ReqCatId = 8,
-                            ReqDesc = "Construction Photos (progress and completion)"
+                            ReqDesc = "Material test certificates (concrete, steel, etc.)"
                         },
                         new
                         {
@@ -2667,8 +2579,8 @@ namespace ePermitsApp.Migrations
                             CreatedBy = "System",
                             IsActive = true,
                             IsDeleted = false,
-                            ReqCatId = 8,
-                            ReqDesc = "Barangay Clearance (Occupancy)"
+                            ReqCatId = 9,
+                            ReqDesc = "Fire Safety Inspection Certificate (FSIC)"
                         },
                         new
                         {
@@ -2678,8 +2590,8 @@ namespace ePermitsApp.Migrations
                             CreatedBy = "System",
                             IsActive = true,
                             IsDeleted = false,
-                            ReqCatId = 8,
-                            ReqDesc = "Fire Safety Inspection Certificate (FSIC) from BFP"
+                            ReqCatId = 9,
+                            ReqDesc = "Electrical Safety Inspection Certificate"
                         },
                         new
                         {
@@ -2689,8 +2601,107 @@ namespace ePermitsApp.Migrations
                             CreatedBy = "System",
                             IsActive = true,
                             IsDeleted = false,
-                            ReqCatId = 8,
-                            ReqDesc = "Other Agency Clearances (if applicable: DPWH, CAAP, DENR, etc.)"
+                            ReqCatId = 9,
+                            ReqDesc = "Structural inspection report"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 9,
+                            ReqDesc = "Plumbing inspection certificate"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 9,
+                            ReqDesc = "Mechanical systems inspection (if applicable)"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 10,
+                            ReqDesc = "Environmental compliance monitoring report (if required)"
+                        },
+                        new
+                        {
+                            Id = 47,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 10,
+                            ReqDesc = "Accessibility compliance certificate (for public buildings)"
+                        },
+                        new
+                        {
+                            Id = 48,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 10,
+                            ReqDesc = "Waste management compliance certificate"
+                        },
+                        new
+                        {
+                            Id = 49,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 10,
+                            ReqDesc = "Building maintenance plan"
+                        },
+                        new
+                        {
+                            Id = 50,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 11,
+                            ReqDesc = "Updated tax declaration reflecting improvements"
+                        },
+                        new
+                        {
+                            Id = 51,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 11,
+                            ReqDesc = "Insurance coverage for the structure"
+                        },
+                        new
+                        {
+                            Id = 52,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatId = 11,
+                            ReqDesc = "Business permits (for commercial/industrial buildings)"
                         });
                 });
 
@@ -2708,9 +2719,6 @@ namespace ePermitsApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Both");
-
-                    b.Property<int?>("BuildingPermitCategoryId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -2739,8 +2747,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BuildingPermitCategoryId");
 
                     b.HasIndex("ReqClassId", "ReqCatDesc");
 
@@ -2832,7 +2838,40 @@ namespace ePermitsApp.Migrations
                             CreatedBy = "System",
                             IsActive = true,
                             IsDeleted = false,
-                            ReqCatDesc = "General Requirements",
+                            ReqCatDesc = "Completion Documents",
+                            ReqClassId = 2
+                        },
+                        new
+                        {
+                            Id = 9,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatDesc = "Inspection Certificates",
+                            ReqClassId = 2
+                        },
+                        new
+                        {
+                            Id = 10,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatDesc = "Compliance Documents",
+                            ReqClassId = 2
+                        },
+                        new
+                        {
+                            Id = 11,
+                            ApplicationTypeScope = "CertificateOfOccupancy",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            IsActive = true,
+                            IsDeleted = false,
+                            ReqCatDesc = "Additional Requirements",
                             ReqClassId = 2
                         });
                 });
@@ -2851,9 +2890,6 @@ namespace ePermitsApp.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Both");
-
-                    b.Property<int?>("BuildingPermitCategoryId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -2879,8 +2915,6 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BuildingPermitCategoryId");
 
                     b.HasIndex("ReqClassDesc");
 
@@ -3173,17 +3207,6 @@ namespace ePermitsApp.Migrations
                     b.Navigation("BuildingPermit");
                 });
 
-            modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitSupportingDoc", b =>
-                {
-                    b.HasOne("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "BuildingPermit")
-                        .WithOne("SupportingDoc")
-                        .HasForeignKey("ePermitsApp.Entities.BuildingPermit.BuildingPermitSupportingDoc", "BuildingPermitId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BuildingPermit");
-                });
-
             modelBuilder.Entity("ePermitsApp.Entities.BuildingPermit.BuildingPermitTechDoc", b =>
                 {
                     b.HasOne("ePermitsApp.Entities.BuildingPermit.BuildingPermit", "BuildingPermit")
@@ -3318,30 +3341,13 @@ namespace ePermitsApp.Migrations
 
             modelBuilder.Entity("ePermitsApp.Entities.RequirementCategory", b =>
                 {
-                    b.HasOne("ePermitsApp.Entities.BuildingPermitCategory", "BuildingPermitCategory")
-                        .WithMany()
-                        .HasForeignKey("BuildingPermitCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ePermitsApp.Entities.RequirementClassification", "RequirementClassification")
                         .WithMany("RequirementCategorys")
                         .HasForeignKey("ReqClassId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("BuildingPermitCategory");
-
                     b.Navigation("RequirementClassification");
-                });
-
-            modelBuilder.Entity("ePermitsApp.Entities.RequirementClassification", b =>
-                {
-                    b.HasOne("ePermitsApp.Entities.BuildingPermitCategory", "BuildingPermitCategory")
-                        .WithMany()
-                        .HasForeignKey("BuildingPermitCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("BuildingPermitCategory");
                 });
 
             modelBuilder.Entity("ePermits.Models.Application", b =>
@@ -3375,8 +3381,6 @@ namespace ePermitsApp.Migrations
                     b.Navigation("AppInfo");
 
                     b.Navigation("DesignProf");
-
-                    b.Navigation("SupportingDoc");
 
                     b.Navigation("TechDoc");
                 });

@@ -10,6 +10,8 @@ namespace ePermitsApp.DTOs
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
         public string? ApplicationTypeScope { get; set; }
+        public int? BuildingPermitCategoryId { get; set; }
+        public string? BuildingPermitCategoryName { get; set; }
         public int? ParentId { get; set; }
         public string? ParentName { get; set; }
     }
@@ -46,6 +48,7 @@ namespace ePermitsApp.DTOs
         public string Name { get; set; } = string.Empty;
         public int? ParentId { get; set; }
         public string? ApplicationTypeScope { get; set; }
+        public int? BuildingPermitCategoryId { get; set; }
     }
 
     public class MaintenanceImportResultDto

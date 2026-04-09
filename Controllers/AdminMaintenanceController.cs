@@ -46,7 +46,8 @@ namespace ePermitsApp.Controllers
                 {
                     ["name"] = dto.Name,
                     ["parentId"] = dto.ParentId,
-                    ["applicationTypeScope"] = dto.ApplicationTypeScope
+                    ["applicationTypeScope"] = dto.ApplicationTypeScope,
+                    ["buildingPermitCategoryId"] = dto.BuildingPermitCategoryId
                 });
 
                 return Ok(item);

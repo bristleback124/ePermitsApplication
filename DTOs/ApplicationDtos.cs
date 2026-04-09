@@ -44,6 +44,7 @@ namespace ePermitsApp.DTOs
         public OwnerInformationDto OwnerInformation { get; set; } = new();
         public RequiredDocs RequiredDocs { get; set; } = new();
         public BuildingPermitTechDocDto BuildingPermitTechDocs { get; set; } = new();
+        public BuildingPermitSupportingDocDto SupportingDocs { get; set; } = new();
         public List<ApplicationDepartmentReviewDto> ReviewOffices { get; set; } = new();
     }
 

@@ -44,6 +44,7 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.OwnerInformation, opt => opt.MapFrom(src => src))
                 .ForMember(dest => dest.RequiredDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.AppInfo : null))
                 .ForMember(dest => dest.BuildingPermitTechDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.TechDoc : null))
+                .ForMember(dest => dest.SupportingDocs, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.SupportingDoc : null))
                 .ForMember(dest => dest.ReviewOffices, opt => opt.MapFrom(src => src.DepartmentReviews));
 
             // Mapping for BuildingPermitTechDoc
@@ -52,10 +53,26 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.TechDocSEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSEPlans)))
                 .ForMember(dest => dest.TechDocEEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocEEPlans)))
                 .ForMember(dest => dest.TechDocSPPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSPPlans)))
+                .ForMember(dest => dest.TechDocStructuralAnalysisDesign, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocStructuralAnalysisDesign)))
+                .ForMember(dest => dest.TechDocFireSafetyPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocFireSafetyPlans)))
+                .ForMember(dest => dest.TechDocEnvironmentalDocuments, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocEnvironmentalDocuments)))
+                .ForMember(dest => dest.TechDocSoilTestFieldDensityTest, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSoilTestFieldDensityTest)))
                 .ForMember(dest => dest.TechDocBOMCost, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocBOMCost)))
                 .ForMember(dest => dest.TechDocSoW, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocSoW)))
                 .ForMember(dest => dest.TechDocMEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocMEPlans)))
                 .ForMember(dest => dest.TechDocECEPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.TechDocECEPlans)));
+
+            CreateMap<BuildingPermitSupportingDoc, BuildingPermitSupportingDocDto>()
+                .ForMember(dest => dest.SupportDocZoningClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocZoningClearance)))
+                .ForMember(dest => dest.SupportDocLocationalClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocLocationalClearance)))
+                .ForMember(dest => dest.SupportDocFireSafetyClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocFireSafetyClearance)))
+                .ForMember(dest => dest.SupportDocHighwayClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocHighwayClearance)))
+                .ForMember(dest => dest.SupportDocHeightClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocHeightClearance)))
+                .ForMember(dest => dest.SupportDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocECCorCNC)))
+                .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocDENRClearance)))
+                .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocSECRegistration)))
+                .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocBoardResolution)))
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocHOAClearance)));
 
             // Mapping for RequiredDocs
             CreateMap<BuildingPermitAppInfo, RequiredDocs>()

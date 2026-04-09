@@ -5,9 +5,11 @@
         public int Id { get; set; }
         public string ReqClassDesc { get; set; } = null!;
         public string ApplicationTypeScope { get; set; } = "Both";
+        public int? BuildingPermitCategoryId { get; set; }
         public bool IsActive { get; set; } = true;
 
         public ICollection<RequirementCategory> RequirementCategorys { get; set; } = new List<RequirementCategory>();
+        public BuildingPermitCategory? BuildingPermitCategory { get; set; }
 
         public string CreatedBy { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
