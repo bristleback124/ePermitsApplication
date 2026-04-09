@@ -142,7 +142,10 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(coOApp);
             await _repository.SaveChangesAsync();
 
-            await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
+            if (!saveAsDraft)
+            {
+                await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
+            }
 
             // Save files
             if (coOApp.CoOAppReqDoc != null)
@@ -231,12 +234,19 @@ namespace ePermitsApp.Services
             if (saveAsDraft)
             {
                 coOApp.Application.Status = ApplicationWorkflowDefinitions.OverallStatuses.Draft;
+                coOApp.Application.FormattedId = string.Empty;
                 coOApp.Application.DepartmentReviews.Clear();
             }
             else
             {
                 EnsureSubmittedState(coOApp.Application, now);
                 ValidateRequiredSubmission(coOApp);
+
+                if (wasDraft)
+                {
+                    coOApp.Application.CreatedAt = now;
+                    await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
+                }
             }
 
             coOApp.Application.UpdatedAt = now;

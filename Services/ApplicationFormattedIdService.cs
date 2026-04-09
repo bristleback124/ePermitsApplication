@@ -54,6 +54,7 @@ namespace ePermitsApp.Services
                     .Where(a =>
                         a.Id != application.Id &&
                         a.Type == application.Type &&
+                        a.Status != ApplicationWorkflowDefinitions.OverallStatuses.Draft &&
                         a.CreatedAt.Year == year &&
                         a.CreatedAt.Month == month)
                     .CountAsync(cancellationToken) + 1;

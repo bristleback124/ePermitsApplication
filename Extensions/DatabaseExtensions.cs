@@ -37,34 +37,34 @@ namespace ePermitsApp.Extensions
                             ORDER BY CreatedAt, Id
                         ) AS SequenceNumber
                     FROM Applications
+                    WHERE Status <> 'Draft'
                 )
                 UPDATE app
                 SET FormattedId =
-                    CASE
-                        WHEN ranked.Type = 'BuildingPermit' THEN 'BP'
-                        WHEN ranked.Type = 'CertificateOfOccupancy' THEN 'CO'
-                        ELSE ranked.Type
-                    END
-                    + '-01-'
-                    + RIGHT('0' + CAST(YEAR(ranked.CreatedAt) % 100 AS varchar(2)), 2)
-                    + '-'
-                    + RIGHT('0' + CAST(MONTH(ranked.CreatedAt) AS varchar(2)), 2)
-                    + '-'
-                    + RIGHT('00' + CAST(ranked.SequenceNumber AS varchar(3)), 3)
+                    expected.ExpectedFormattedId
                 FROM Applications app
-                INNER JOIN RankedApplications ranked ON ranked.Id = app.Id
-                WHERE app.FormattedId <> 
-                    CASE
-                        WHEN ranked.Type = 'BuildingPermit' THEN 'BP'
-                        WHEN ranked.Type = 'CertificateOfOccupancy' THEN 'CO'
-                        ELSE ranked.Type
-                    END
-                    + '-01-'
-                    + RIGHT('0' + CAST(YEAR(ranked.CreatedAt) % 100 AS varchar(2)), 2)
-                    + '-'
-                    + RIGHT('0' + CAST(MONTH(ranked.CreatedAt) AS varchar(2)), 2)
-                    + '-'
-                    + RIGHT('00' + CAST(ranked.SequenceNumber AS varchar(3)), 3);
+                INNER JOIN (
+                    SELECT
+                        ranked.Id,
+                        CASE
+                            WHEN ranked.Type = 'BuildingPermit' THEN 'BP'
+                            WHEN ranked.Type = 'CertificateOfOccupancy' THEN 'CO'
+                            ELSE ranked.Type
+                        END
+                        + '-01-'
+                        + RIGHT('0' + CAST(YEAR(ranked.CreatedAt) % 100 AS varchar(2)), 2)
+                        + '-'
+                        + RIGHT('0' + CAST(MONTH(ranked.CreatedAt) AS varchar(2)), 2)
+                        + '-'
+                        + RIGHT('00' + CAST(ranked.SequenceNumber AS varchar(3)), 3) AS ExpectedFormattedId
+                    FROM RankedApplications ranked
+                ) expected ON expected.Id = app.Id
+                WHERE app.FormattedId <> expected.ExpectedFormattedId;
+
+                UPDATE Applications
+                SET FormattedId = ''
+                WHERE Status = 'Draft'
+                    AND FormattedId <> '';
                 """);
 
             logger.LogInformation("Application formatted IDs normalized.");

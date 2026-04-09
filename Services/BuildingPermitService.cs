@@ -154,7 +154,10 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(buildingPermit);
             await _repository.SaveChangesAsync();
 
-            await _applicationFormattedIdService.AssignFormattedIdAsync(buildingPermit.Application);
+            if (!saveAsDraft)
+            {
+                await _applicationFormattedIdService.AssignFormattedIdAsync(buildingPermit.Application);
+            }
 
             // Save files
             if (buildingPermit.AppInfo != null)
@@ -308,6 +311,7 @@ namespace ePermitsApp.Services
             if (saveAsDraft)
             {
                 buildingPermit.Application.Status = ApplicationWorkflowDefinitions.OverallStatuses.Draft;
+                buildingPermit.Application.FormattedId = string.Empty;
                 buildingPermit.Application.DepartmentReviews.Clear();
             }
             else
@@ -315,6 +319,12 @@ namespace ePermitsApp.Services
                 EnsureSubmittedState(buildingPermit.Application, now);
                 ValidateRequiredSubmission(buildingPermit);
                 ValidateCategorySpecificRequirements(buildingPermit);
+
+                if (wasDraft)
+                {
+                    buildingPermit.Application.CreatedAt = now;
+                    await _applicationFormattedIdService.AssignFormattedIdAsync(buildingPermit.Application);
+                }
             }
 
             buildingPermit.Application.UpdatedAt = now;
