@@ -639,7 +639,7 @@ namespace ePermitsApp.Services
                 throw new InvalidOperationException("Mechanical Engineer is required.");
             }
 
-            if ((isComplex || isHighlyTechnical) && string.IsNullOrWhiteSpace(designProf.GSEFullName))
+            if (isHighlyTechnical && string.IsNullOrWhiteSpace(designProf.GSEFullName))
             {
                 throw new InvalidOperationException("Geotechnical / Soil Engineer is required.");
             }
