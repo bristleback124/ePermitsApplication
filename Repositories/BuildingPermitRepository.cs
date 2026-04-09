@@ -56,6 +56,7 @@ namespace ePermitsApp.Repositories
         {
             return await _context.BuildingPermits
                 .Include(b => b.Application)
+                    .ThenInclude(a => a!.DepartmentReviews)
                 .Include(b => b.AppInfo)
                 .Include(b => b.DesignProf)
                 .Include(b => b.TechDoc)

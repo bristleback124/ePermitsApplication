@@ -52,6 +52,7 @@ namespace ePermitsApp.Repositories
         {
             return await _context.CoOApps
                 .Include(c => c.Application)
+                    .ThenInclude(a => a!.DepartmentReviews)
                 .Include(c => c.CoOAppProf)
                 .Include(c => c.CoOAppReqDoc)
                 .FirstOrDefaultAsync(c => c.ApplicationId == applicationId);
