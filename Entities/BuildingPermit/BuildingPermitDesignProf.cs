@@ -37,6 +37,12 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string? MEPTRNo { get; set; }
         public DateTime? MEValidity { get; set; }
 
+        // Geotechnical / Soil Engineer
+        public string? GSEFullName { get; set; }
+        public string? GSEPRCNo { get; set; }
+        public string? GSEPTRNo { get; set; }
+        public DateTime? GSEValidity { get; set; }
+
         // Electronics & Comm. Engineer 
         public string? ECEFullName { get; set; }
         public string? ECEPRCNo { get; set; }

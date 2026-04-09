@@ -27,6 +27,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string TCTNo { get; set; } = string.Empty;
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
+        public string Accessories { get; set; } = string.Empty;
         public string DigitalSignature { get; set; } = string.Empty;
         public DateTime DateofSignature { get; set; }
         
@@ -34,6 +35,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public BuildingPermitAppInfo? AppInfo { get; set; }
         public BuildingPermitDesignProf? DesignProf { get; set; }
         public BuildingPermitTechDoc? TechDoc { get; set; }
+        public BuildingPermitSupportingDoc? SupportingDoc { get; set; }
 
         // Navigation Properties for lookups
         public PermitApplicationType? PermitApplicationType { get; set; }

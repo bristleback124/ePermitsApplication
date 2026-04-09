@@ -44,6 +44,7 @@ namespace ePermitsApp.Data
         public DbSet<BuildingPermitAppInfo> BuildingPermitAppInfos => Set<BuildingPermitAppInfo>();
         public DbSet<BuildingPermitDesignProf> BuildingPermitDesignProfs => Set<BuildingPermitDesignProf>();
         public DbSet<BuildingPermitTechDoc> BuildingPermitTechDocs => Set<BuildingPermitTechDoc>();
+        public DbSet<BuildingPermitSupportingDoc> BuildingPermitSupportingDocs => Set<BuildingPermitSupportingDoc>();
 
         public DbSet<CoOApp> CoOApps => Set<CoOApp>();
         public DbSet<CoOAppProf> CoOAppProfs => Set<CoOAppProf>();
@@ -390,6 +391,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.TCTNo).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.TaxDeclarionNo).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Coordinates).HasMaxLength(100);
+                entity.Property(e => e.Accessories).IsRequired();
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
                 entity.Property(e => e.EstimatedCost).HasPrecision(18, 10);
@@ -411,6 +413,11 @@ namespace ePermitsApp.Data
                 entity.HasOne(e => e.TechDoc)
                     .WithOne(t => t.BuildingPermit)
                     .HasForeignKey<BuildingPermitTechDoc>(t => t.BuildingPermitId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.SupportingDoc)
+                    .WithOne(s => s.BuildingPermit)
+                    .HasForeignKey<BuildingPermitSupportingDoc>(s => s.BuildingPermitId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 // FKs with navigation properties
@@ -489,6 +496,8 @@ namespace ePermitsApp.Data
 
                 entity.Property(e => e.MEPRCNo).HasMaxLength(20);
                 entity.Property(e => e.MEPTRNo).HasMaxLength(20);
+                entity.Property(e => e.GSEPRCNo).HasMaxLength(20);
+                entity.Property(e => e.GSEPTRNo).HasMaxLength(20);
                 entity.Property(e => e.ECEPRCNo).HasMaxLength(20);
                 entity.Property(e => e.ECEPTRNo).HasMaxLength(20);
                 entity.Property(e => e.ContractorPCABNo).HasMaxLength(20);
@@ -505,6 +514,11 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.TechDocSPPlans).IsRequired();
                 entity.Property(e => e.TechDocBOMCost).IsRequired();
                 entity.Property(e => e.TechDocSoW).IsRequired();
+            });
+
+            modelBuilder.Entity<BuildingPermitSupportingDoc>(entity =>
+            {
+                entity.HasKey(e => e.Id);
             });
 
             // CoOApp configuration

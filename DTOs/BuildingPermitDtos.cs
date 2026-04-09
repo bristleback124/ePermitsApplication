@@ -26,12 +26,14 @@ namespace ePermitsApp.DTOs
         public string TCTNo { get; set; } = string.Empty;
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
+        public List<string> Accessories { get; set; } = new();
         public string DigitalSignature { get; set; } = string.Empty;
         public DateTime DateofSignature { get; set; }
 
         public BuildingPermitAppInfoDto? AppInfo { get; set; }
         public BuildingPermitDesignProfDto? DesignProf { get; set; }
         public BuildingPermitTechDocDto? TechDoc { get; set; }
+        public BuildingPermitSupportingDocDto? SupportingDoc { get; set; }
     }
 
     public class BuildingPermitAppInfoDto
@@ -75,6 +77,10 @@ namespace ePermitsApp.DTOs
         public string? MEPRCNo { get; set; }
         public string? MEPTRNo { get; set; }
         public DateTime? MEValidity { get; set; }
+        public string? GSEFullName { get; set; }
+        public string? GSEPRCNo { get; set; }
+        public string? GSEPTRNo { get; set; }
+        public DateTime? GSEValidity { get; set; }
         public string? ECEFullName { get; set; }
         public string? ECEPRCNo { get; set; }
         public string? ECEPTRNo { get; set; }
@@ -99,10 +105,29 @@ namespace ePermitsApp.DTOs
         public List<FileMetadataDto> TechDocSEPlans { get; set; } = new();
         public List<FileMetadataDto> TechDocEEPlans { get; set; } = new();
         public List<FileMetadataDto> TechDocSPPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocStructuralAnalysisDesign { get; set; } = new();
+        public List<FileMetadataDto> TechDocFireSafetyPlans { get; set; } = new();
+        public List<FileMetadataDto> TechDocEnvironmentalDocuments { get; set; } = new();
+        public List<FileMetadataDto> TechDocSoilTestFieldDensityTest { get; set; } = new();
         public List<FileMetadataDto> TechDocBOMCost { get; set; } = new();
         public List<FileMetadataDto> TechDocSoW { get; set; } = new();
         public List<FileMetadataDto> TechDocMEPlans { get; set; } = new();
         public List<FileMetadataDto> TechDocECEPlans { get; set; } = new();
+    }
+
+    public class BuildingPermitSupportingDocDto
+    {
+        public int Id { get; set; }
+        public FileMetadataDto? SupportDocZoningClearance { get; set; }
+        public FileMetadataDto? SupportDocLocationalClearance { get; set; }
+        public FileMetadataDto? SupportDocFireSafetyClearance { get; set; }
+        public FileMetadataDto? SupportDocHighwayClearance { get; set; }
+        public FileMetadataDto? SupportDocHeightClearance { get; set; }
+        public FileMetadataDto? SupportDocECCorCNC { get; set; }
+        public FileMetadataDto? SupportDocDENRClearance { get; set; }
+        public FileMetadataDto? SupportDocSECRegistration { get; set; }
+        public FileMetadataDto? SupportDocBoardResolution { get; set; }
+        public FileMetadataDto? SupportDocHOAClearance { get; set; }
     }
 
     public class BuildingPermitCreateDto
@@ -146,6 +171,8 @@ namespace ePermitsApp.DTOs
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
         [Required]
+        public string[] Accessories { get; set; } = Array.Empty<string>();
+        [Required]
         public string DigitalSignature { get; set; } = string.Empty;
         [Required]
         public DateTime DateofSignature { get; set; }
@@ -153,6 +180,7 @@ namespace ePermitsApp.DTOs
         public BuildingPermitAppInfoCreateDto AppInfo { get; set; } = null!;
         public BuildingPermitDesignProfCreateDto DesignProf { get; set; } = null!;
         public BuildingPermitTechDocCreateDto TechDoc { get; set; } = null!;
+        public BuildingPermitSupportingDocCreateDto SupportingDoc { get; set; } = null!;
     }
 
     public class BuildingPermitEditDto
@@ -179,11 +207,13 @@ namespace ePermitsApp.DTOs
         public string TCTNo { get; set; } = string.Empty;
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
+        public List<string> Accessories { get; set; } = new();
         public string DigitalSignature { get; set; } = string.Empty;
         public DateTime DateofSignature { get; set; }
         public BuildingPermitAppInfoDto AppInfo { get; set; } = new();
         public BuildingPermitDesignProfDto DesignProf { get; set; } = new();
         public BuildingPermitTechDocDto TechDoc { get; set; } = new();
+        public BuildingPermitSupportingDocDto SupportingDoc { get; set; } = new();
     }
 
     public class BuildingPermitUpdateDto
@@ -227,6 +257,8 @@ namespace ePermitsApp.DTOs
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
         [Required]
+        public string[] Accessories { get; set; } = Array.Empty<string>();
+        [Required]
         public string DigitalSignature { get; set; } = string.Empty;
         [Required]
         public DateTime DateofSignature { get; set; }
@@ -234,6 +266,7 @@ namespace ePermitsApp.DTOs
         public BuildingPermitAppInfoUpdateDto AppInfo { get; set; } = null!;
         public BuildingPermitDesignProfUpdateDto DesignProf { get; set; } = null!;
         public BuildingPermitTechDocUpdateDto TechDoc { get; set; } = null!;
+        public BuildingPermitSupportingDocUpdateDto SupportingDoc { get; set; } = null!;
     }
 
     public class BuildingPermitAppInfoCreateDto
@@ -335,6 +368,10 @@ namespace ePermitsApp.DTOs
         public string? MEPRCNo { get; set; }
         public string? MEPTRNo { get; set; }
         public DateTime? MEValidity { get; set; }
+        public string? GSEFullName { get; set; }
+        public string? GSEPRCNo { get; set; }
+        public string? GSEPTRNo { get; set; }
+        public DateTime? GSEValidity { get; set; }
         public string? ECEFullName { get; set; }
         public string? ECEPRCNo { get; set; }
         public string? ECEPTRNo { get; set; }
@@ -359,6 +396,10 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection TechDocEEPlans { get; set; } = null!;
         [Required]
         public IFormFileCollection TechDocSPPlans { get; set; } = null!;
+        public IFormFileCollection? TechDocStructuralAnalysisDesign { get; set; }
+        public IFormFileCollection? TechDocFireSafetyPlans { get; set; }
+        public IFormFileCollection? TechDocEnvironmentalDocuments { get; set; }
+        public IFormFileCollection? TechDocSoilTestFieldDensityTest { get; set; }
         [Required]
         public IFormFileCollection TechDocBOMCost { get; set; } = null!;
         [Required]
@@ -373,6 +414,10 @@ namespace ePermitsApp.DTOs
         public string[] KeepTechDocSEPlans { get; set; } = Array.Empty<string>();
         public string[] KeepTechDocEEPlans { get; set; } = Array.Empty<string>();
         public string[] KeepTechDocSPPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocStructuralAnalysisDesign { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocFireSafetyPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocEnvironmentalDocuments { get; set; } = Array.Empty<string>();
+        public string[] KeepTechDocSoilTestFieldDensityTest { get; set; } = Array.Empty<string>();
         public string[] KeepTechDocBOMCost { get; set; } = Array.Empty<string>();
         public string[] KeepTechDocSoW { get; set; } = Array.Empty<string>();
         public string[] KeepTechDocMEPlans { get; set; } = Array.Empty<string>();
@@ -382,9 +427,52 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection? TechDocSEPlans { get; set; }
         public IFormFileCollection? TechDocEEPlans { get; set; }
         public IFormFileCollection? TechDocSPPlans { get; set; }
+        public IFormFileCollection? TechDocStructuralAnalysisDesign { get; set; }
+        public IFormFileCollection? TechDocFireSafetyPlans { get; set; }
+        public IFormFileCollection? TechDocEnvironmentalDocuments { get; set; }
+        public IFormFileCollection? TechDocSoilTestFieldDensityTest { get; set; }
         public IFormFileCollection? TechDocBOMCost { get; set; }
         public IFormFileCollection? TechDocSoW { get; set; }
         public IFormFileCollection? TechDocMEPlans { get; set; }
         public IFormFileCollection? TechDocECEPlans { get; set; }
+    }
+
+    public class BuildingPermitSupportingDocCreateDto
+    {
+        public IFormFile? SupportDocZoningClearance { get; set; }
+        public IFormFile? SupportDocLocationalClearance { get; set; }
+        public IFormFile? SupportDocFireSafetyClearance { get; set; }
+        public IFormFile? SupportDocHighwayClearance { get; set; }
+        public IFormFile? SupportDocHeightClearance { get; set; }
+        public IFormFile? SupportDocECCorCNC { get; set; }
+        public IFormFile? SupportDocDENRClearance { get; set; }
+        public IFormFile? SupportDocSECRegistration { get; set; }
+        public IFormFile? SupportDocBoardResolution { get; set; }
+        public IFormFile? SupportDocHOAClearance { get; set; }
+    }
+
+    public class BuildingPermitSupportingDocUpdateDto
+    {
+        public bool KeepSupportDocZoningClearance { get; set; }
+        public bool KeepSupportDocLocationalClearance { get; set; }
+        public bool KeepSupportDocFireSafetyClearance { get; set; }
+        public bool KeepSupportDocHighwayClearance { get; set; }
+        public bool KeepSupportDocHeightClearance { get; set; }
+        public bool KeepSupportDocECCorCNC { get; set; }
+        public bool KeepSupportDocDENRClearance { get; set; }
+        public bool KeepSupportDocSECRegistration { get; set; }
+        public bool KeepSupportDocBoardResolution { get; set; }
+        public bool KeepSupportDocHOAClearance { get; set; }
+
+        public IFormFile? SupportDocZoningClearance { get; set; }
+        public IFormFile? SupportDocLocationalClearance { get; set; }
+        public IFormFile? SupportDocFireSafetyClearance { get; set; }
+        public IFormFile? SupportDocHighwayClearance { get; set; }
+        public IFormFile? SupportDocHeightClearance { get; set; }
+        public IFormFile? SupportDocECCorCNC { get; set; }
+        public IFormFile? SupportDocDENRClearance { get; set; }
+        public IFormFile? SupportDocSECRegistration { get; set; }
+        public IFormFile? SupportDocBoardResolution { get; set; }
+        public IFormFile? SupportDocHOAClearance { get; set; }
     }
 }

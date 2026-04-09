@@ -78,6 +78,7 @@ namespace ePermitsApp.Services
 
         public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto)
         {
+            ValidateCategorySpecificRequirements(dto);
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
 
             var now = DateTime.UtcNow;
@@ -125,6 +126,12 @@ namespace ePermitsApp.Services
                 buildingPermit.TechDoc.CreatedAt = now;
                 buildingPermit.TechDoc.CreatedBy = currentUserId;
             }
+
+            if (buildingPermit.SupportingDoc != null)
+            {
+                buildingPermit.SupportingDoc.CreatedAt = now;
+                buildingPermit.SupportingDoc.CreatedBy = currentUserId;
+            }
             
             await _repository.AddAsync(buildingPermit);
             await _repository.SaveChangesAsync();
@@ -153,6 +160,14 @@ namespace ePermitsApp.Services
                 buildingPermit.TechDoc.TechDocSEPlans = await SaveFilesAsync(dto.TechDoc.TechDocSEPlans, buildingPermit.Id, "tech-docs");
                 buildingPermit.TechDoc.TechDocEEPlans = await SaveFilesAsync(dto.TechDoc.TechDocEEPlans, buildingPermit.Id, "tech-docs");
                 buildingPermit.TechDoc.TechDocSPPlans = await SaveFilesAsync(dto.TechDoc.TechDocSPPlans, buildingPermit.Id, "tech-docs");
+                if (dto.TechDoc.TechDocStructuralAnalysisDesign != null)
+                    buildingPermit.TechDoc.TechDocStructuralAnalysisDesign = await SaveFilesAsync(dto.TechDoc.TechDocStructuralAnalysisDesign, buildingPermit.Id, "tech-docs");
+                if (dto.TechDoc.TechDocFireSafetyPlans != null)
+                    buildingPermit.TechDoc.TechDocFireSafetyPlans = await SaveFilesAsync(dto.TechDoc.TechDocFireSafetyPlans, buildingPermit.Id, "tech-docs");
+                if (dto.TechDoc.TechDocEnvironmentalDocuments != null)
+                    buildingPermit.TechDoc.TechDocEnvironmentalDocuments = await SaveFilesAsync(dto.TechDoc.TechDocEnvironmentalDocuments, buildingPermit.Id, "tech-docs");
+                if (dto.TechDoc.TechDocSoilTestFieldDensityTest != null)
+                    buildingPermit.TechDoc.TechDocSoilTestFieldDensityTest = await SaveFilesAsync(dto.TechDoc.TechDocSoilTestFieldDensityTest, buildingPermit.Id, "tech-docs");
                 buildingPermit.TechDoc.TechDocBOMCost = await SaveFilesAsync(dto.TechDoc.TechDocBOMCost, buildingPermit.Id, "tech-docs");
                 buildingPermit.TechDoc.TechDocSoW = await SaveFilesAsync(dto.TechDoc.TechDocSoW, buildingPermit.Id, "tech-docs");
 
@@ -162,6 +177,13 @@ namespace ePermitsApp.Services
                 if (dto.TechDoc.TechDocECEPlans != null)
                     buildingPermit.TechDoc.TechDocECEPlans = await SaveFilesAsync(dto.TechDoc.TechDocECEPlans, buildingPermit.Id, "tech-docs");
             }
+
+            if (buildingPermit.SupportingDoc != null)
+            {
+                await UpdateSupportingDocFilesAsync(buildingPermit.SupportingDoc, dto.SupportingDoc, buildingPermit.Id);
+            }
+
+            ValidateCategorySpecificRequirements(buildingPermit);
 
             // Update again with file paths
             _repository.Update(buildingPermit);
@@ -206,6 +228,18 @@ namespace ePermitsApp.Services
             buildingPermit.DesignProf.UpdatedAt = now;
             buildingPermit.DesignProf.UpdatedBy = currentUserId;
 
+            if (buildingPermit.SupportingDoc == null)
+            {
+                buildingPermit.SupportingDoc = new BuildingPermitSupportingDoc
+                {
+                    CreatedAt = now,
+                    CreatedBy = currentUserId
+                };
+            }
+
+            buildingPermit.SupportingDoc.UpdatedAt = now;
+            buildingPermit.SupportingDoc.UpdatedBy = currentUserId;
+
             await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocProofOwnership), dto.AppInfo.ReqDocProofOwnership, dto.AppInfo.KeepReqDocProofOwnership, buildingPermit.Id, true);
             await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocBarangayClearance), dto.AppInfo.ReqDocBarangayClearance, dto.AppInfo.KeepReqDocBarangayClearance, buildingPermit.Id, true);
             await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocTaxDeclaration), dto.AppInfo.ReqDocTaxDeclaration, dto.AppInfo.KeepReqDocTaxDeclaration, buildingPermit.Id, true);
@@ -217,10 +251,27 @@ namespace ePermitsApp.Services
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSEPlans), dto.TechDoc.KeepTechDocSEPlans, dto.TechDoc.TechDocSEPlans, buildingPermit.Id, true);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocEEPlans), dto.TechDoc.KeepTechDocEEPlans, dto.TechDoc.TechDocEEPlans, buildingPermit.Id, true);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSPPlans), dto.TechDoc.KeepTechDocSPPlans, dto.TechDoc.TechDocSPPlans, buildingPermit.Id, true);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocStructuralAnalysisDesign), dto.TechDoc.KeepTechDocStructuralAnalysisDesign, dto.TechDoc.TechDocStructuralAnalysisDesign, buildingPermit.Id, false);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocFireSafetyPlans), dto.TechDoc.KeepTechDocFireSafetyPlans, dto.TechDoc.TechDocFireSafetyPlans, buildingPermit.Id, false);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocEnvironmentalDocuments), dto.TechDoc.KeepTechDocEnvironmentalDocuments, dto.TechDoc.TechDocEnvironmentalDocuments, buildingPermit.Id, false);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSoilTestFieldDensityTest), dto.TechDoc.KeepTechDocSoilTestFieldDensityTest, dto.TechDoc.TechDocSoilTestFieldDensityTest, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocBOMCost), dto.TechDoc.KeepTechDocBOMCost, dto.TechDoc.TechDocBOMCost, buildingPermit.Id, true);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSoW), dto.TechDoc.KeepTechDocSoW, dto.TechDoc.TechDocSoW, buildingPermit.Id, true);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocMEPlans), dto.TechDoc.KeepTechDocMEPlans, dto.TechDoc.TechDocMEPlans, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocECEPlans), dto.TechDoc.KeepTechDocECEPlans, dto.TechDoc.TechDocECEPlans, buildingPermit.Id, false);
+
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocZoningClearance), dto.SupportingDoc.SupportDocZoningClearance, dto.SupportingDoc.KeepSupportDocZoningClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocLocationalClearance), dto.SupportingDoc.SupportDocLocationalClearance, dto.SupportingDoc.KeepSupportDocLocationalClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocFireSafetyClearance), dto.SupportingDoc.SupportDocFireSafetyClearance, dto.SupportingDoc.KeepSupportDocFireSafetyClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocHighwayClearance), dto.SupportingDoc.SupportDocHighwayClearance, dto.SupportingDoc.KeepSupportDocHighwayClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocHeightClearance), dto.SupportingDoc.SupportDocHeightClearance, dto.SupportingDoc.KeepSupportDocHeightClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocECCorCNC), dto.SupportingDoc.SupportDocECCorCNC, dto.SupportingDoc.KeepSupportDocECCorCNC, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocDENRClearance), dto.SupportingDoc.SupportDocDENRClearance, dto.SupportingDoc.KeepSupportDocDENRClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocSECRegistration), dto.SupportingDoc.SupportDocSECRegistration, dto.SupportingDoc.KeepSupportDocSECRegistration, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocBoardResolution), dto.SupportingDoc.SupportDocBoardResolution, dto.SupportingDoc.KeepSupportDocBoardResolution, buildingPermit.Id, false, "supporting-docs");
+            await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocHOAClearance), dto.SupportingDoc.SupportDocHOAClearance, dto.SupportingDoc.KeepSupportDocHOAClearance, buildingPermit.Id, false, "supporting-docs");
+
+            ValidateCategorySpecificRequirements(buildingPermit);
 
             buildingPermit.Application.UpdatedAt = now;
             buildingPermit.Application.UpdatedBy = actor;
@@ -310,6 +361,7 @@ namespace ePermitsApp.Services
             buildingPermit.TCTNo = dto.TCTNo;
             buildingPermit.TaxDeclarionNo = dto.TaxDeclarionNo;
             buildingPermit.Coordinates = dto.Coordinates;
+            buildingPermit.Accessories = string.Join("|", dto.Accessories);
             buildingPermit.DigitalSignature = dto.DigitalSignature;
             buildingPermit.DateofSignature = dto.DateofSignature;
             buildingPermit.UpdatedAt = now;
@@ -329,14 +381,14 @@ namespace ePermitsApp.Services
             appInfo.UpdatedBy = currentUserId;
         }
 
-        private async Task UpdateSingleFileAsync(object target, string propertyName, IFormFile? newFile, bool keepExisting, int permitId, bool required)
+        private async Task UpdateSingleFileAsync(object target, string propertyName, IFormFile? newFile, bool keepExisting, int permitId, bool required, string subFolder = "req-docs")
         {
             var property = target.GetType().GetProperty(propertyName)!;
             var currentValue = property.GetValue(target) as string;
 
             if (newFile != null)
             {
-                property.SetValue(target, await SaveFileWithMetadataAsync(newFile, permitId, "req-docs"));
+                property.SetValue(target, await SaveFileWithMetadataAsync(newFile, permitId, subFolder));
                 return;
             }
 
@@ -351,6 +403,30 @@ namespace ePermitsApp.Services
             }
 
             property.SetValue(target, string.Empty);
+        }
+
+        private async Task UpdateSupportingDocFilesAsync(BuildingPermitSupportingDoc supportingDoc, BuildingPermitSupportingDocCreateDto dto, int permitId)
+        {
+            supportingDoc.SupportDocZoningClearance = await SaveOptionalFileAsync(dto.SupportDocZoningClearance, permitId);
+            supportingDoc.SupportDocLocationalClearance = await SaveOptionalFileAsync(dto.SupportDocLocationalClearance, permitId);
+            supportingDoc.SupportDocFireSafetyClearance = await SaveOptionalFileAsync(dto.SupportDocFireSafetyClearance, permitId);
+            supportingDoc.SupportDocHighwayClearance = await SaveOptionalFileAsync(dto.SupportDocHighwayClearance, permitId);
+            supportingDoc.SupportDocHeightClearance = await SaveOptionalFileAsync(dto.SupportDocHeightClearance, permitId);
+            supportingDoc.SupportDocECCorCNC = await SaveOptionalFileAsync(dto.SupportDocECCorCNC, permitId);
+            supportingDoc.SupportDocDENRClearance = await SaveOptionalFileAsync(dto.SupportDocDENRClearance, permitId);
+            supportingDoc.SupportDocSECRegistration = await SaveOptionalFileAsync(dto.SupportDocSECRegistration, permitId);
+            supportingDoc.SupportDocBoardResolution = await SaveOptionalFileAsync(dto.SupportDocBoardResolution, permitId);
+            supportingDoc.SupportDocHOAClearance = await SaveOptionalFileAsync(dto.SupportDocHOAClearance, permitId);
+        }
+
+        private async Task<string> SaveOptionalFileAsync(IFormFile? file, int permitId)
+        {
+            if (file == null)
+            {
+                return string.Empty;
+            }
+
+            return await SaveFileWithMetadataAsync(file, permitId, "supporting-docs");
         }
 
         private async Task UpdateMultiFileAsync(object target, string propertyName, string[] keepPaths, IFormFileCollection? newFiles, int permitId, bool required)
@@ -390,6 +466,153 @@ namespace ePermitsApp.Services
             }
 
             return result;
+        }
+
+        private static readonly string[] ComplexSupportingDocFields =
+        {
+            nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocHighwayClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocHeightClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocECCorCNC),
+            nameof(BuildingPermitSupportingDoc.SupportDocDENRClearance),
+        };
+
+        private static readonly string[] SimpleSupportingDocFields =
+        {
+            nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
+            nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
+        };
+
+        private static void ValidateCategorySpecificRequirements(BuildingPermitCreateDto dto)
+        {
+            var categoryId = dto.BuildingPermitCategoryId;
+            if (dto.Accessories == null || dto.Accessories.Length == 0)
+            {
+                throw new InvalidOperationException("Accessories is required.");
+            }
+
+            var isComplex = categoryId == 2;
+            var isHighlyTechnical = categoryId == 3;
+
+            if (isHighlyTechnical && string.IsNullOrWhiteSpace(dto.DesignProf.MEFullName))
+            {
+                throw new InvalidOperationException("Mechanical Engineer is required.");
+            }
+
+            if ((isComplex || isHighlyTechnical) && string.IsNullOrWhiteSpace(dto.DesignProf.GSEFullName))
+            {
+                throw new InvalidOperationException("Geotechnical / Soil Engineer is required.");
+            }
+
+            if (isComplex || isHighlyTechnical)
+            {
+                RequireFiles(dto.TechDoc.TechDocStructuralAnalysisDesign, "Structural Analysis & Design");
+                RequireFiles(dto.TechDoc.TechDocFireSafetyPlans, "Fire Safety Plans");
+                RequireFiles(dto.TechDoc.TechDocEnvironmentalDocuments, "Environmental Documents");
+            }
+
+            if (isHighlyTechnical)
+            {
+                RequireFiles(dto.TechDoc.TechDocSoilTestFieldDensityTest, "Soil Test / Field Density Test");
+            }
+
+            var supportingDoc = dto.SupportingDoc;
+            var requiredSupportingDocs = isComplex || isHighlyTechnical
+                ? ComplexSupportingDocFields
+                : SimpleSupportingDocFields;
+
+            foreach (var field in requiredSupportingDocs)
+            {
+                var file = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as IFormFile;
+                if (file == null)
+                {
+                    throw new InvalidOperationException($"{field} is required.");
+                }
+            }
+
+            if (dto.AppInfo.ApplicantTypeId == 2 && dto.SupportingDoc.SupportDocSECRegistration == null)
+            {
+                throw new InvalidOperationException("SupportDocSECRegistration is required.");
+            }
+        }
+
+        private static void RequireFiles(IFormFileCollection? files, string label)
+        {
+            if (files == null || files.Count == 0)
+            {
+                throw new InvalidOperationException($"{label} is required.");
+            }
+        }
+
+        private static void ValidateCategorySpecificRequirements(BuildingPermit buildingPermit)
+        {
+            var categoryId = buildingPermit.BuildingPermitCategoryId;
+            if (string.IsNullOrWhiteSpace(buildingPermit.Accessories))
+            {
+                throw new InvalidOperationException("Accessories is required.");
+            }
+
+            var isComplex = categoryId == 2;
+            var isHighlyTechnical = categoryId == 3;
+            var designProf = buildingPermit.DesignProf;
+            var techDoc = buildingPermit.TechDoc;
+            var supportingDoc = buildingPermit.SupportingDoc;
+
+            if (designProf == null || techDoc == null || supportingDoc == null)
+            {
+                throw new InvalidOperationException("Application data is incomplete.");
+            }
+
+            if (isHighlyTechnical && string.IsNullOrWhiteSpace(designProf.MEFullName))
+            {
+                throw new InvalidOperationException("Mechanical Engineer is required.");
+            }
+
+            if ((isComplex || isHighlyTechnical) && string.IsNullOrWhiteSpace(designProf.GSEFullName))
+            {
+                throw new InvalidOperationException("Geotechnical / Soil Engineer is required.");
+            }
+
+            if (isComplex || isHighlyTechnical)
+            {
+                RequireSerializedFiles(techDoc.TechDocStructuralAnalysisDesign, "Structural Analysis & Design");
+                RequireSerializedFiles(techDoc.TechDocFireSafetyPlans, "Fire Safety Plans");
+                RequireSerializedFiles(techDoc.TechDocEnvironmentalDocuments, "Environmental Documents");
+            }
+
+            if (isHighlyTechnical)
+            {
+                RequireSerializedFiles(techDoc.TechDocSoilTestFieldDensityTest, "Soil Test / Field Density Test");
+            }
+
+            var requiredSupportingDocs = isComplex || isHighlyTechnical
+                ? ComplexSupportingDocFields
+                : SimpleSupportingDocFields;
+
+            foreach (var field in requiredSupportingDocs)
+            {
+                var value = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as string;
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    throw new InvalidOperationException($"{field} is required.");
+                }
+            }
+
+            if (buildingPermit.AppInfo?.ApplicantTypeId == 2 && string.IsNullOrWhiteSpace(supportingDoc.SupportDocSECRegistration))
+            {
+                throw new InvalidOperationException("SupportDocSECRegistration is required.");
+            }
+        }
+
+        private static void RequireSerializedFiles(string? value, string label)
+        {
+            if (string.IsNullOrWhiteSpace(value) || FilePathHelper.Deserialize(value).Count == 0)
+            {
+                throw new InvalidOperationException($"{label} is required.");
+            }
         }
 
         private async Task<bool> CanEditAsync(Application? application)

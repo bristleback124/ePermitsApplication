@@ -22,6 +22,7 @@ namespace ePermitsApp.Repositories
                 .Include(b => b.AppInfo)
                 .Include(b => b.DesignProf)
                 .Include(b => b.TechDoc)
+                .Include(b => b.SupportingDoc)
                 .AsNoTracking();
 
             var totalCount = await query.CountAsync();
@@ -47,6 +48,7 @@ namespace ePermitsApp.Repositories
                 .Include(b => b.AppInfo)
                 .Include(b => b.DesignProf)
                 .Include(b => b.TechDoc)
+                .Include(b => b.SupportingDoc)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
@@ -57,6 +59,7 @@ namespace ePermitsApp.Repositories
                 .Include(b => b.AppInfo)
                 .Include(b => b.DesignProf)
                 .Include(b => b.TechDoc)
+                .Include(b => b.SupportingDoc)
                 .FirstOrDefaultAsync(b => b.ApplicationId == applicationId);
         }
 

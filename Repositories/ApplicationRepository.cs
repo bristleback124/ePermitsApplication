@@ -94,6 +94,8 @@ namespace ePermits.Data
                 .Include(a => a.BuildingPermit)
                     .ThenInclude(b => b!.TechDoc)
                 .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.SupportingDoc)
+                .Include(a => a.BuildingPermit)
                     .ThenInclude(b => b!.PermitApplicationType)
                 .Include(a => a.BuildingPermit)
                     .ThenInclude(b => b!.OccupancyNature)
