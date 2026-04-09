@@ -47,6 +47,12 @@ namespace ePermitsApp.Services
 
         public async Task<IEnumerable<ApplicationDtoShort>> GetApplicationsByUserIdAsync(int userId)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (!IsAdmin(currentUser) && currentUser?.Id != userId)
+            {
+                return Enumerable.Empty<ApplicationDtoShort>();
+            }
+
             var applications = await _applicationRepository.GetByUserIdDetailedAsync(userId);
             return _mapper.Map<IEnumerable<ApplicationDtoShort>>(applications);
         }
@@ -62,6 +68,10 @@ namespace ePermitsApp.Services
                     .Where(a => a.DepartmentReviews.Any(r => r.DepartmentId == currentUser.DepartmentId.Value))
                     .ToList();
             }
+
+            applications = applications
+                .Where(a => !string.Equals(a.Status, ApplicationWorkflowDefinitions.OverallStatuses.Draft, StringComparison.OrdinalIgnoreCase))
+                .ToList();
 
             var result = _mapper.Map<List<ReviewerDashboardItemDto>>(applications);
             TrimDepartmentReviewsForCurrentUser(currentUser, result);

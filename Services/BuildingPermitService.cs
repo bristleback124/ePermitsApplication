@@ -10,11 +10,14 @@ using Microsoft.AspNetCore.Http;
 using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
 using ePermits.Data;
+using ePermitsApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
     public class BuildingPermitService : IBuildingPermitService
     {
+        private static readonly DateTime DraftPlaceholderDate = new(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly IBuildingPermitRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
@@ -24,6 +27,7 @@ namespace ePermitsApp.Services
         private readonly IAdminEmailNotificationConfigService _adminEmailNotificationConfigService;
         private readonly IApplicationFormattedIdService _applicationFormattedIdService;
         private readonly ILogger<BuildingPermitService> _logger;
+        private readonly ApplicationDbContext _dbContext;
 
         public BuildingPermitService(
             IBuildingPermitRepository repository,
@@ -34,6 +38,7 @@ namespace ePermitsApp.Services
             IEmailService emailService,
             IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
             IApplicationFormattedIdService applicationFormattedIdService,
+            ApplicationDbContext dbContext,
             ILogger<BuildingPermitService> logger)
         {
             _repository = repository;
@@ -44,6 +49,7 @@ namespace ePermitsApp.Services
             _emailService = emailService;
             _adminEmailNotificationConfigService = adminEmailNotificationConfigService;
             _applicationFormattedIdService = applicationFormattedIdService;
+            _dbContext = dbContext;
             _logger = logger;
         }
 
@@ -79,9 +85,8 @@ namespace ePermitsApp.Services
             return buildingPermit == null ? null : _mapper.Map<BuildingPermitEditDto>(buildingPermit);
         }
 
-        public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto)
+        public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false)
         {
-            ValidateCategorySpecificRequirements(dto);
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
 
             var now = DateTime.UtcNow;
@@ -94,22 +99,32 @@ namespace ePermitsApp.Services
             buildingPermit.CreatedAt = now;
             buildingPermit.CreatedBy = currentUserId;
 
+            if (saveAsDraft)
+            {
+                NormalizeDraftValues(buildingPermit);
+                await NormalizeDraftForeignKeysAsync(buildingPermit);
+            }
+
             buildingPermit.Application = new Application
             {
                 UserId = currentUserId,
                 Type = ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit,
-                Status = ApplicationWorkflowDefinitions.OverallStatuses.Submitted,
+                Status = saveAsDraft
+                    ? ApplicationWorkflowDefinitions.OverallStatuses.Draft
+                    : ApplicationWorkflowDefinitions.OverallStatuses.Submitted,
                 CreatedAt = now,
                 CreatedBy = _currentUser.UserName ?? "System",
-                DepartmentReviews = ApplicationWorkflowDefinitions
-                    .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit)
-                    .Select(departmentId => new ApplicationDepartmentReview
-                    {
-                        DepartmentId = departmentId,
-                        Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
-                        CreatedAt = now
-                    })
-                    .ToList()
+                DepartmentReviews = saveAsDraft
+                    ? new List<ApplicationDepartmentReview>()
+                    : ApplicationWorkflowDefinitions
+                        .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit)
+                        .Select(departmentId => new ApplicationDepartmentReview
+                        {
+                            DepartmentId = departmentId,
+                            Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
+                            CreatedAt = now
+                        })
+                        .ToList()
             };
 
             if (buildingPermit.AppInfo != null)
@@ -139,7 +154,10 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(buildingPermit);
             await _repository.SaveChangesAsync();
 
-            await _applicationFormattedIdService.AssignFormattedIdAsync(buildingPermit.Application);
+            if (!saveAsDraft)
+            {
+                await _applicationFormattedIdService.AssignFormattedIdAsync(buildingPermit.Application);
+            }
 
             // Save files
             if (buildingPermit.AppInfo != null)
@@ -185,7 +203,11 @@ namespace ePermitsApp.Services
                 await UpdateSupportingDocFilesAsync(buildingPermit.SupportingDoc, dto.SupportingDoc, buildingPermit.Id);
             }
 
-            ValidateCategorySpecificRequirements(buildingPermit);
+            if (!saveAsDraft)
+            {
+                ValidateRequiredSubmission(buildingPermit);
+                ValidateCategorySpecificRequirements(buildingPermit);
+            }
 
             // Update again with file paths
             _repository.Update(buildingPermit);
@@ -193,21 +215,24 @@ namespace ePermitsApp.Services
             await _repository.SaveChangesAsync();
 
             // Send notification emails
-            var applicantName = buildingPermit.AppInfo?.FullName ?? "Unknown Applicant";
-            await SendAdminNotificationEmailsAsync(
-                buildingPermit.Application,
-                applicantName,
-                "Building Permit");
-            await SendApplicantSubmissionEmailAsync(
-                buildingPermit.AppInfo?.Email,
-                applicantName,
-                buildingPermit.Application,
-                "Building Permit");
+            if (!saveAsDraft)
+            {
+                var applicantName = buildingPermit.AppInfo?.FullName ?? "Unknown Applicant";
+                await SendAdminNotificationEmailsAsync(
+                    buildingPermit.Application,
+                    applicantName,
+                    "Building Permit");
+                await SendApplicantSubmissionEmailAsync(
+                    buildingPermit.AppInfo?.Email,
+                    applicantName,
+                    buildingPermit.Application,
+                    "Building Permit");
+            }
 
             return buildingPermit;
         }
 
-        public async Task<(bool Success, string Message, BuildingPermit? BuildingPermit)> UpdateByApplicationIdAsync(int applicationId, BuildingPermitUpdateDto dto)
+        public async Task<(bool Success, string Message, BuildingPermit? BuildingPermit)> UpdateByApplicationIdAsync(int applicationId, BuildingPermitUpdateDto dto, bool saveAsDraft = false)
         {
             var buildingPermit = await _repository.GetByApplicationIdAsync(applicationId);
             if (buildingPermit?.Application == null || buildingPermit.AppInfo == null || buildingPermit.DesignProf == null || buildingPermit.TechDoc == null)
@@ -223,6 +248,10 @@ namespace ePermitsApp.Services
             var now = DateTime.UtcNow;
             var actor = _currentUser.UserName ?? "System";
             var currentUserId = TryGetCurrentUserId();
+            var wasDraft = string.Equals(
+                buildingPermit.Application.Status,
+                ApplicationWorkflowDefinitions.OverallStatuses.Draft,
+                StringComparison.OrdinalIgnoreCase);
 
             UpdateBuildingPermitFields(buildingPermit, dto, now, currentUserId);
             UpdateAppInfoFields(buildingPermit.AppInfo, dto.AppInfo, now, currentUserId);
@@ -242,23 +271,29 @@ namespace ePermitsApp.Services
             buildingPermit.SupportingDoc.UpdatedAt = now;
             buildingPermit.SupportingDoc.UpdatedBy = currentUserId;
 
-            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocProofOwnership), dto.AppInfo.ReqDocProofOwnership, dto.AppInfo.KeepReqDocProofOwnership, buildingPermit.Id, true);
-            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocBarangayClearance), dto.AppInfo.ReqDocBarangayClearance, dto.AppInfo.KeepReqDocBarangayClearance, buildingPermit.Id, true);
-            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocTaxDeclaration), dto.AppInfo.ReqDocTaxDeclaration, dto.AppInfo.KeepReqDocTaxDeclaration, buildingPermit.Id, true);
-            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocRealPropTaxReceipt), dto.AppInfo.ReqDocRealPropTaxReceipt, dto.AppInfo.KeepReqDocRealPropTaxReceipt, buildingPermit.Id, true);
+            if (saveAsDraft)
+            {
+                NormalizeDraftValues(buildingPermit);
+                await NormalizeDraftForeignKeysAsync(buildingPermit);
+            }
+
+            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocProofOwnership), dto.AppInfo.ReqDocProofOwnership, dto.AppInfo.KeepReqDocProofOwnership, buildingPermit.Id, !saveAsDraft);
+            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocBarangayClearance), dto.AppInfo.ReqDocBarangayClearance, dto.AppInfo.KeepReqDocBarangayClearance, buildingPermit.Id, !saveAsDraft);
+            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocTaxDeclaration), dto.AppInfo.ReqDocTaxDeclaration, dto.AppInfo.KeepReqDocTaxDeclaration, buildingPermit.Id, !saveAsDraft);
+            await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocRealPropTaxReceipt), dto.AppInfo.ReqDocRealPropTaxReceipt, dto.AppInfo.KeepReqDocRealPropTaxReceipt, buildingPermit.Id, !saveAsDraft);
             await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocECCorCNC), dto.AppInfo.ReqDocECCorCNC, dto.AppInfo.KeepReqDocECCorCNC, buildingPermit.Id, false);
             await UpdateSingleFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocSpecialClearances), dto.AppInfo.ReqDocSpecialClearances, dto.AppInfo.KeepReqDocSpecialClearances, buildingPermit.Id, false);
 
-            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocIoCPlans), dto.TechDoc.KeepTechDocIoCPlans, dto.TechDoc.TechDocIoCPlans, buildingPermit.Id, true);
-            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSEPlans), dto.TechDoc.KeepTechDocSEPlans, dto.TechDoc.TechDocSEPlans, buildingPermit.Id, true);
-            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocEEPlans), dto.TechDoc.KeepTechDocEEPlans, dto.TechDoc.TechDocEEPlans, buildingPermit.Id, true);
-            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSPPlans), dto.TechDoc.KeepTechDocSPPlans, dto.TechDoc.TechDocSPPlans, buildingPermit.Id, true);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocIoCPlans), dto.TechDoc.KeepTechDocIoCPlans, dto.TechDoc.TechDocIoCPlans, buildingPermit.Id, !saveAsDraft);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSEPlans), dto.TechDoc.KeepTechDocSEPlans, dto.TechDoc.TechDocSEPlans, buildingPermit.Id, !saveAsDraft);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocEEPlans), dto.TechDoc.KeepTechDocEEPlans, dto.TechDoc.TechDocEEPlans, buildingPermit.Id, !saveAsDraft);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSPPlans), dto.TechDoc.KeepTechDocSPPlans, dto.TechDoc.TechDocSPPlans, buildingPermit.Id, !saveAsDraft);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocStructuralAnalysisDesign), dto.TechDoc.KeepTechDocStructuralAnalysisDesign, dto.TechDoc.TechDocStructuralAnalysisDesign, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocFireSafetyPlans), dto.TechDoc.KeepTechDocFireSafetyPlans, dto.TechDoc.TechDocFireSafetyPlans, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocEnvironmentalDocuments), dto.TechDoc.KeepTechDocEnvironmentalDocuments, dto.TechDoc.TechDocEnvironmentalDocuments, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSoilTestFieldDensityTest), dto.TechDoc.KeepTechDocSoilTestFieldDensityTest, dto.TechDoc.TechDocSoilTestFieldDensityTest, buildingPermit.Id, false);
-            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocBOMCost), dto.TechDoc.KeepTechDocBOMCost, dto.TechDoc.TechDocBOMCost, buildingPermit.Id, true);
-            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSoW), dto.TechDoc.KeepTechDocSoW, dto.TechDoc.TechDocSoW, buildingPermit.Id, true);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocBOMCost), dto.TechDoc.KeepTechDocBOMCost, dto.TechDoc.TechDocBOMCost, buildingPermit.Id, !saveAsDraft);
+            await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocSoW), dto.TechDoc.KeepTechDocSoW, dto.TechDoc.TechDocSoW, buildingPermit.Id, !saveAsDraft);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocMEPlans), dto.TechDoc.KeepTechDocMEPlans, dto.TechDoc.TechDocMEPlans, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.TechDoc, nameof(buildingPermit.TechDoc.TechDocECEPlans), dto.TechDoc.KeepTechDocECEPlans, dto.TechDoc.TechDocECEPlans, buildingPermit.Id, false);
 
@@ -273,7 +308,24 @@ namespace ePermitsApp.Services
             await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocBoardResolution), dto.SupportingDoc.SupportDocBoardResolution, dto.SupportingDoc.KeepSupportDocBoardResolution, buildingPermit.Id, false, "supporting-docs");
             await UpdateSingleFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocHOAClearance), dto.SupportingDoc.SupportDocHOAClearance, dto.SupportingDoc.KeepSupportDocHOAClearance, buildingPermit.Id, false, "supporting-docs");
 
-            ValidateCategorySpecificRequirements(buildingPermit);
+            if (saveAsDraft)
+            {
+                buildingPermit.Application.Status = ApplicationWorkflowDefinitions.OverallStatuses.Draft;
+                buildingPermit.Application.FormattedId = string.Empty;
+                buildingPermit.Application.DepartmentReviews.Clear();
+            }
+            else
+            {
+                EnsureSubmittedState(buildingPermit.Application, now);
+                ValidateRequiredSubmission(buildingPermit);
+                ValidateCategorySpecificRequirements(buildingPermit);
+
+                if (wasDraft)
+                {
+                    buildingPermit.Application.CreatedAt = now;
+                    await _applicationFormattedIdService.AssignFormattedIdAsync(buildingPermit.Application);
+                }
+            }
 
             buildingPermit.Application.UpdatedAt = now;
             buildingPermit.Application.UpdatedBy = actor;
@@ -281,7 +333,21 @@ namespace ePermitsApp.Services
             _repository.Update(buildingPermit);
             await _repository.SaveChangesAsync();
 
-            return (true, "Application updated successfully", buildingPermit);
+            if (!saveAsDraft && wasDraft)
+            {
+                var applicantName = buildingPermit.AppInfo?.FullName ?? "Unknown Applicant";
+                await SendAdminNotificationEmailsAsync(
+                    buildingPermit.Application,
+                    applicantName,
+                    "Building Permit");
+                await SendApplicantSubmissionEmailAsync(
+                    buildingPermit.AppInfo?.Email,
+                    applicantName,
+                    buildingPermit.Application,
+                    "Building Permit");
+            }
+
+            return (true, saveAsDraft ? "Draft saved successfully" : "Application updated successfully", buildingPermit);
         }
 
         private async Task<string> SaveFilesAsync(IFormFileCollection? files, int permitId, string subFolder)
@@ -308,8 +374,13 @@ namespace ePermitsApp.Services
             return FilePathHelper.Serialize(metadataList);
         }
 
-        private async Task<string> SaveFileWithMetadataAsync(IFormFile file, int permitId, string subFolder)
+        private async Task<string> SaveFileWithMetadataAsync(IFormFile? file, int permitId, string subFolder)
         {
+            if (file == null || file.Length == 0)
+            {
+                return string.Empty;
+            }
+
             var filePath = await SaveFileInternalAsync(file, permitId, subFolder);
             if (string.IsNullOrEmpty(filePath)) return string.Empty;
 
@@ -365,7 +436,7 @@ namespace ePermitsApp.Services
             buildingPermit.Coordinates = dto.Coordinates;
             buildingPermit.Accessories = string.Join("|", dto.Accessories);
             buildingPermit.DigitalSignature = dto.DigitalSignature;
-            buildingPermit.DateofSignature = dto.DateofSignature;
+            buildingPermit.DateofSignature = dto.DateofSignature ?? default;
             buildingPermit.UpdatedAt = now;
             buildingPermit.UpdatedBy = currentUserId;
         }
@@ -488,65 +559,70 @@ namespace ePermitsApp.Services
             nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
         };
 
-        private static void ValidateCategorySpecificRequirements(BuildingPermitCreateDto dto)
+        private static void ValidateRequiredSubmission(BuildingPermit buildingPermit)
         {
-            var categoryId = dto.BuildingPermitCategoryId;
-            if (dto.Accessories == null || dto.Accessories.Length == 0)
-            {
-                throw new InvalidOperationException("Accessories is required.");
-            }
+            if (buildingPermit.PermitAppTypeId <= 0) throw new InvalidOperationException("Application type is required.");
+            if (buildingPermit.BuildingPermitCategoryId <= 0) throw new InvalidOperationException("Building permit category is required.");
+            if (buildingPermit.OccupancyNatureId <= 0) throw new InvalidOperationException("Occupancy nature is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.ProjectTitle)) throw new InvalidOperationException("Project title is required.");
+            if (buildingPermit.ProjectClassId <= 0) throw new InvalidOperationException("Project classification is required.");
+            if (buildingPermit.EstimatedCost <= 0) throw new InvalidOperationException("Estimated cost is required.");
+            if (buildingPermit.NoOfStoreys <= 0) throw new InvalidOperationException("Number of storeys is required.");
+            if (buildingPermit.FloorAreaPerStorey <= 0) throw new InvalidOperationException("Floor area per storey is required.");
+            if (buildingPermit.TotalFloorArea <= 0) throw new InvalidOperationException("Total floor area is required.");
+            if (buildingPermit.ProjectScopeLotArea <= 0) throw new InvalidOperationException("Project scope lot area is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.PropertyAddLot)) throw new InvalidOperationException("Lot is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.PropertyAddStreet)) throw new InvalidOperationException("Street is required.");
+            if (buildingPermit.ProvinceId <= 0) throw new InvalidOperationException("Province is required.");
+            if (buildingPermit.LGUId <= 0) throw new InvalidOperationException("LGU is required.");
+            if (buildingPermit.BarangayId <= 0) throw new InvalidOperationException("Barangay is required.");
+            if (buildingPermit.PropertyDetailLotArea <= 0) throw new InvalidOperationException("Property lot area is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.TCTNo)) throw new InvalidOperationException("TCT number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.TaxDeclarionNo)) throw new InvalidOperationException("Tax declaration number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.Accessories)) throw new InvalidOperationException("Accessories is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DigitalSignature)) throw new InvalidOperationException("Digital signature is required.");
+            if (IsDraftPlaceholderDate(buildingPermit.DateofSignature)) throw new InvalidOperationException("Signature date is required.");
 
-            var isComplex = categoryId == 2;
-            var isHighlyTechnical = categoryId == 3;
+            if (buildingPermit.AppInfo == null) throw new InvalidOperationException("Applicant information is required.");
+            if (buildingPermit.DesignProf == null) throw new InvalidOperationException("Design professionals are required.");
+            if (buildingPermit.TechDoc == null) throw new InvalidOperationException("Technical documents are required.");
+            if (buildingPermit.SupportingDoc == null) throw new InvalidOperationException("Supporting documents are required.");
 
-            if (isHighlyTechnical && string.IsNullOrWhiteSpace(dto.DesignProf.MEFullName))
-            {
-                throw new InvalidOperationException("Mechanical Engineer is required.");
-            }
+            if (buildingPermit.AppInfo.ApplicantTypeId <= 0) throw new InvalidOperationException("Applicant type is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.FullName)) throw new InvalidOperationException("Applicant full name is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.ContactNo)) throw new InvalidOperationException("Applicant contact number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.Email)) throw new InvalidOperationException("Applicant email is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.TIN)) throw new InvalidOperationException("TIN is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.MailAddress)) throw new InvalidOperationException("Mailing address is required.");
+            if (buildingPermit.AppInfo.OwnershipTypeId <= 0) throw new InvalidOperationException("Ownership type is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.ReqDocProofOwnership)) throw new InvalidOperationException("Proof of ownership is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.ReqDocBarangayClearance)) throw new InvalidOperationException("Barangay clearance is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.ReqDocTaxDeclaration)) throw new InvalidOperationException("Tax declaration is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.AppInfo.ReqDocRealPropTaxReceipt)) throw new InvalidOperationException("Real property tax receipt is required.");
 
-            if ((isComplex || isHighlyTechnical) && string.IsNullOrWhiteSpace(dto.DesignProf.GSEFullName))
-            {
-                throw new InvalidOperationException("Geotechnical / Soil Engineer is required.");
-            }
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.IoCFullName)) throw new InvalidOperationException("Architect / Civil Engineer is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.IoCPRCNo)) throw new InvalidOperationException("Architect / Civil Engineer PRC number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.IoCPTRNo)) throw new InvalidOperationException("Architect / Civil Engineer PTR number is required.");
+            if (IsDraftPlaceholderDate(buildingPermit.DesignProf.IOCValidity)) throw new InvalidOperationException("Architect / Civil Engineer validity is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.SEFullName)) throw new InvalidOperationException("Structural engineer is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.SEPRCNo)) throw new InvalidOperationException("Structural engineer PRC number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.SEPTRNo)) throw new InvalidOperationException("Structural engineer PTR number is required.");
+            if (IsDraftPlaceholderDate(buildingPermit.DesignProf.SEValidity)) throw new InvalidOperationException("Structural engineer validity is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.EEFullName)) throw new InvalidOperationException("Electrical engineer is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.EEPRCNo)) throw new InvalidOperationException("Electrical engineer PRC number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.EEPTRNo)) throw new InvalidOperationException("Electrical engineer PTR number is required.");
+            if (IsDraftPlaceholderDate(buildingPermit.DesignProf.EEValidity)) throw new InvalidOperationException("Electrical engineer validity is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.SPEFullName)) throw new InvalidOperationException("Sanitary / plumbing engineer is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.SPEPRCNo)) throw new InvalidOperationException("Sanitary / plumbing engineer PRC number is required.");
+            if (string.IsNullOrWhiteSpace(buildingPermit.DesignProf.SPEPTRNo)) throw new InvalidOperationException("Sanitary / plumbing engineer PTR number is required.");
+            if (IsDraftPlaceholderDate(buildingPermit.DesignProf.SPEValidity)) throw new InvalidOperationException("Sanitary / plumbing engineer validity is required.");
 
-            if (isComplex || isHighlyTechnical)
-            {
-                RequireFiles(dto.TechDoc.TechDocStructuralAnalysisDesign, "Structural Analysis & Design");
-                RequireFiles(dto.TechDoc.TechDocFireSafetyPlans, "Fire Safety Plans");
-                RequireFiles(dto.TechDoc.TechDocEnvironmentalDocuments, "Environmental Documents");
-            }
-
-            if (isHighlyTechnical)
-            {
-                RequireFiles(dto.TechDoc.TechDocSoilTestFieldDensityTest, "Soil Test / Field Density Test");
-            }
-
-            var supportingDoc = dto.SupportingDoc;
-            var requiredSupportingDocs = isComplex || isHighlyTechnical
-                ? ComplexSupportingDocFields
-                : SimpleSupportingDocFields;
-
-            foreach (var field in requiredSupportingDocs)
-            {
-                var file = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as IFormFile;
-                if (file == null)
-                {
-                    throw new InvalidOperationException($"{field} is required.");
-                }
-            }
-
-            if (dto.AppInfo.ApplicantTypeId == 2 && dto.SupportingDoc.SupportDocSECRegistration == null)
-            {
-                throw new InvalidOperationException("SupportDocSECRegistration is required.");
-            }
-        }
-
-        private static void RequireFiles(IFormFileCollection? files, string label)
-        {
-            if (files == null || files.Count == 0)
-            {
-                throw new InvalidOperationException($"{label} is required.");
-            }
+            RequireSerializedFiles(buildingPermit.TechDoc.TechDocIoCPlans, "Architectural plans");
+            RequireSerializedFiles(buildingPermit.TechDoc.TechDocSEPlans, "Structural plans");
+            RequireSerializedFiles(buildingPermit.TechDoc.TechDocEEPlans, "Electrical plans");
+            RequireSerializedFiles(buildingPermit.TechDoc.TechDocSPPlans, "Sanitary plans");
+            RequireSerializedFiles(buildingPermit.TechDoc.TechDocBOMCost, "Bill of materials");
+            RequireSerializedFiles(buildingPermit.TechDoc.TechDocSoW, "Specifications");
         }
 
         private static void ValidateCategorySpecificRequirements(BuildingPermit buildingPermit)
@@ -573,7 +649,7 @@ namespace ePermitsApp.Services
                 throw new InvalidOperationException("Mechanical Engineer is required.");
             }
 
-            if ((isComplex || isHighlyTechnical) && string.IsNullOrWhiteSpace(designProf.GSEFullName))
+            if (isHighlyTechnical && string.IsNullOrWhiteSpace(designProf.GSEFullName))
             {
                 throw new InvalidOperationException("Geotechnical / Soil Engineer is required.");
             }
@@ -617,6 +693,163 @@ namespace ePermitsApp.Services
             }
         }
 
+        private static void EnsureSubmittedState(Application application, DateTime now)
+        {
+            application.Status = ApplicationWorkflowDefinitions.OverallStatuses.Submitted;
+
+            if (application.DepartmentReviews.Count > 0)
+            {
+                return;
+            }
+
+            application.DepartmentReviews = ApplicationWorkflowDefinitions
+                .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit)
+                .Select(departmentId => new ApplicationDepartmentReview
+                {
+                    DepartmentId = departmentId,
+                    Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
+                    CreatedAt = now
+                })
+                .ToList();
+        }
+
+        private static void NormalizeDraftValues(BuildingPermit buildingPermit)
+        {
+            buildingPermit.ProjectTitle ??= string.Empty;
+            buildingPermit.PropertyAddLot ??= string.Empty;
+            buildingPermit.PropertyAddStreet ??= string.Empty;
+            buildingPermit.TCTNo ??= string.Empty;
+            buildingPermit.TaxDeclarionNo ??= string.Empty;
+            buildingPermit.DigitalSignature ??= string.Empty;
+            buildingPermit.DateofSignature = NormalizeDraftDate(buildingPermit.DateofSignature);
+
+            if (buildingPermit.AppInfo != null)
+            {
+                buildingPermit.AppInfo.FullName ??= string.Empty;
+                buildingPermit.AppInfo.ContactNo ??= string.Empty;
+                buildingPermit.AppInfo.Email ??= string.Empty;
+                buildingPermit.AppInfo.TIN ??= string.Empty;
+                buildingPermit.AppInfo.MailAddress ??= string.Empty;
+            }
+
+            if (buildingPermit.DesignProf != null)
+            {
+                buildingPermit.DesignProf.IoCFullName ??= string.Empty;
+                buildingPermit.DesignProf.IoCPRCNo ??= string.Empty;
+                buildingPermit.DesignProf.IoCPTRNo ??= string.Empty;
+                buildingPermit.DesignProf.IOCValidity = NormalizeDraftDate(buildingPermit.DesignProf.IOCValidity);
+                buildingPermit.DesignProf.SEFullName ??= string.Empty;
+                buildingPermit.DesignProf.SEPRCNo ??= string.Empty;
+                buildingPermit.DesignProf.SEPTRNo ??= string.Empty;
+                buildingPermit.DesignProf.SEValidity = NormalizeDraftDate(buildingPermit.DesignProf.SEValidity);
+                buildingPermit.DesignProf.EEFullName ??= string.Empty;
+                buildingPermit.DesignProf.EEPRCNo ??= string.Empty;
+                buildingPermit.DesignProf.EEPTRNo ??= string.Empty;
+                buildingPermit.DesignProf.EEValidity = NormalizeDraftDate(buildingPermit.DesignProf.EEValidity);
+                buildingPermit.DesignProf.SPEFullName ??= string.Empty;
+                buildingPermit.DesignProf.SPEPRCNo ??= string.Empty;
+                buildingPermit.DesignProf.SPEPTRNo ??= string.Empty;
+                buildingPermit.DesignProf.SPEValidity = NormalizeDraftDate(buildingPermit.DesignProf.SPEValidity);
+            }
+        }
+
+        private static DateTime NormalizeDraftDate(DateTime date)
+        {
+            return date == default ? DraftPlaceholderDate : date;
+        }
+
+        private static bool IsDraftPlaceholderDate(DateTime date)
+        {
+            return date == default || date == DraftPlaceholderDate;
+        }
+
+        private async Task NormalizeDraftForeignKeysAsync(BuildingPermit buildingPermit)
+        {
+            if (buildingPermit.PermitAppTypeId <= 0)
+            {
+                buildingPermit.PermitAppTypeId = await _dbContext.PermitApplicationTypes
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.BuildingPermitCategoryId <= 0)
+            {
+                buildingPermit.BuildingPermitCategoryId = await _dbContext.BuildingPermitCategories
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.OccupancyNatureId <= 0)
+            {
+                buildingPermit.OccupancyNatureId = await _dbContext.OccupancyNatures
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.ProjectClassId <= 0)
+            {
+                buildingPermit.ProjectClassId = await _dbContext.ProjectClassifications
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.ProvinceId <= 0)
+            {
+                buildingPermit.ProvinceId = await _dbContext.Provinces
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.LGUId <= 0)
+            {
+                buildingPermit.LGUId = await _dbContext.LGUs
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.BarangayId <= 0)
+            {
+                buildingPermit.BarangayId = await _dbContext.Barangays
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (buildingPermit.AppInfo != null)
+            {
+                if (buildingPermit.AppInfo.ApplicantTypeId <= 0)
+                {
+                    buildingPermit.AppInfo.ApplicantTypeId = await _dbContext.ApplicantTypes
+                        .AsNoTracking()
+                        .OrderBy(x => x.Id)
+                        .Select(x => x.Id)
+                        .FirstAsync();
+                }
+
+                if (buildingPermit.AppInfo.OwnershipTypeId <= 0)
+                {
+                    buildingPermit.AppInfo.OwnershipTypeId = await _dbContext.OwnershipTypes
+                        .AsNoTracking()
+                        .OrderBy(x => x.Id)
+                        .Select(x => x.Id)
+                        .FirstAsync();
+                }
+            }
+        }
+
         private async Task<bool> CanEditAsync(Application? application)
         {
             if (application == null)
@@ -630,7 +863,8 @@ namespace ePermitsApp.Services
                 return true;
             }
 
-            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Draft, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

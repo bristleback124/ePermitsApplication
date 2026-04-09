@@ -19,6 +19,7 @@ namespace ePermitsApp.Helpers
 
         public static class OverallStatuses
         {
+            public const string Draft = "Draft";
             public const string Submitted = "Submitted";
             public const string UnderReview = "Under Review";
             public const string Approved = "Approved";
@@ -37,6 +38,7 @@ namespace ePermitsApp.Helpers
 
         public static readonly string[] OverallStatusOptions =
         {
+            OverallStatuses.Draft,
             OverallStatuses.Submitted,
             OverallStatuses.UnderReview,
             OverallStatuses.Approved,
@@ -105,6 +107,11 @@ namespace ePermitsApp.Helpers
             if (string.Equals(currentOverallStatus, OverallStatuses.Closed, StringComparison.OrdinalIgnoreCase))
             {
                 return OverallStatuses.Closed;
+            }
+
+            if (string.Equals(currentOverallStatus, OverallStatuses.Draft, StringComparison.OrdinalIgnoreCase))
+            {
+                return OverallStatuses.Draft;
             }
 
             var normalizedStatuses = departmentStatuses

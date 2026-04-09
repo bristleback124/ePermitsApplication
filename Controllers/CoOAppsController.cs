@@ -48,13 +48,20 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CoOAppDto>> Create([FromForm] CoOAppCreateDto dto)
+        public async Task<ActionResult<CoOAppDto>> Create([FromForm] CoOAppCreateDto dto, [FromQuery] bool saveAsDraft = false)
         {
-            var coOApp = await _service.CreateAsync(dto);
+            try
+            {
+                var coOApp = await _service.CreateAsync(dto, saveAsDraft);
 
-            return CreatedAtAction(nameof(GetById),
-                new { id = coOApp.Id },
-                _mapper.Map<CoOAppDto>(coOApp));
+                return CreatedAtAction(nameof(GetById),
+                    new { id = coOApp.Id },
+                    _mapper.Map<CoOAppDto>(coOApp));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet("application/{applicationId}/edit")]
@@ -78,14 +85,11 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPut("application/{applicationId}")]
-        public async Task<IActionResult> UpdateByApplicationId(int applicationId, [FromForm] CoOAppUpdateDto dto)
+        public async Task<IActionResult> UpdateByApplicationId(int applicationId, [FromForm] CoOAppUpdateDto dto, [FromQuery] bool saveAsDraft = false)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
-                var result = await _service.UpdateByApplicationIdAsync(applicationId, dto);
+                var result = await _service.UpdateByApplicationIdAsync(applicationId, dto, saveAsDraft);
                 if (!result.Success)
                     return BadRequest(new { success = false, message = result.Message });
 

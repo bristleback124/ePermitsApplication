@@ -10,11 +10,14 @@ using Microsoft.AspNetCore.Http;
 using ePermitsApp.Models.EmailModels;
 using Microsoft.Extensions.Options;
 using ePermits.Data;
+using ePermitsApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ePermitsApp.Services
 {
     public class CoOAppService : ICoOAppService
     {
+        private static readonly DateTime DraftPlaceholderDate = new(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly ICoOAppRepository _repository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
@@ -24,6 +27,7 @@ namespace ePermitsApp.Services
         private readonly IAdminEmailNotificationConfigService _adminEmailNotificationConfigService;
         private readonly IApplicationFormattedIdService _applicationFormattedIdService;
         private readonly ILogger<CoOAppService> _logger;
+        private readonly ApplicationDbContext _dbContext;
 
         public CoOAppService(
             ICoOAppRepository repository,
@@ -34,6 +38,7 @@ namespace ePermitsApp.Services
             IEmailService emailService,
             IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
             IApplicationFormattedIdService applicationFormattedIdService,
+            ApplicationDbContext dbContext,
             ILogger<CoOAppService> logger)
         {
             _repository = repository;
@@ -43,6 +48,7 @@ namespace ePermitsApp.Services
             _fileSettings = fileSettings.Value;
             _emailService = emailService;
             _adminEmailNotificationConfigService = adminEmailNotificationConfigService;
+            _dbContext = dbContext;
             _applicationFormattedIdService = applicationFormattedIdService;
             _logger = logger;
         }
@@ -79,7 +85,7 @@ namespace ePermitsApp.Services
             return coOApp == null ? null : _mapper.Map<CoOAppEditDto>(coOApp);
         }
 
-        public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto)
+        public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false)
         {
             var coOApp = _mapper.Map<CoOApp>(dto);
 
@@ -93,22 +99,32 @@ namespace ePermitsApp.Services
             coOApp.CreatedAt = now;
             coOApp.CreatedBy = currentUserId;
 
+            if (saveAsDraft)
+            {
+                NormalizeDraftValues(coOApp);
+                await NormalizeDraftForeignKeysAsync(coOApp);
+            }
+
             coOApp.Application = new Application
             {
                 UserId = currentUserId,
                 Type = ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy,
-                Status = ApplicationWorkflowDefinitions.OverallStatuses.Submitted,
+                Status = saveAsDraft
+                    ? ApplicationWorkflowDefinitions.OverallStatuses.Draft
+                    : ApplicationWorkflowDefinitions.OverallStatuses.Submitted,
                 CreatedAt = now,
                 CreatedBy = _currentUser.UserName ?? "System",
-                DepartmentReviews = ApplicationWorkflowDefinitions
-                    .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy)
-                    .Select(departmentId => new ApplicationDepartmentReview
-                    {
-                        DepartmentId = departmentId,
-                        Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
-                        CreatedAt = now
-                    })
-                    .ToList()
+                DepartmentReviews = saveAsDraft
+                    ? new List<ApplicationDepartmentReview>()
+                    : ApplicationWorkflowDefinitions
+                        .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy)
+                        .Select(departmentId => new ApplicationDepartmentReview
+                        {
+                            DepartmentId = departmentId,
+                            Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
+                            CreatedAt = now
+                        })
+                        .ToList()
             };
 
             if (coOApp.CoOAppProf != null)
@@ -126,7 +142,10 @@ namespace ePermitsApp.Services
             await _repository.AddAsync(coOApp);
             await _repository.SaveChangesAsync();
 
-            await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
+            if (!saveAsDraft)
+            {
+                await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
+            }
 
             // Save files
             if (coOApp.CoOAppReqDoc != null)
@@ -142,26 +161,33 @@ namespace ePermitsApp.Services
                     coOApp.CoOAppReqDoc.ReqDocOthers = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocOthers, coOApp.Id, "req-docs");
             }
 
+            if (!saveAsDraft)
+            {
+                ValidateRequiredSubmission(coOApp);
+            }
+
             // Update again with file paths
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
 
-            // Send notification emails
-            var applicantName = coOApp.FullName ?? "Unknown Applicant";
-            await SendAdminNotificationEmailsAsync(
-                coOApp.Application,
-                applicantName,
-                "Certificate of Occupancy");
-            await SendApplicantSubmissionEmailAsync(
-                coOApp.Email,
-                applicantName,
-                coOApp.Application,
-                "Certificate of Occupancy");
+            if (!saveAsDraft)
+            {
+                var applicantName = coOApp.FullName ?? "Unknown Applicant";
+                await SendAdminNotificationEmailsAsync(
+                    coOApp.Application,
+                    applicantName,
+                    "Certificate of Occupancy");
+                await SendApplicantSubmissionEmailAsync(
+                    coOApp.Email,
+                    applicantName,
+                    coOApp.Application,
+                    "Certificate of Occupancy");
+            }
 
             return coOApp;
         }
 
-        public async Task<(bool Success, string Message, CoOApp? CoOApp)> UpdateByApplicationIdAsync(int applicationId, CoOAppUpdateDto dto)
+        public async Task<(bool Success, string Message, CoOApp? CoOApp)> UpdateByApplicationIdAsync(int applicationId, CoOAppUpdateDto dto, bool saveAsDraft = false)
         {
             var coOApp = await _repository.GetByApplicationIdAsync(applicationId);
             if (coOApp?.Application == null || coOApp.CoOAppProf == null || coOApp.CoOAppReqDoc == null)
@@ -177,6 +203,10 @@ namespace ePermitsApp.Services
             var now = DateTime.UtcNow;
             var actor = _currentUser.UserName ?? "System";
             var currentUserId = TryGetCurrentUserId();
+            var wasDraft = string.Equals(
+                coOApp.Application.Status,
+                ApplicationWorkflowDefinitions.OverallStatuses.Draft,
+                StringComparison.OrdinalIgnoreCase);
 
             _mapper.Map(dto, coOApp);
             _mapper.Map(dto.CoOAppProf, coOApp.CoOAppProf);
@@ -187,13 +217,37 @@ namespace ePermitsApp.Services
             coOApp.CoOAppReqDoc.UpdatedAt = now;
             coOApp.CoOAppReqDoc.UpdatedBy = currentUserId;
 
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans), dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, dto.CoOAppReqDoc.KeepReqDocBldgPermitSPlans, coOApp.Id, true);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans), dto.CoOAppReqDoc.ReqDocAsBuiltPlans, dto.CoOAppReqDoc.KeepReqDocAsBuiltPlans, coOApp.Id, true);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsLogbook), dto.CoOAppReqDoc.ReqDocConsLogbook, dto.CoOAppReqDoc.KeepReqDocConsLogbook, coOApp.Id, true);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsPhotos), dto.CoOAppReqDoc.ReqDocConsPhotos, dto.CoOAppReqDoc.KeepReqDocConsPhotos, coOApp.Id, true);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBrgyClearance), dto.CoOAppReqDoc.ReqDocBrgyClearance, dto.CoOAppReqDoc.KeepReqDocBrgyClearance, coOApp.Id, true);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocFSIC), dto.CoOAppReqDoc.ReqDocFSIC, dto.CoOAppReqDoc.KeepReqDocFSIC, coOApp.Id, true);
+            if (saveAsDraft)
+            {
+                NormalizeDraftValues(coOApp);
+                await NormalizeDraftForeignKeysAsync(coOApp);
+            }
+
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans), dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, dto.CoOAppReqDoc.KeepReqDocBldgPermitSPlans, coOApp.Id, !saveAsDraft);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans), dto.CoOAppReqDoc.ReqDocAsBuiltPlans, dto.CoOAppReqDoc.KeepReqDocAsBuiltPlans, coOApp.Id, !saveAsDraft);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsLogbook), dto.CoOAppReqDoc.ReqDocConsLogbook, dto.CoOAppReqDoc.KeepReqDocConsLogbook, coOApp.Id, !saveAsDraft);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsPhotos), dto.CoOAppReqDoc.ReqDocConsPhotos, dto.CoOAppReqDoc.KeepReqDocConsPhotos, coOApp.Id, !saveAsDraft);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBrgyClearance), dto.CoOAppReqDoc.ReqDocBrgyClearance, dto.CoOAppReqDoc.KeepReqDocBrgyClearance, coOApp.Id, !saveAsDraft);
+            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocFSIC), dto.CoOAppReqDoc.ReqDocFSIC, dto.CoOAppReqDoc.KeepReqDocFSIC, coOApp.Id, !saveAsDraft);
             await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocOthers), dto.CoOAppReqDoc.ReqDocOthers, dto.CoOAppReqDoc.KeepReqDocOthers, coOApp.Id, false);
+
+            if (saveAsDraft)
+            {
+                coOApp.Application.Status = ApplicationWorkflowDefinitions.OverallStatuses.Draft;
+                coOApp.Application.FormattedId = string.Empty;
+                coOApp.Application.DepartmentReviews.Clear();
+            }
+            else
+            {
+                EnsureSubmittedState(coOApp.Application, now);
+                ValidateRequiredSubmission(coOApp);
+
+                if (wasDraft)
+                {
+                    coOApp.Application.CreatedAt = now;
+                    await _applicationFormattedIdService.AssignFormattedIdAsync(coOApp.Application);
+                }
+            }
 
             coOApp.Application.UpdatedAt = now;
             coOApp.Application.UpdatedBy = actor;
@@ -201,10 +255,24 @@ namespace ePermitsApp.Services
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
 
-            return (true, "Application updated successfully", coOApp);
+            if (!saveAsDraft && wasDraft)
+            {
+                var applicantName = coOApp.FullName ?? "Unknown Applicant";
+                await SendAdminNotificationEmailsAsync(
+                    coOApp.Application,
+                    applicantName,
+                    "Certificate of Occupancy");
+                await SendApplicantSubmissionEmailAsync(
+                    coOApp.Email,
+                    applicantName,
+                    coOApp.Application,
+                    "Certificate of Occupancy");
+            }
+
+            return (true, saveAsDraft ? "Draft saved successfully" : "Application updated successfully", coOApp);
         }
 
-        private async Task<string> SaveFileAsync(IFormFile file, int permitId, string subFolder)
+        private async Task<string> SaveFileAsync(IFormFile? file, int permitId, string subFolder)
         {
             if (file == null || file.Length == 0)
                 return string.Empty;
@@ -248,6 +316,155 @@ namespace ePermitsApp.Services
             property.SetValue(target, string.Empty);
         }
 
+        private static void ValidateRequiredSubmission(CoOApp coOApp)
+        {
+            if (string.IsNullOrWhiteSpace(coOApp.BldgPermitNo)) throw new InvalidOperationException("Building permit number is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.ProjectTitle)) throw new InvalidOperationException("Project title is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.ProjLocLot)) throw new InvalidOperationException("Lot is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.ProjLocStreet)) throw new InvalidOperationException("Street is required.");
+            if (coOApp.ProvinceId <= 0) throw new InvalidOperationException("Province is required.");
+            if (coOApp.LGUId <= 0) throw new InvalidOperationException("LGU is required.");
+            if (coOApp.BarangayId <= 0) throw new InvalidOperationException("Barangay is required.");
+            if (coOApp.OccupancyNatureId <= 0) throw new InvalidOperationException("Occupancy nature is required.");
+            if (coOApp.FloorArea <= 0) throw new InvalidOperationException("Floor area is required.");
+            if (coOApp.NoOfStoreys <= 0) throw new InvalidOperationException("Number of storeys is required.");
+            if (IsDraftPlaceholderDate(coOApp.CompletionDate)) throw new InvalidOperationException("Completion date is required.");
+            if (coOApp.ApplicantTypeId <= 0) throw new InvalidOperationException("Applicant type is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.FullName)) throw new InvalidOperationException("Applicant full name is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.ContactNo)) throw new InvalidOperationException("Contact number is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.Email)) throw new InvalidOperationException("Email is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.TIN)) throw new InvalidOperationException("TIN is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.MailAddress)) throw new InvalidOperationException("Mailing address is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.DigitalSignature)) throw new InvalidOperationException("Digital signature is required.");
+            if (IsDraftPlaceholderDate(coOApp.DateOfSignature)) throw new InvalidOperationException("Signature date is required.");
+
+            if (coOApp.CoOAppProf == null) throw new InvalidOperationException("Professional information is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.IoCFullName)) throw new InvalidOperationException("Architect / engineer is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.IoCPRCNo)) throw new InvalidOperationException("Architect / engineer PRC number is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.IoCPTRNo)) throw new InvalidOperationException("Architect / engineer PTR number is required.");
+            if (IsDraftPlaceholderDate(coOApp.CoOAppProf.IOCValidity)) throw new InvalidOperationException("Architect / engineer validity is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.EoRFullName)) throw new InvalidOperationException("Engineer of record is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.EoRPRCorPTRNo)) throw new InvalidOperationException("Engineer of record PRC / PTR number is required.");
+            if (IsDraftPlaceholderDate(coOApp.CoOAppProf.EoRValidity)) throw new InvalidOperationException("Engineer of record validity is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.EoRSpecialization)) throw new InvalidOperationException("Engineer of record specialization is required.");
+
+            if (coOApp.CoOAppReqDoc == null) throw new InvalidOperationException("Required documents are required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans)) throw new InvalidOperationException("Approved building permit set of plans is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans)) throw new InvalidOperationException("As-built plans are required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocConsLogbook)) throw new InvalidOperationException("Construction logbook is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocConsPhotos)) throw new InvalidOperationException("Construction photos are required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocBrgyClearance)) throw new InvalidOperationException("Barangay clearance is required.");
+            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocFSIC)) throw new InvalidOperationException("Fire safety inspection certificate is required.");
+        }
+
+        private static void EnsureSubmittedState(Application application, DateTime now)
+        {
+            application.Status = ApplicationWorkflowDefinitions.OverallStatuses.Submitted;
+
+            if (application.DepartmentReviews.Count > 0)
+            {
+                return;
+            }
+
+            application.DepartmentReviews = ApplicationWorkflowDefinitions
+                .GetRequiredDepartmentIds(ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy)
+                .Select(departmentId => new ApplicationDepartmentReview
+                {
+                    DepartmentId = departmentId,
+                    Status = ApplicationWorkflowDefinitions.DepartmentStatuses.InQueue,
+                    CreatedAt = now
+                })
+                .ToList();
+        }
+
+        private static void NormalizeDraftValues(CoOApp coOApp)
+        {
+            coOApp.BldgPermitNo ??= string.Empty;
+            coOApp.ProjectTitle ??= string.Empty;
+            coOApp.ProjLocLot ??= string.Empty;
+            coOApp.ProjLocStreet ??= string.Empty;
+            coOApp.FullName ??= string.Empty;
+            coOApp.ContactNo ??= string.Empty;
+            coOApp.Email ??= string.Empty;
+            coOApp.TIN ??= string.Empty;
+            coOApp.MailAddress ??= string.Empty;
+            coOApp.DigitalSignature ??= string.Empty;
+            coOApp.CompletionDate = NormalizeDraftDate(coOApp.CompletionDate);
+            coOApp.DateOfSignature = NormalizeDraftDate(coOApp.DateOfSignature);
+
+            if (coOApp.CoOAppProf == null)
+            {
+                return;
+            }
+
+            coOApp.CoOAppProf.IoCFullName ??= string.Empty;
+            coOApp.CoOAppProf.IoCPRCNo ??= string.Empty;
+            coOApp.CoOAppProf.IoCPTRNo ??= string.Empty;
+            coOApp.CoOAppProf.EoRFullName ??= string.Empty;
+            coOApp.CoOAppProf.EoRPRCorPTRNo ??= string.Empty;
+            coOApp.CoOAppProf.EoRSpecialization ??= string.Empty;
+            coOApp.CoOAppProf.IOCValidity = NormalizeDraftDate(coOApp.CoOAppProf.IOCValidity);
+            coOApp.CoOAppProf.EoRValidity = NormalizeDraftDate(coOApp.CoOAppProf.EoRValidity);
+        }
+
+        private static DateTime NormalizeDraftDate(DateTime date)
+        {
+            return date == default ? DraftPlaceholderDate : date;
+        }
+
+        private static bool IsDraftPlaceholderDate(DateTime date)
+        {
+            return date == default || date == DraftPlaceholderDate;
+        }
+
+        private async Task NormalizeDraftForeignKeysAsync(CoOApp coOApp)
+        {
+            if (coOApp.ProvinceId <= 0)
+            {
+                coOApp.ProvinceId = await _dbContext.Provinces
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (coOApp.LGUId <= 0)
+            {
+                coOApp.LGUId = await _dbContext.LGUs
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (coOApp.BarangayId <= 0)
+            {
+                coOApp.BarangayId = await _dbContext.Barangays
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (coOApp.OccupancyNatureId <= 0)
+            {
+                coOApp.OccupancyNatureId = await _dbContext.OccupancyNatures
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+
+            if (coOApp.ApplicantTypeId <= 0)
+            {
+                coOApp.ApplicantTypeId = await _dbContext.ApplicantTypes
+                    .AsNoTracking()
+                    .OrderBy(x => x.Id)
+                    .Select(x => x.Id)
+                    .FirstAsync();
+            }
+        }
+
         private async Task<bool> CanEditAsync(Application? application)
         {
             if (application == null)
@@ -261,7 +478,8 @@ namespace ePermitsApp.Services
                 return true;
             }
 
-            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(application.Status, ApplicationWorkflowDefinitions.OverallStatuses.Draft, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

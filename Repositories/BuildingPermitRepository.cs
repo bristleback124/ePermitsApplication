@@ -63,6 +63,21 @@ namespace ePermitsApp.Repositories
                 .FirstOrDefaultAsync(b => b.ApplicationId == applicationId);
         }
 
+        public async Task<BuildingPermit?> GetDraftByUserIdAsync(int userId)
+        {
+            return await _context.BuildingPermits
+                .Include(b => b.Application)
+                .Include(b => b.AppInfo)
+                .Include(b => b.DesignProf)
+                .Include(b => b.TechDoc)
+                .Include(b => b.SupportingDoc)
+                .FirstOrDefaultAsync(b =>
+                    b.Application != null &&
+                    b.Application.UserId == userId &&
+                    b.Application.Type == Helpers.ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit &&
+                    b.Application.Status == Helpers.ApplicationWorkflowDefinitions.OverallStatuses.Draft);
+        }
+
         public async Task AddAsync(BuildingPermit buildingPermit)
         {
             await _context.BuildingPermits.AddAsync(buildingPermit);
