@@ -96,7 +96,7 @@ namespace ePermitsApp.Controllers
             return Ok(new { success = true, message = result.Message, data = result.Review });
         }
 
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver,applicant")]
         [HttpPut("{applicationId}/overall-status")]
         public async Task<IActionResult> UpdateOverallStatus(int applicationId, [FromBody] UpdateApplicationOverallStatusDto dto)
         {

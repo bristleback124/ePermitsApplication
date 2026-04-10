@@ -92,8 +92,9 @@ namespace ePermitsApp.Helpers
             // === Initial Reviewer: re-open deficiency ===
             new(OverallStatuses.DeficiencyIssued, Roles.InitialReviewer, OverallStatuses.Submitted, "Re-open", "reset"),
 
-            // === Encoder: resubmit after deficiency ===
+            // === Encoder + Applicant: resubmit after deficiency ===
             new(OverallStatuses.DeficiencyIssued, Roles.Encoder, OverallStatuses.Submitted, "Resubmit for Review", "forward"),
+            new(OverallStatuses.DeficiencyIssued, Roles.Applicant, OverallStatuses.Submitted, "Resubmit for Review", "forward"),
 
             // === Fee Assessor: forward ===
             new(OverallStatuses.ForFeeComputation, Roles.FeeAssessor, OverallStatuses.PaymentPending, "Mark as Payment Pending", "forward"),
