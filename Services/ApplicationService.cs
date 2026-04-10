@@ -406,24 +406,28 @@ namespace ePermitsApp.Services
                 return false;
             }
 
+            // Admin roles can update any department review
             if (IsAdmin(currentUser))
             {
                 return true;
             }
 
-            if (review.AssignedReviewerId != currentUser.Id)
+            // All internal/staff roles can update department review status
+            var role = currentUser.UserRole?.UserRoleDesc;
+            if (ApplicationWorkflowDefinitions.IsValidRole(role ?? "")
+                && !string.Equals(role, ApplicationWorkflowDefinitions.Roles.Applicant, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(role, ApplicationWorkflowDefinitions.Roles.Executive, StringComparison.OrdinalIgnoreCase))
             {
-                return false;
+                return true;
             }
 
-            if (!IsDepartmentUser(currentUser) || !currentUser.DepartmentId.HasValue)
+            // Legacy: department users assigned to this review
+            if (review.AssignedReviewerId == currentUser.Id
+                && IsDepartmentUser(currentUser)
+                && currentUser.DepartmentId.HasValue
+                && currentUser.DepartmentId.Value == review.DepartmentId)
             {
-                return false;
-            }
-
-            if (currentUser.DepartmentId.Value != review.DepartmentId)
-            {
-                return false;
+                return true;
             }
 
             return true;
