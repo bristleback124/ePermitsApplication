@@ -7,7 +7,7 @@ namespace ePermitsApp.Controllers
 {
     [ApiController]
     [Route("api/admin/maintenance")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,superadmin,sysadmin")]
     public class AdminMaintenanceController : ControllerBase
     {
         private readonly IAdminMaintenanceService _service;

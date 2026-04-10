@@ -43,7 +43,7 @@ namespace ePermitsApp.Controllers
             return Ok(_mapper.Map<OwnershipTypeDto>(ownershipType));
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,superadmin,sysadmin")]
         [HttpPost]
         public async Task<ActionResult> Create(CreateOwnershipTypeDto dto)
         {
@@ -54,7 +54,7 @@ namespace ePermitsApp.Controllers
                 _mapper.Map<OwnershipTypeDto>(ownershipType));
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,superadmin,sysadmin")]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, UpdateOwnershipTypeDto dto)
         {
@@ -65,7 +65,7 @@ namespace ePermitsApp.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,superadmin,sysadmin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> SoftDelete(int id)
         {
@@ -83,7 +83,7 @@ namespace ePermitsApp.Controllers
             return NoContent();
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin,superadmin,sysadmin")]
         [HttpPost("{id}/restore")]
         public async Task<ActionResult> Restore(int id)
         {

@@ -93,6 +93,10 @@ namespace ePermitsApp.Mappings
                     : src.CoOApp != null ? src.CoOApp.ProjectTitle
                     : string.Empty))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.StatusReason, opt => opt.MapFrom(src => src.StatusReason))
+                .ForMember(dest => dest.NextStep, opt => opt.MapFrom(src =>
+                    ApplicationWorkflowDefinitions.NextStepDescriptions.ContainsKey(src.Status)
+                        ? ApplicationWorkflowDefinitions.NextStepDescriptions[src.Status] : null))
                 .ForMember(dest => dest.Applicant, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null
                     ? $"{src.User.UserProfile.FirstName} {src.User.UserProfile.LastName}" : string.Empty))
                 .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null

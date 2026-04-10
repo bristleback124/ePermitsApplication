@@ -9,14 +9,17 @@ namespace ePermits.Models
         public int UserId { get; set; } // Applicant
         public string Type { get; set; } = string.Empty; // "BuildingPermit" or "CertificateOfOccupancy"
         public string FormattedId { get; set; } = string.Empty;
+        public int? SubmittedById { get; set; } // Encoder who submitted on behalf of applicant (null = self-submitted)
         public string Status { get; set; } = "Submitted";
+        public string? StatusReason { get; set; } // Reason for reject/cancel/deficiency/reopen
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation properties
-        public User? User { get; set; }
+        public User? User { get; set; } // Applicant
+        public User? SubmittedBy { get; set; } // Encoder (if submitted on behalf)
         public BuildingPermit? BuildingPermit { get; set; }
         public CoOApp? CoOApp { get; set; }
         public ICollection<Message>? Messages { get; set; }

@@ -1,5 +1,6 @@
 using ePermits.Data;
 using ePermits.DTOs;
+using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 
 using ePermits.Models;
@@ -296,6 +297,71 @@ namespace ePermits.Services
         public async Task<bool> CheckEmailExistsAsync(string email)
         {
             return await _userRepository.EmailExistsAsync(email);
+        }
+
+        public async Task<(bool Success, string Message, RegisterApplicantResponseDto? Data)> RegisterApplicantAsync(RegisterApplicantDto dto, string registeredBy)
+        {
+            if (await _userRepository.EmailExistsAsync(dto.Email))
+            {
+                return (false, "An account with this email already exists.", null);
+            }
+
+            // Generate username from email prefix
+            var username = dto.Email.Split('@')[0].ToLowerInvariant();
+            if (await _userRepository.UsernameExistsAsync(username))
+            {
+                username = $"{username}{DateTime.UtcNow.Ticks % 10000}";
+            }
+
+            // Generate temp password (8 chars alphanumeric)
+            var tempPassword = GenerateTempPassword(8);
+
+            var applicantRoleId = 3; // applicant role
+
+            var user = new User
+            {
+                Username = username,
+                Password = HashPassword(tempPassword),
+                UserRoleId = applicantRoleId,
+                MustChangePassword = true,
+                CreatedBy = registeredBy,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var createdUser = await _userRepository.CreateAsync(user);
+
+            var userProfile = new UserProfile
+            {
+                UserId = createdUser.Id,
+                FirstName = dto.FirstName,
+                MiddleName = dto.MiddleName ?? string.Empty,
+                LastName = dto.LastName,
+                Email = dto.Email,
+                MobileNo = dto.MobileNo,
+                CreatedBy = registeredBy,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _userProfileRepository.CreateAsync(userProfile);
+
+            createdUser.UserProfileId = userProfile.Id;
+            await _userRepository.UpdateAsync(createdUser);
+
+            var fullName = $"{dto.FirstName} {dto.LastName}".Trim();
+
+            return (true, "Applicant registered successfully.", new RegisterApplicantResponseDto
+            {
+                UserId = createdUser.Id,
+                FullName = fullName,
+                Email = dto.Email
+            });
+        }
+
+        private static string GenerateTempPassword(int length)
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+            var random = new Random();
+            return new string(Enumerable.Range(0, length).Select(_ => chars[random.Next(chars.Length)]).ToArray());
         }
 
     }

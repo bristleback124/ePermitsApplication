@@ -506,8 +506,9 @@ namespace ePermitsApp.Services
         private static bool IsGovernmentUser(User? user)
         {
             var role = user?.UserRole?.UserRoleDesc;
-            return string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(role, "user", StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(role)) return false;
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 
         private int TryGetCurrentUserId()

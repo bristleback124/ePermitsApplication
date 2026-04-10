@@ -24,6 +24,7 @@ namespace ePermitsApp.Services
         private readonly ILogger<ApplicationService> _logger;
         private readonly ApplicationDbContext _dbContext;
         private readonly IAuditTrailService _auditTrailService;
+        private readonly IWorkflowTransitionService _workflowTransitionService;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
@@ -33,7 +34,8 @@ namespace ePermitsApp.Services
             IMapper mapper,
             IEmailService emailService,
             ILogger<ApplicationService> logger,
-            IAuditTrailService auditTrailService)
+            IAuditTrailService auditTrailService,
+            IWorkflowTransitionService workflowTransitionService)
         {
             _applicationRepository = applicationRepository;
             _userRepository = userRepository;
@@ -43,6 +45,7 @@ namespace ePermitsApp.Services
             _emailService = emailService;
             _logger = logger;
             _auditTrailService = auditTrailService;
+            _workflowTransitionService = workflowTransitionService;
         }
 
         public async Task<IEnumerable<ApplicationDtoShort>> GetApplicationsByUserIdAsync(int userId)
@@ -115,7 +118,7 @@ namespace ePermitsApp.Services
         {
             return Task.FromResult(new ApplicationStatusOptionsDto
             {
-                OverallStatuses = ApplicationWorkflowDefinitions.OverallStatusOptions.ToList(),
+                OverallStatuses = ApplicationWorkflowDefinitions.AllStatuses.ToList(),
                 DepartmentStatuses = ApplicationWorkflowDefinitions.DepartmentStatusOptions.ToList()
             });
         }
@@ -157,12 +160,13 @@ namespace ePermitsApp.Services
             }
 
             var reviewerRole = reviewer.UserRole.UserRoleDesc;
-            var isAdmin = string.Equals(reviewerRole, "admin", StringComparison.OrdinalIgnoreCase);
-            var isDepartmentUser = string.Equals(reviewerRole, "user", StringComparison.OrdinalIgnoreCase);
+            var isAdminRole = IsAdmin(reviewer);
+            var isDepartmentUser = string.Equals(reviewerRole, ApplicationWorkflowDefinitions.Roles.User, StringComparison.OrdinalIgnoreCase);
+            var isWorkflowRole = ApplicationWorkflowDefinitions.IsValidRole(reviewerRole);
 
-            if (!isAdmin && !isDepartmentUser)
+            if (!isAdminRole && !isDepartmentUser && !isWorkflowRole)
             {
-                return (false, "Reviewer must have admin or user role", null);
+                return (false, "Reviewer must have a valid staff role", null);
             }
 
             if (isDepartmentUser && reviewer.DepartmentId != departmentId)
@@ -239,14 +243,22 @@ namespace ePermitsApp.Services
                 return (false, "Application not found");
             }
 
-            if (!ApplicationWorkflowDefinitions.IsValidOverallStatus(dto.Status))
+            var currentUser = await GetCurrentUserAsync();
+            var userRole = currentUser?.UserRole?.UserRoleDesc ?? string.Empty;
+
+            // Validate transition through workflow service
+            var (isValid, validationMessage) = _workflowTransitionService.ValidateTransition(
+                application.Status, userRole, dto.Status);
+
+            if (!isValid)
             {
-                return (false, "Invalid overall status");
+                return (false, validationMessage);
             }
 
-            var currentUser = await GetCurrentUserAsync();
             var previousStatus = application.Status;
             application.Status = dto.Status;
+            if (dto.Reason != null)
+                application.StatusReason = dto.Reason;
             application.UpdatedAt = DateTime.UtcNow;
             application.UpdatedBy = currentUser?.Username ?? "System";
 
@@ -256,15 +268,18 @@ namespace ePermitsApp.Services
 
             var overallUserId = int.TryParse(_currentUserService.UserId, out var ouid) ? ouid : 0;
             var overallUserName = currentUser?.Username ?? "System";
+            var details = string.IsNullOrWhiteSpace(dto.Reason)
+                ? $"Previous status: {previousStatus}"
+                : $"Previous status: {previousStatus}. Reason: {dto.Reason}";
             await _auditTrailService.LogAsync(
                 applicationId,
                 AuditActionTypes.StatusChange,
-                $"Overall status changed to {dto.Status}",
-                $"Previous status: {previousStatus}",
+                $"Status changed to {dto.Status}",
+                details,
                 overallUserId,
                 overallUserName);
 
-            return (true, "Overall status updated successfully");
+            return (true, "Status updated successfully");
         }
 
         private async Task<User?> GetCurrentUserAsync()
@@ -356,12 +371,15 @@ namespace ePermitsApp.Services
 
         private static bool IsDepartmentUser(User? user)
         {
-            return string.Equals(user?.UserRole?.UserRoleDesc, "user", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(user?.UserRole?.UserRoleDesc, ApplicationWorkflowDefinitions.Roles.User, StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsAdmin(User? user)
         {
-            return string.Equals(user?.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase);
+            var role = user?.UserRole?.UserRoleDesc;
+            return string.Equals(role, ApplicationWorkflowDefinitions.Roles.SuperAdmin, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase) // backwards compat
+                || string.Equals(role, ApplicationWorkflowDefinitions.Roles.SysAdmin, StringComparison.OrdinalIgnoreCase);
         }
 
         private sealed record DummyReviewerSeed(
@@ -471,7 +489,7 @@ namespace ePermitsApp.Services
                     updatedByName = $"{currentUser.UserProfile.FirstName} {currentUser.UserProfile.LastName}".Trim();
                 }
 
-                var isApproved = string.Equals(newStatus, ApplicationWorkflowDefinitions.OverallStatuses.Approved, StringComparison.OrdinalIgnoreCase);
+                var isApproved = string.Equals(newStatus, ApplicationWorkflowDefinitions.OverallStatuses.ApprovedForIssuance, StringComparison.OrdinalIgnoreCase);
 
                 string subject;
                 string templateName;

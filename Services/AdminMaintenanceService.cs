@@ -1156,8 +1156,8 @@ namespace ePermitsApp.Services
             return _context.Applications
                 .IgnoreQueryFilters()
                 .CountAsync(x => ids.Contains(x.Id)
-                    && x.Status != ApplicationWorkflowDefinitions.OverallStatuses.Approved
-                    && x.Status != ApplicationWorkflowDefinitions.OverallStatuses.Closed);
+                    && x.Status != ApplicationWorkflowDefinitions.OverallStatuses.ApprovedForIssuance
+                    && !ApplicationWorkflowDefinitions.IsTerminalStatus(x.Status));
         }
 
         private async Task<object> CreateSimpleItemAsync(

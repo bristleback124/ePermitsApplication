@@ -16,6 +16,7 @@ namespace ePermits.Models
         public DateTime CreatedAt { get; set; }
         public string? UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public bool MustChangePassword { get; set; } = false;
 
         // Navigation properties
         public UserRole? UserRole { get; set; }

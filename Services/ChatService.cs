@@ -56,7 +56,7 @@ namespace ePermits.Services
             var application = await ValidateUnreadAccessAsync(dto.ApplicationId, userId, userRole);
 
             // Admin and User roles send as "Government", Applicant sends as "Applicant"
-            var senderType = (userRole == "admin" || userRole == "user") ? "Government" : "Applicant";
+            var senderType = IsGovernmentRole(userRole) ? "Government" : "Applicant";
 
             var message = new Message
             {
@@ -129,16 +129,7 @@ namespace ePermits.Services
                 return application;
             }
 
-            if (string.Equals(userRole, "user", StringComparison.OrdinalIgnoreCase))
-            {
-                var isAssignedReviewer = application.DepartmentReviews.Any(review => review.AssignedReviewerId == userId);
-                if (!isAssignedReviewer)
-                    throw new UnauthorizedAccessException("Access denied to this application.");
-
-                return application;
-            }
-
-            if (string.Equals(userRole, "admin", StringComparison.OrdinalIgnoreCase))
+            if (IsGovernmentRole(userRole))
             {
                 return application;
             }
@@ -157,8 +148,8 @@ namespace ePermits.Services
                         review.AssignedReviewer?.UserRole?.UserRoleDesc ?? "user"));
 
                 var adminRecipients = (await _userRepository.GetAllAsync())
-                    .Where(user => string.Equals(user.UserRole?.UserRoleDesc, "admin", StringComparison.OrdinalIgnoreCase))
-                    .Select(user => new UnreadRecipientTarget(user.Id, user.UserRole?.UserRoleDesc ?? "admin"));
+                    .Where(user => IsGovernmentRole(user.UserRole?.UserRoleDesc))
+                    .Select(user => new UnreadRecipientTarget(user.Id, user.UserRole?.UserRoleDesc ?? "superadmin"));
 
                 return assignedReviewerRecipients
                     .Concat(adminRecipients)
@@ -178,6 +169,13 @@ namespace ePermits.Services
             return string.Equals(userRole, "applicant", StringComparison.OrdinalIgnoreCase)
                 ? "Government"
                 : "Applicant";
+        }
+
+        private static bool IsGovernmentRole(string? role)
+        {
+            if (string.IsNullOrWhiteSpace(role)) return false;
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool IsMessageReadForActor(Message message, int userId, string userRole)

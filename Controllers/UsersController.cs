@@ -7,7 +7,7 @@ namespace ePermits.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,superadmin,sysadmin")]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -46,6 +46,14 @@ namespace ePermits.Controllers
                 return BadRequest(new { success = false, message });
 
             return Ok(new { success = true, message });
+        }
+
+        [HttpGet("search-applicants")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder")]
+        public async Task<IActionResult> SearchApplicants([FromQuery] string? search)
+        {
+            var users = await _userService.SearchApplicantsAsync(search ?? "");
+            return Ok(new { success = true, data = users });
         }
     }
 }

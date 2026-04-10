@@ -25,6 +25,8 @@ namespace ePermitsApp.DTOs
     {
         [Required]
         public string Status { get; set; } = string.Empty;
+        [MaxLength(500)]
+        public string? Reason { get; set; }
     }
 
     public class ReviewAssignableUserDto

@@ -249,6 +249,13 @@ namespace ePermitsApp.Data
                     .HasForeignKey<CoOApp>(c => c.ApplicationId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                entity.Property(e => e.StatusReason).HasMaxLength(500);
+
+                entity.HasOne(e => e.SubmittedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.SubmittedById)
+                    .OnDelete(DeleteBehavior.NoAction);
+
                 entity.HasMany(e => e.DepartmentReviews)
                     .WithOne(r => r.Application)
                     .HasForeignKey(r => r.ApplicationId)
@@ -362,30 +369,19 @@ namespace ePermitsApp.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Seed default user roles
+            // Seed user roles
             var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             modelBuilder.Entity<UserRole>().HasData(
-                new UserRole
-                {
-                    Id = 1,
-                    UserRoleDesc = "admin",
-                    CreatedBy = "System",
-                    CreatedAt = seedDate
-                },
-                new UserRole
-                {
-                    Id = 2,
-                    UserRoleDesc = "user",
-                    CreatedBy = "System",
-                    CreatedAt = seedDate
-                },
-                new UserRole
-                {
-                    Id = 3,
-                    UserRoleDesc = "applicant",
-                    CreatedBy = "System",
-                    CreatedAt = seedDate
-                }
+                new UserRole { Id = 1, UserRoleDesc = "superadmin", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 2, UserRoleDesc = "user", CreatedBy = "System", CreatedAt = seedDate }, // deprecated
+                new UserRole { Id = 3, UserRoleDesc = "applicant", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 4, UserRoleDesc = "encoder", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 5, UserRoleDesc = "initial-reviewer", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 6, UserRoleDesc = "fee-assessor", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 7, UserRoleDesc = "final-reviewer", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 8, UserRoleDesc = "final-approver", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 9, UserRoleDesc = "executive", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 10, UserRoleDesc = "sysadmin", CreatedBy = "System", CreatedAt = seedDate }
             );
 
             // BuildingPermit configuration
