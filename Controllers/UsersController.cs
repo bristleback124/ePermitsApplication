@@ -7,7 +7,7 @@ namespace ePermits.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "admin,superadmin,sysadmin")]
+    [Authorize(Roles = "admin,superadmin,sysadmin,encoder")]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;

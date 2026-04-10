@@ -48,11 +48,11 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CoOAppDto>> Create([FromForm] CoOAppCreateDto dto, [FromQuery] bool saveAsDraft = false)
+        public async Task<ActionResult<CoOAppDto>> Create([FromForm] CoOAppCreateDto dto, [FromQuery] bool saveAsDraft = false, [FromQuery] int? applicantId = null)
         {
             try
             {
-                var coOApp = await _service.CreateAsync(dto, saveAsDraft);
+                var coOApp = await _service.CreateAsync(dto, saveAsDraft, applicantId);
 
                 return CreatedAtAction(nameof(GetById),
                     new { id = coOApp.Id },

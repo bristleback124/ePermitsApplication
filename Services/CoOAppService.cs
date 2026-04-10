@@ -84,7 +84,7 @@ namespace ePermitsApp.Services
             return coOApp == null ? null : _mapper.Map<CoOAppEditDto>(coOApp);
         }
 
-        public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false)
+        public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
             var coOApp = _mapper.Map<CoOApp>(dto);
 
@@ -94,6 +94,9 @@ namespace ePermitsApp.Services
             {
                 currentUserId = id;
             }
+
+            var applicationOwnerId = applicantId ?? currentUserId;
+            int? submittedById = applicantId.HasValue ? currentUserId : null;
 
             coOApp.CreatedAt = now;
             coOApp.CreatedBy = currentUserId;
@@ -106,7 +109,8 @@ namespace ePermitsApp.Services
 
             coOApp.Application = new Application
             {
-                UserId = currentUserId,
+                UserId = applicationOwnerId,
+                SubmittedById = submittedById,
                 Type = ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy,
                 Status = saveAsDraft
                     ? ApplicationWorkflowDefinitions.OverallStatuses.Draft

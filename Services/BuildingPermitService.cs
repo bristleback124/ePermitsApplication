@@ -84,7 +84,7 @@ namespace ePermitsApp.Services
             return buildingPermit == null ? null : _mapper.Map<BuildingPermitEditDto>(buildingPermit);
         }
 
-        public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false)
+        public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
 
@@ -94,6 +94,10 @@ namespace ePermitsApp.Services
             {
                 currentUserId = id;
             }
+
+            // If encoder submits on behalf of applicant, use applicantId as owner
+            var applicationOwnerId = applicantId ?? currentUserId;
+            int? submittedById = applicantId.HasValue ? currentUserId : null;
 
             buildingPermit.CreatedAt = now;
             buildingPermit.CreatedBy = currentUserId;
@@ -106,7 +110,8 @@ namespace ePermitsApp.Services
 
             buildingPermit.Application = new Application
             {
-                UserId = currentUserId,
+                UserId = applicationOwnerId,
+                SubmittedById = submittedById,
                 Type = ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit,
                 Status = saveAsDraft
                     ? ApplicationWorkflowDefinitions.OverallStatuses.Draft
