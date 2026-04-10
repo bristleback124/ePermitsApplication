@@ -6,12 +6,10 @@ namespace ePermitsApp.Services
     public class DocumentDownloadService : IDocumentDownloadService
     {
         private readonly IApplicationService _applicationService;
-        private readonly string _basePath;
 
-        public DocumentDownloadService(IApplicationService applicationService, IConfiguration configuration)
+        public DocumentDownloadService(IApplicationService applicationService)
         {
             _applicationService = applicationService;
-            _basePath = configuration["FileStorage:BasePath"] ?? throw new InvalidOperationException("FileStorage:BasePath is not configured.");
         }
 
         public async Task<List<(string Folder, string FileName, string FilePath)>?> GetDocumentPathsAsync(int applicationId, string type)
@@ -85,17 +83,8 @@ namespace ePermitsApp.Services
             if (file == null || string.IsNullOrWhiteSpace(file.Path))
                 return;
 
-            var fullPath = Path.GetFullPath(file.Path);
-            var fullBasePath = Path.GetFullPath(_basePath);
-
-            if (!fullPath.StartsWith(fullBasePath, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            if (!File.Exists(fullPath))
-                return;
-
             var fileName = string.IsNullOrWhiteSpace(file.Name)
-                ? Path.GetFileName(fullPath)
+                ? Path.GetFileName(file.Path)
                 : file.Name;
 
             // Handle duplicate filenames within the same folder
@@ -112,7 +101,7 @@ namespace ePermitsApp.Services
                 usedNames[key] = 1;
             }
 
-            files.Add((folder, fileName, fullPath));
+            files.Add((folder, fileName, file.Path));
         }
     }
 }

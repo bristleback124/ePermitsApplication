@@ -8,7 +8,6 @@ using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using ePermitsApp.Models.EmailModels;
-using Microsoft.Extensions.Options;
 using ePermits.Data;
 using ePermitsApp.Data;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +21,7 @@ namespace ePermitsApp.Services
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUser;
         private readonly IUserRepository _userRepository;
-        private readonly FileStorageSettings _fileSettings;
+        private readonly IFileStorageService _fileStorageService;
         private readonly IEmailService _emailService;
         private readonly IAdminEmailNotificationConfigService _adminEmailNotificationConfigService;
         private readonly IApplicationFormattedIdService _applicationFormattedIdService;
@@ -34,7 +33,7 @@ namespace ePermitsApp.Services
             IMapper mapper,
             ICurrentUserService currentUser,
             IUserRepository userRepository,
-            IOptions<FileStorageSettings> fileSettings,
+            IFileStorageService fileStorageService,
             IEmailService emailService,
             IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
             IApplicationFormattedIdService applicationFormattedIdService,
@@ -45,7 +44,7 @@ namespace ePermitsApp.Services
             _mapper = mapper;
             _currentUser = currentUser;
             _userRepository = userRepository;
-            _fileSettings = fileSettings.Value;
+            _fileStorageService = fileStorageService;
             _emailService = emailService;
             _adminEmailNotificationConfigService = adminEmailNotificationConfigService;
             _dbContext = dbContext;
@@ -277,19 +276,7 @@ namespace ePermitsApp.Services
             if (file == null || file.Length == 0)
                 return string.Empty;
 
-            var folderPath = Path.Combine(_fileSettings.BasePath, "permits", permitId.ToString(), subFolder);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-
-            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-            var filePath = Path.Combine(folderPath, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            return filePath;
+            return await _fileStorageService.UploadAsync(file);
         }
 
         private async Task UpdateSingleReqDocAsync(object target, string propertyName, IFormFile? newFile, bool keepExisting, int permitId, bool required)

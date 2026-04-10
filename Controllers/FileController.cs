@@ -1,3 +1,4 @@
+using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ePermitsApp.Controllers;
@@ -6,46 +7,41 @@ namespace ePermitsApp.Controllers;
 [Route("api/[controller]")]
 public class FileController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly IFileStorageService _fileStorageService;
 
-    public FileController(IConfiguration configuration)
+    public FileController(IFileStorageService fileStorageService)
     {
-        _configuration = configuration;
+        _fileStorageService = fileStorageService;
     }
 
     [HttpGet]
-    public IActionResult GetFile([FromQuery] string path, [FromQuery] bool download = false)
+    public async Task<IActionResult> GetFile([FromQuery] string path, [FromQuery] bool download = false, CancellationToken cancellationToken = default)
     {
-        var basePath = _configuration["FileStorage:BasePath"];
-
-        if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(basePath))
+        if (string.IsNullOrWhiteSpace(path))
             return BadRequest("Invalid path");
 
-        var fullPath = Path.GetFullPath(path);
-        var fullBasePath = Path.GetFullPath(basePath);
-
-        // Case-insensitive comparison for Windows paths
-        if (!fullPath.StartsWith(fullBasePath, StringComparison.OrdinalIgnoreCase))
-            return BadRequest("Invalid path");
-
-        if (!System.IO.File.Exists(fullPath))
+        Stream stream;
+        try
+        {
+            stream = await _fileStorageService.DownloadAsync(path, cancellationToken);
+        }
+        catch (FileNotFoundException)
+        {
             return NotFound("File not found");
+        }
 
-        var mimeType = GetMimeType(fullPath);
+        var downloadName = Path.GetFileName(path);
+        var mimeType = GetMimeType(downloadName);
 
         if (download)
         {
-            return PhysicalFile(
-                fullPath,
-                mimeType,
-                fileDownloadName: Path.GetFileName(fullPath),
-                enableRangeProcessing: true);
+            return File(stream, mimeType, fileDownloadName: downloadName);
         }
 
-        return PhysicalFile(fullPath, mimeType, enableRangeProcessing: true);
+        return File(stream, mimeType);
     }
 
-    private string GetMimeType(string filePath) => Path.GetExtension(filePath).ToLower() switch
+    private string GetMimeType(string filePath) => Path.GetExtension(filePath).ToLowerInvariant() switch
     {
         ".pdf"  => "application/pdf",
         ".png"  => "image/png",
