@@ -7,7 +7,7 @@ namespace ePermitsApp.Controllers;
 
 [ApiController]
 [Route("api/admin-email-notification-configs")]
-[Authorize(Roles = "admin")]
+[Authorize(Roles = "admin,superadmin,sysadmin")]
 public class AdminEmailNotificationConfigsController : ControllerBase
 {
     private readonly IAdminEmailNotificationConfigService _service;

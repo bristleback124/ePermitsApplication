@@ -48,11 +48,11 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<BuildingPermitDto>> Create([FromForm] BuildingPermitCreateDto dto, [FromQuery] bool saveAsDraft = false)
+        public async Task<ActionResult<BuildingPermitDto>> Create([FromForm] BuildingPermitCreateDto dto, [FromQuery] bool saveAsDraft = false, [FromQuery] int? applicantId = null)
         {
             try
             {
-                var buildingPermit = await _service.CreateAsync(dto, saveAsDraft);
+                var buildingPermit = await _service.CreateAsync(dto, saveAsDraft, applicantId);
 
                 return CreatedAtAction(nameof(GetById),
                     new { id = buildingPermit.Id },

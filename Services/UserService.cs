@@ -80,6 +80,28 @@ namespace ePermits.Services
             return (true, "User role updated successfully");
         }
 
+        public async Task<List<UserListItemDto>> SearchApplicantsAsync(string search)
+        {
+            var users = await _userRepository.GetAllAsync();
+            var applicants = users
+                .Where(u => string.Equals(u.UserRole?.UserRoleDesc, "applicant", System.StringComparison.OrdinalIgnoreCase))
+                .Where(u =>
+                {
+                    if (string.IsNullOrWhiteSpace(search)) return true;
+                    var term = search.ToLowerInvariant();
+                    var name = u.UserProfile != null
+                        ? $"{u.UserProfile.FirstName} {u.UserProfile.LastName}".ToLowerInvariant()
+                        : u.Username.ToLowerInvariant();
+                    var email = u.UserProfile?.Email?.ToLowerInvariant() ?? "";
+                    return name.Contains(term) || email.Contains(term) || u.Username.ToLowerInvariant().Contains(term);
+                })
+                .Take(20)
+                .Select(u => MapToDto(u))
+                .ToList();
+
+            return applicants;
+        }
+
         private static UserListItemDto MapToDto(Models.User user)
         {
             var profile = user.UserProfile;

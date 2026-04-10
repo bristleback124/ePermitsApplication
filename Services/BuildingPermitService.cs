@@ -84,7 +84,7 @@ namespace ePermitsApp.Services
             return buildingPermit == null ? null : _mapper.Map<BuildingPermitEditDto>(buildingPermit);
         }
 
-        public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false)
+        public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
 
@@ -94,6 +94,10 @@ namespace ePermitsApp.Services
             {
                 currentUserId = id;
             }
+
+            // If encoder submits on behalf of applicant, use applicantId as owner
+            var applicationOwnerId = applicantId ?? currentUserId;
+            int? submittedById = applicantId.HasValue ? currentUserId : null;
 
             buildingPermit.CreatedAt = now;
             buildingPermit.CreatedBy = currentUserId;
@@ -106,7 +110,8 @@ namespace ePermitsApp.Services
 
             buildingPermit.Application = new Application
             {
-                UserId = currentUserId,
+                UserId = applicationOwnerId,
+                SubmittedById = submittedById,
                 Type = ApplicationWorkflowDefinitions.PermitTypes.BuildingPermit,
                 Status = saveAsDraft
                     ? ApplicationWorkflowDefinitions.OverallStatuses.Draft
@@ -891,8 +896,9 @@ namespace ePermitsApp.Services
         private static bool IsGovernmentUser(User? user)
         {
             var role = user?.UserRole?.UserRoleDesc;
-            return string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(role, "user", StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(role)) return false;
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 
         private int TryGetCurrentUserId()

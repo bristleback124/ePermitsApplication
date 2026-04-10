@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ePermitsApp.Data;
 
@@ -11,9 +12,11 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260410133702_WorkflowEngineAndRolesFoundation")]
+    partial class WorkflowEngineAndRolesFoundation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -159,49 +162,6 @@ namespace ePermitsApp.Migrations
                     b.ToTable("AuditTrails");
                 });
 
-            modelBuilder.Entity("ePermits.Models.IssuedPermitDocument", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("FileSize")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("UploadedById")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationId");
-
-                    b.HasIndex("UploadedById");
-
-                    b.ToTable("IssuedPermitDocuments");
-                });
-
             modelBuilder.Entity("ePermits.Models.Message", b =>
                 {
                     b.Property<int>("Id")
@@ -345,90 +305,6 @@ namespace ePermitsApp.Migrations
                             UserProfileId = 1,
                             UserRoleId = 1,
                             Username = "admin"
-                        },
-                        new
-                        {
-                            Id = 100,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 100,
-                            UserRoleId = 4,
-                            Username = "encoder"
-                        },
-                        new
-                        {
-                            Id = 101,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 101,
-                            UserRoleId = 5,
-                            Username = "reviewer"
-                        },
-                        new
-                        {
-                            Id = 102,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 102,
-                            UserRoleId = 6,
-                            Username = "assessor"
-                        },
-                        new
-                        {
-                            Id = 103,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 103,
-                            UserRoleId = 7,
-                            Username = "finalreviewer"
-                        },
-                        new
-                        {
-                            Id = 104,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 104,
-                            UserRoleId = 8,
-                            Username = "approver"
-                        },
-                        new
-                        {
-                            Id = 105,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 105,
-                            UserRoleId = 9,
-                            Username = "mayor"
-                        },
-                        new
-                        {
-                            Id = 106,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            LGUId = 1,
-                            MustChangePassword = false,
-                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
-                            UserProfileId = 106,
-                            UserRoleId = 10,
-                            Username = "sysadmin"
                         });
                 });
 
@@ -503,90 +379,6 @@ namespace ePermitsApp.Migrations
                             MiddleName = "",
                             MobileNo = "0000000000",
                             UserId = 1
-                        },
-                        new
-                        {
-                            Id = 100,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "encoder@lgu.gov.ph",
-                            FirstName = "Juan",
-                            LastName = "Dela Cruz",
-                            MiddleName = "",
-                            MobileNo = "09171000001",
-                            UserId = 100
-                        },
-                        new
-                        {
-                            Id = 101,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "reviewer@lgu.gov.ph",
-                            FirstName = "Maria",
-                            LastName = "Santos",
-                            MiddleName = "",
-                            MobileNo = "09171000002",
-                            UserId = 101
-                        },
-                        new
-                        {
-                            Id = 102,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "assessor@lgu.gov.ph",
-                            FirstName = "Pedro",
-                            LastName = "Cruz",
-                            MiddleName = "",
-                            MobileNo = "09171000003",
-                            UserId = 102
-                        },
-                        new
-                        {
-                            Id = 103,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "finalreviewer@lgu.gov.ph",
-                            FirstName = "Ana",
-                            LastName = "Reyes",
-                            MiddleName = "",
-                            MobileNo = "09171000004",
-                            UserId = 103
-                        },
-                        new
-                        {
-                            Id = 104,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "approver@lgu.gov.ph",
-                            FirstName = "Roberto",
-                            LastName = "Garcia",
-                            MiddleName = "",
-                            MobileNo = "09171000005",
-                            UserId = 104
-                        },
-                        new
-                        {
-                            Id = 105,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "mayor@lgu.gov.ph",
-                            FirstName = "Mayor",
-                            LastName = "Torres",
-                            MiddleName = "",
-                            MobileNo = "09171000006",
-                            UserId = 105
-                        },
-                        new
-                        {
-                            Id = 106,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Email = "sysadmin@lgu.gov.ph",
-                            FirstName = "Carl",
-                            LastName = "Rivera",
-                            MiddleName = "",
-                            MobileNo = "09171000007",
-                            UserId = 106
                         });
                 });
 
@@ -3233,25 +3025,6 @@ namespace ePermitsApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Application");
-                });
-
-            modelBuilder.Entity("ePermits.Models.IssuedPermitDocument", b =>
-                {
-                    b.HasOne("ePermits.Models.Application", "Application")
-                        .WithMany()
-                        .HasForeignKey("ApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ePermits.Models.User", "UploadedBy")
-                        .WithMany()
-                        .HasForeignKey("UploadedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Application");
-
-                    b.Navigation("UploadedBy");
                 });
 
             modelBuilder.Entity("ePermits.Models.Message", b =>

@@ -84,7 +84,7 @@ namespace ePermitsApp.Services
             return coOApp == null ? null : _mapper.Map<CoOAppEditDto>(coOApp);
         }
 
-        public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false)
+        public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
             var coOApp = _mapper.Map<CoOApp>(dto);
 
@@ -94,6 +94,9 @@ namespace ePermitsApp.Services
             {
                 currentUserId = id;
             }
+
+            var applicationOwnerId = applicantId ?? currentUserId;
+            int? submittedById = applicantId.HasValue ? currentUserId : null;
 
             coOApp.CreatedAt = now;
             coOApp.CreatedBy = currentUserId;
@@ -106,7 +109,8 @@ namespace ePermitsApp.Services
 
             coOApp.Application = new Application
             {
-                UserId = currentUserId,
+                UserId = applicationOwnerId,
+                SubmittedById = submittedById,
                 Type = ApplicationWorkflowDefinitions.PermitTypes.CertificateOfOccupancy,
                 Status = saveAsDraft
                     ? ApplicationWorkflowDefinitions.OverallStatuses.Draft
@@ -506,8 +510,9 @@ namespace ePermitsApp.Services
         private static bool IsGovernmentUser(User? user)
         {
             var role = user?.UserRole?.UserRoleDesc;
-            return string.Equals(role, "admin", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(role, "user", StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(role)) return false;
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 
         private int TryGetCurrentUserId()

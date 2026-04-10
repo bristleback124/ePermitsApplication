@@ -110,7 +110,7 @@ public class AdminEmailNotificationConfigService : IAdminEmailNotificationConfig
 
     private static readonly HashSet<string> SelectableRoles = new(StringComparer.OrdinalIgnoreCase)
     {
-        "admin", "user"
+        "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver"
     };
 
     private async Task<List<ePermits.Models.User>> GetAllUsersWithProfilesAsync()
@@ -129,7 +129,7 @@ public class AdminEmailNotificationConfigService : IAdminEmailNotificationConfig
         return await _context.Users
             .Include(u => u.UserRole)
             .Include(u => u.UserProfile)
-            .Where(u => u.UserRole != null && u.UserRole.UserRoleDesc == "admin")
+            .Where(u => u.UserRole != null && (u.UserRole.UserRoleDesc == "admin" || u.UserRole.UserRoleDesc == "superadmin" || u.UserRole.UserRoleDesc == "sysadmin"))
             .ToListAsync();
     }
 }

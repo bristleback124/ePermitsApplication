@@ -22,6 +22,7 @@ namespace ePermitsApp.Data.Seeders
                 new OccupancyNatureSeeder(),
                 new ApplicantTypeSeeder(),
                 new AdminSeeder(),
+                new WorkflowRoleUsersSeeder(),
             }
             .OrderBy(s => s.Order)
             .ToList();

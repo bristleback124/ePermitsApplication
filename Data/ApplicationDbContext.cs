@@ -56,6 +56,8 @@ namespace ePermitsApp.Data
 
         public DbSet<PaymentDocument> PaymentDocuments => Set<PaymentDocument>();
 
+        public DbSet<IssuedPermitDocument> IssuedPermitDocuments => Set<IssuedPermitDocument>();
+
         public DbSet<AuditTrail> AuditTrails => Set<AuditTrail>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -249,6 +251,13 @@ namespace ePermitsApp.Data
                     .HasForeignKey<CoOApp>(c => c.ApplicationId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                entity.Property(e => e.StatusReason).HasMaxLength(500);
+
+                entity.HasOne(e => e.SubmittedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.SubmittedById)
+                    .OnDelete(DeleteBehavior.NoAction);
+
                 entity.HasMany(e => e.DepartmentReviews)
                     .WithOne(r => r.Application)
                     .HasForeignKey(r => r.ApplicationId)
@@ -362,30 +371,19 @@ namespace ePermitsApp.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Seed default user roles
+            // Seed user roles
             var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             modelBuilder.Entity<UserRole>().HasData(
-                new UserRole
-                {
-                    Id = 1,
-                    UserRoleDesc = "admin",
-                    CreatedBy = "System",
-                    CreatedAt = seedDate
-                },
-                new UserRole
-                {
-                    Id = 2,
-                    UserRoleDesc = "user",
-                    CreatedBy = "System",
-                    CreatedAt = seedDate
-                },
-                new UserRole
-                {
-                    Id = 3,
-                    UserRoleDesc = "applicant",
-                    CreatedBy = "System",
-                    CreatedAt = seedDate
-                }
+                new UserRole { Id = 1, UserRoleDesc = "superadmin", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 2, UserRoleDesc = "user", CreatedBy = "System", CreatedAt = seedDate }, // deprecated
+                new UserRole { Id = 3, UserRoleDesc = "applicant", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 4, UserRoleDesc = "encoder", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 5, UserRoleDesc = "initial-reviewer", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 6, UserRoleDesc = "fee-assessor", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 7, UserRoleDesc = "final-reviewer", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 8, UserRoleDesc = "final-approver", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 9, UserRoleDesc = "executive", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 10, UserRoleDesc = "sysadmin", CreatedBy = "System", CreatedAt = seedDate }
             );
 
             // BuildingPermit configuration
@@ -640,6 +638,25 @@ namespace ePermitsApp.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FileName).IsRequired();
                 entity.Property(e => e.FilePath).IsRequired();
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasOne(e => e.Application)
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.UploadedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.UploadedById)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<IssuedPermitDocument>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FileName).IsRequired();
+                entity.Property(e => e.FilePath).IsRequired();
+                entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasOne(e => e.Application)

@@ -121,6 +121,7 @@ namespace ePermitsApp
             builder.Services.AddScoped<IApplicationPdfService, ApplicationPdfService>();
             builder.Services.AddScoped<IAuditTrailRepository, AuditTrailRepository>();
             builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
+            builder.Services.AddScoped<IWorkflowTransitionService, WorkflowTransitionService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();

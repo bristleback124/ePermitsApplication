@@ -7,7 +7,7 @@ namespace ePermitsApp.Services.Interfaces
     {
         Task<PagedResult<CoOApp>> GetAllAsync(PaginationParams pagination);
         Task<CoOApp?> GetByIdAsync(int id);
-        Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false);
+        Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false, int? applicantId = null);
         Task<CoOAppEditDto?> GetEditByApplicationIdAsync(int applicationId);
         Task<CoOAppEditDto?> GetFormByApplicationIdAsync(int applicationId);
         Task<(bool Success, string Message, CoOApp? CoOApp)> UpdateByApplicationIdAsync(int applicationId, CoOAppUpdateDto dto, bool saveAsDraft = false);

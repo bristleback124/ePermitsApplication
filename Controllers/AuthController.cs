@@ -160,5 +160,23 @@ namespace ePermits.Controllers
             });
         }
 
+        [HttpPost("register-applicant")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RegisterApplicant([FromBody] ePermitsApp.DTOs.RegisterApplicantDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { success = false, message = "Invalid input data", errors = ModelState });
+
+            var registeredBy = User.Identity?.Name ?? "System";
+            var result = await _authService.RegisterApplicantAsync(dto, registeredBy);
+
+            if (!result.Success)
+                return BadRequest(new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message, data = result.Data });
+        }
+
     }
 }
