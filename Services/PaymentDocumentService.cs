@@ -1,23 +1,21 @@
 using ePermits.Models;
 using ePermits.Models.DTOs;
-using ePermitsApp.Helpers;
 using ePermitsApp.Repositories.Interfaces;
 using ePermitsApp.Services.Interfaces;
-using Microsoft.Extensions.Options;
 
 namespace ePermitsApp.Services
 {
     public class PaymentDocumentService : IPaymentDocumentService
     {
         private readonly IPaymentDocumentRepository _repository;
-        private readonly FileStorageSettings _fileSettings;
+        private readonly IFileStorageService _fileStorageService;
 
         public PaymentDocumentService(
             IPaymentDocumentRepository repository,
-            IOptions<FileStorageSettings> fileSettings)
+            IFileStorageService fileStorageService)
         {
             _repository = repository;
-            _fileSettings = fileSettings.Value;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<IEnumerable<PaymentDocumentDto>> GetByApplicationIdAsync(int applicationId)
@@ -28,16 +26,7 @@ namespace ePermitsApp.Services
 
         public async Task<PaymentDocumentDto> UploadAsync(int applicationId, IFormFile file, int uploadedById)
         {
-            var folderPath = Path.Combine(_fileSettings.BasePath, "permits", applicationId.ToString(), "payment-docs");
-            Directory.CreateDirectory(folderPath);
-
-            var savedFileName = $"{Guid.NewGuid()}_{file.FileName}";
-            var fullPath = Path.Combine(folderPath, savedFileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            var storedFileName = await _fileStorageService.UploadAsync(file);
 
             var document = new PaymentDocument
             {
@@ -45,7 +34,7 @@ namespace ePermitsApp.Services
                 UploadedById = uploadedById,
                 FileName = file.FileName,
                 FileSize = file.Length,
-                FilePath = fullPath,
+                FilePath = storedFileName,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -62,8 +51,7 @@ namespace ePermitsApp.Services
 
             try
             {
-                if (File.Exists(document.FilePath))
-                    File.Delete(document.FilePath);
+                await _fileStorageService.DeleteAsync(document.FilePath);
             }
             catch
             {

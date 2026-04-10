@@ -14,11 +14,16 @@ namespace ePermitsApp.Services
     {
         private readonly IApplicationService _applicationService;
         private readonly IDocumentDownloadService _documentDownloadService;
+        private readonly IFileStorageService _fileStorageService;
 
-        public ApplicationPdfService(IApplicationService applicationService, IDocumentDownloadService documentDownloadService)
+        public ApplicationPdfService(
+            IApplicationService applicationService,
+            IDocumentDownloadService documentDownloadService,
+            IFileStorageService fileStorageService)
         {
             _applicationService = applicationService;
             _documentDownloadService = documentDownloadService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<byte[]> GenerateApplicationPdfAsync(int applicationId, string type)
@@ -40,7 +45,7 @@ namespace ePermitsApp.Services
             }
 
             // Phase B: Merge PDF uploads using PdfSharpCore
-            return MergePdfUploads(questPdfBytes, documents);
+            return MergePdfUploads(questPdfBytes, documents, _fileStorageService);
         }
 
         private byte[] GenerateBuildingPermitPdf(ApplicationBuildingPermitDetailDto app, List<(string Folder, string FileName, string FilePath)>? documents)
@@ -63,7 +68,7 @@ namespace ePermitsApp.Services
 
                 // Render non-PDF uploaded documents as additional pages
                 if (documents != null)
-                    RenderNonPdfDocuments(container, documents);
+                    RenderNonPdfDocuments(container, documents, _fileStorageService);
             });
 
             return doc.GeneratePdf();
@@ -89,7 +94,7 @@ namespace ePermitsApp.Services
                 });
 
                 if (documents != null)
-                    RenderNonPdfDocuments(container, documents);
+                    RenderNonPdfDocuments(container, documents, _fileStorageService);
             });
 
             return doc.GeneratePdf();
@@ -279,11 +284,14 @@ namespace ePermitsApp.Services
 
         // ── Non-PDF Document Rendering (QuestPDF) ──
 
-        private static void RenderNonPdfDocuments(IDocumentContainer container, List<(string Folder, string FileName, string FilePath)> documents)
+        private static void RenderNonPdfDocuments(
+            IDocumentContainer container,
+            List<(string Folder, string FileName, string FilePath)> documents,
+            IFileStorageService fileStorageService)
         {
             foreach (var (folder, fileName, filePath) in documents)
             {
-                var ext = Path.GetExtension(filePath).ToLowerInvariant();
+                var ext = Path.GetExtension(fileName).ToLowerInvariant();
                 if (ext == ".pdf") continue; // PDFs handled in Phase B
 
                 container.Page(page =>
@@ -305,7 +313,10 @@ namespace ePermitsApp.Services
                         {
                             try
                             {
-                                var imageBytes = File.ReadAllBytes(filePath);
+                                using var stream = fileStorageService.DownloadAsync(filePath).GetAwaiter().GetResult();
+                                using var buffer = new MemoryStream();
+                                stream.CopyTo(buffer);
+                                var imageBytes = buffer.ToArray();
                                 col.Item().Image(imageBytes).FitArea();
                             }
                             catch
@@ -317,7 +328,8 @@ namespace ePermitsApp.Services
                         {
                             try
                             {
-                                var text = ExtractDocxText(filePath);
+                                using var stream = fileStorageService.DownloadAsync(filePath).GetAwaiter().GetResult();
+                                var text = ExtractDocxText(stream);
                                 col.Item().Padding(10).Text(string.IsNullOrWhiteSpace(text) ? "(Empty document)" : text).FontSize(9);
                             }
                             catch
@@ -340,9 +352,14 @@ namespace ePermitsApp.Services
             }
         }
 
-        private static string ExtractDocxText(string filePath)
+        private static string ExtractDocxText(Stream stream)
         {
-            using var doc = WordprocessingDocument.Open(filePath, false);
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+            }
+
+            using var doc = WordprocessingDocument.Open(stream, false);
             var body = doc.MainDocumentPart?.Document?.Body;
             if (body == null) return string.Empty;
 
@@ -352,9 +369,12 @@ namespace ePermitsApp.Services
 
         // ── Phase B: Merge PDF uploads with PdfSharpCore ──
 
-        private static byte[] MergePdfUploads(byte[] questPdfBytes, List<(string Folder, string FileName, string FilePath)>? documents)
+        private static byte[] MergePdfUploads(
+            byte[] questPdfBytes,
+            List<(string Folder, string FileName, string FilePath)>? documents,
+            IFileStorageService fileStorageService)
         {
-            var pdfDocuments = documents?.Where(d => Path.GetExtension(d.FilePath).Equals(".pdf", StringComparison.OrdinalIgnoreCase)).ToList();
+            var pdfDocuments = documents?.Where(d => Path.GetExtension(d.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase)).ToList();
 
             if (pdfDocuments == null || pdfDocuments.Count == 0)
                 return questPdfBytes;
@@ -388,7 +408,8 @@ namespace ePermitsApp.Services
                 // Import pages from the PDF file
                 try
                 {
-                    using var uploadedPdf = PdfReader.Open(filePath, PdfDocumentOpenMode.Import);
+                    using var uploadedStream = fileStorageService.DownloadAsync(filePath).GetAwaiter().GetResult();
+                    using var uploadedPdf = PdfReader.Open(uploadedStream, PdfDocumentOpenMode.Import);
                     for (int i = 0; i < uploadedPdf.PageCount; i++)
                         finalDoc.AddPage(uploadedPdf.Pages[i]);
                 }

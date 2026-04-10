@@ -40,6 +40,16 @@ namespace ePermitsApp
             builder.Services.Configure<FileStorageSettings>(
                 builder.Configuration.GetSection("FileStorage"));
 
+            var fileStorageProvider = builder.Configuration["FileStorage:Provider"];
+            if (string.Equals(fileStorageProvider, "AzureBlob", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.Services.AddScoped<IFileStorageService, AzureBlobStorageService>();
+            }
+            else
+            {
+                builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+            }
+
             builder.Services.Configure<EmailSettings>(
                 builder.Configuration.GetSection("EmailSettings"));
 
