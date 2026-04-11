@@ -26,26 +26,19 @@ namespace ePermits.Controllers
 
         [HttpPost("{applicationId}")]
         [RequestSizeLimit(10_000_000)]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver")]
         public async Task<IActionResult> Upload(int applicationId, IFormFile file)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "applicant";
-
-            if (userRole == "applicant")
-                return Forbid();
 
             var document = await _service.UploadAsync(applicationId, file, userId);
             return Ok(document);
         }
 
         [HttpDelete("{documentId}")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver")]
         public async Task<IActionResult> Delete(int documentId)
         {
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "applicant";
-
-            if (userRole == "applicant")
-                return Forbid();
-
             var result = await _service.DeleteAsync(documentId);
             if (!result) return NotFound();
 
