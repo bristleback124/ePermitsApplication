@@ -36,6 +36,10 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.Applicant, opt => opt.MapFrom(src => src.User != null && src.User.UserProfile != null
                     ? $"{src.User.UserProfile.FirstName} {src.User.UserProfile.LastName}".Trim()
                     : string.Empty))
+                .ForMember(dest => dest.BuildingPermitCategoryName, opt => opt.MapFrom(src =>
+                    src.BuildingPermit != null && src.BuildingPermit.BuildingPermitCategory != null
+                        ? src.BuildingPermit.BuildingPermitCategory.CategoryName
+                        : null))
                 .ForMember(dest => dest.LastActionAt, opt => opt.MapFrom(src => src.UpdatedAt ?? src.CreatedAt))
                 .ForMember(dest => dest.ReviewOffices, opt => opt.MapFrom(src => src.DepartmentReviews));
 

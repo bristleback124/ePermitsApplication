@@ -33,6 +33,7 @@ namespace ePermitsApp.DTOs
         public string Applicant { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
+        public string? BuildingPermitCategoryName { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime LastActionAt { get; set; }
         public List<ApplicationDepartmentReviewDto> ReviewOffices { get; set; } = new();

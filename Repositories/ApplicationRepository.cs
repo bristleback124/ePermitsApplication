@@ -74,6 +74,7 @@ namespace ePermits.Data
                 .Include(a => a.User)
                     .ThenInclude(u => u!.UserProfile)
                 .Include(a => a.BuildingPermit)
+                    .ThenInclude(b => b!.BuildingPermitCategory)
                 .Include(a => a.CoOApp)
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.Department)
