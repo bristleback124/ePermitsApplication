@@ -57,6 +57,7 @@ namespace ePermitsApp.Data
         public DbSet<PaymentDocument> PaymentDocuments => Set<PaymentDocument>();
 
         public DbSet<IssuedPermitDocument> IssuedPermitDocuments => Set<IssuedPermitDocument>();
+        public DbSet<ClearanceDocument> ClearanceDocuments => Set<ClearanceDocument>();
 
         public DbSet<AuditTrail> AuditTrails => Set<AuditTrail>();
 
@@ -652,6 +653,25 @@ namespace ePermitsApp.Data
             });
 
             modelBuilder.Entity<IssuedPermitDocument>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FileName).IsRequired();
+                entity.Property(e => e.FilePath).IsRequired();
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasOne(e => e.Application)
+                    .WithMany()
+                    .HasForeignKey(e => e.ApplicationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.UploadedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.UploadedById)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClearanceDocument>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FileName).IsRequired();
