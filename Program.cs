@@ -19,11 +19,15 @@ using System.Threading.Channels;
 using ePermitsApp.Models;
 using Microsoft.OpenApi.Models;
 using RazorLight;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace ePermitsApp
 {
     public class Program
-    {        
+    {
+        private const long PermitUploadLimitBytes = 200L * 1024 * 1024;
+
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -139,6 +143,21 @@ namespace ePermitsApp
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(BuildingPermitProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(CoOAppProfile).Assembly));
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(AuditTrailProfile).Assembly));
+
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = PermitUploadLimitBytes;
+            });
+
+            builder.Services.Configure<IISServerOptions>(options =>
+            {
+                options.MaxRequestBodySize = PermitUploadLimitBytes;
+            });
+
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.Limits.MaxRequestBodySize = PermitUploadLimitBytes;
+            });
 
             builder.Services.AddControllers();
 
