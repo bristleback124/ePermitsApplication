@@ -27,20 +27,20 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.Accessories, opt => opt.MapFrom(src => string.Join("|", src.Accessories)));
             
             CreateMap<BuildingPermitAppInfo, BuildingPermitAppInfoDto>()
-                .ForMember(dest => dest.ReqDocProofOwnership, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocProofOwnership)))
-                .ForMember(dest => dest.ReqDocBarangayClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocBarangayClearance)))
-                .ForMember(dest => dest.ReqDocTaxDeclaration, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocTaxDeclaration)))
-                .ForMember(dest => dest.ReqDocRealPropTaxReceipt, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocRealPropTaxReceipt)))
-                .ForMember(dest => dest.ReqDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocECCorCNC)))
-                .ForMember(dest => dest.ReqDocSpecialClearances, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocSpecialClearances)));
+                .ForMember(dest => dest.ReqDocProofOwnership, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocProofOwnership)))
+                .ForMember(dest => dest.ReqDocBarangayClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocBarangayClearance)))
+                .ForMember(dest => dest.ReqDocTaxDeclaration, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocTaxDeclaration)))
+                .ForMember(dest => dest.ReqDocRealPropTaxReceipt, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocRealPropTaxReceipt)))
+                .ForMember(dest => dest.ReqDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocECCorCNC)))
+                .ForMember(dest => dest.ReqDocSpecialClearances, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocSpecialClearances)));
 
             CreateMap<BuildingPermitAppInfoDto, BuildingPermitAppInfo>()
-                .ForMember(dest => dest.ReqDocProofOwnership, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.ReqDocProofOwnership)))
-                .ForMember(dest => dest.ReqDocBarangayClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.ReqDocBarangayClearance)))
-                .ForMember(dest => dest.ReqDocTaxDeclaration, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.ReqDocTaxDeclaration)))
-                .ForMember(dest => dest.ReqDocRealPropTaxReceipt, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.ReqDocRealPropTaxReceipt)))
-                .ForMember(dest => dest.ReqDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.ReqDocECCorCNC)))
-                .ForMember(dest => dest.ReqDocSpecialClearances, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.ReqDocSpecialClearances)));
+                .ForMember(dest => dest.ReqDocProofOwnership, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocProofOwnership)))
+                .ForMember(dest => dest.ReqDocBarangayClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocBarangayClearance)))
+                .ForMember(dest => dest.ReqDocTaxDeclaration, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocTaxDeclaration)))
+                .ForMember(dest => dest.ReqDocRealPropTaxReceipt, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocRealPropTaxReceipt)))
+                .ForMember(dest => dest.ReqDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocECCorCNC)))
+                .ForMember(dest => dest.ReqDocSpecialClearances, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocSpecialClearances)));
 
             CreateMap<BuildingPermitDesignProf, BuildingPermitDesignProfDto>().ReverseMap();
             
@@ -73,28 +73,28 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.TechDocECEPlans, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.TechDocECEPlans)));
 
             CreateMap<BuildingPermitSupportingDoc, BuildingPermitSupportingDocDto>()
-                .ForMember(dest => dest.SupportDocZoningClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocZoningClearance)))
-                .ForMember(dest => dest.SupportDocLocationalClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocLocationalClearance)))
-                .ForMember(dest => dest.SupportDocFireSafetyClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocFireSafetyClearance)))
-                .ForMember(dest => dest.SupportDocHighwayClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocHighwayClearance)))
-                .ForMember(dest => dest.SupportDocHeightClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocHeightClearance)))
-                .ForMember(dest => dest.SupportDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocECCorCNC)))
-                .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocDENRClearance)))
-                .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocSECRegistration)))
-                .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocBoardResolution)))
-                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.SupportDocHOAClearance)));
+                .ForMember(dest => dest.SupportDocZoningClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocZoningClearance)))
+                .ForMember(dest => dest.SupportDocLocationalClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocLocationalClearance)))
+                .ForMember(dest => dest.SupportDocFireSafetyClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocFireSafetyClearance)))
+                .ForMember(dest => dest.SupportDocHighwayClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHighwayClearance)))
+                .ForMember(dest => dest.SupportDocHeightClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHeightClearance)))
+                .ForMember(dest => dest.SupportDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocECCorCNC)))
+                .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocDENRClearance)))
+                .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocSECRegistration)))
+                .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocBoardResolution)))
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHOAClearance)));
 
             CreateMap<BuildingPermitSupportingDocDto, BuildingPermitSupportingDoc>()
-                .ForMember(dest => dest.SupportDocZoningClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocZoningClearance)))
-                .ForMember(dest => dest.SupportDocLocationalClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocLocationalClearance)))
-                .ForMember(dest => dest.SupportDocFireSafetyClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocFireSafetyClearance)))
-                .ForMember(dest => dest.SupportDocHighwayClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocHighwayClearance)))
-                .ForMember(dest => dest.SupportDocHeightClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocHeightClearance)))
-                .ForMember(dest => dest.SupportDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocECCorCNC)))
-                .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocDENRClearance)))
-                .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocSECRegistration)))
-                .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocBoardResolution)))
-                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.SerializeSingle(src.SupportDocHOAClearance)));
+                .ForMember(dest => dest.SupportDocZoningClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocZoningClearance)))
+                .ForMember(dest => dest.SupportDocLocationalClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocLocationalClearance)))
+                .ForMember(dest => dest.SupportDocFireSafetyClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocFireSafetyClearance)))
+                .ForMember(dest => dest.SupportDocHighwayClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocHighwayClearance)))
+                .ForMember(dest => dest.SupportDocHeightClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocHeightClearance)))
+                .ForMember(dest => dest.SupportDocECCorCNC, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocECCorCNC)))
+                .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocDENRClearance)))
+                .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocSECRegistration)))
+                .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocBoardResolution)))
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocHOAClearance)));
 
             CreateMap<BuildingPermitCreateDto, BuildingPermit>()
                 .ForMember(dest => dest.AppInfo, opt => opt.MapFrom(src => src.AppInfo))

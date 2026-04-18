@@ -823,23 +823,62 @@ namespace ePermitsApp.Services
                     x.ApplicationTypeScope == applicationType);
 
             var isCertificateOfOccupancy = string.Equals(applicationType, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase);
-
-            return await query
+            var items = await query
                 .OrderBy(x => isCertificateOfOccupancy ? x.ReqDesc : x.RequirementCategory.ReqCatDesc)
                 .ThenBy(x => x.ReqDesc)
                 .Select(x => new MaintenanceLookupItemDto
+                {
+                    EntityType = Requirements,
+                    Id = x.Id,
+                    Name = x.ReqDesc,
+                    IsActive = x.IsActive,
+                    IsDeleted = x.IsDeleted,
+                    ApplicationTypeScope = x.ApplicationTypeScope,
+                    BuildingPermitCategoryId = x.BuildingPermitCategoryId,
+                    BuildingPermitCategoryName = x.BuildingPermitCategory != null ? x.BuildingPermitCategory.CategoryName : null,
+                    BuildingPermitCategoryIds = x.BuildingPermitCategoryId.HasValue ? new List<int> { x.BuildingPermitCategoryId.Value } : new List<int>(),
+                    BuildingPermitCategoryNames = x.BuildingPermitCategory != null ? new List<string> { x.BuildingPermitCategory.CategoryName } : new List<string>(),
+                    ParentId = x.ReqCatId,
+                    ParentName = isCertificateOfOccupancy ? null : x.RequirementCategory.ReqCatDesc
+                }).ToListAsync();
+
+            if (isCertificateOfOccupancy)
             {
-                EntityType = Requirements,
-                Id = x.Id,
-                Name = x.ReqDesc,
-                IsActive = x.IsActive,
-                IsDeleted = x.IsDeleted,
-                ApplicationTypeScope = x.ApplicationTypeScope,
-                BuildingPermitCategoryId = x.BuildingPermitCategoryId,
-                BuildingPermitCategoryName = x.BuildingPermitCategory != null ? x.BuildingPermitCategory.CategoryName : null,
-                ParentId = x.ReqCatId,
-                ParentName = isCertificateOfOccupancy ? null : x.RequirementCategory.ReqCatDesc
-            }).ToListAsync();
+                return items;
+            }
+
+            return items
+                .GroupBy(item => new
+                {
+                    item.Name,
+                    item.ParentId,
+                    item.ParentName
+                })
+                .Select(group =>
+                {
+                    var first = group.OrderBy(item => item.Id).First();
+                    var categoryIds = group
+                        .Where(item => item.BuildingPermitCategoryId.HasValue)
+                        .Select(item => item.BuildingPermitCategoryId!.Value)
+                        .Distinct()
+                        .OrderBy(id => id)
+                        .ToList();
+                    var categoryNames = group
+                        .Where(item => !string.IsNullOrWhiteSpace(item.BuildingPermitCategoryName))
+                        .Select(item => item.BuildingPermitCategoryName!)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(name => name)
+                        .ToList();
+
+                    first.BuildingPermitCategoryIds = categoryIds;
+                    first.BuildingPermitCategoryNames = categoryNames;
+                    first.BuildingPermitCategoryId = categoryIds.Count == 1 ? categoryIds[0] : null;
+                    first.BuildingPermitCategoryName = categoryNames.Count == 1 ? categoryNames[0] : null;
+                    return first;
+                })
+                .OrderBy(item => item.ParentName)
+                .ThenBy(item => item.Name)
+                .ToList();
         }
 
         private async Task<MaintenanceLookupItemDto> SetProvinceStatusAsync(int id, bool isActive, DateTime now, string actor)

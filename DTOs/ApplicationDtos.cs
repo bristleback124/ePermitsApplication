@@ -52,12 +52,12 @@ namespace ePermitsApp.DTOs
 
     public class RequiredDocs
     {
-        public FileMetadataDto ReqDocProofOwnership { get; set; } = new();
-        public FileMetadataDto ReqDocBarangayClearance { get; set; } = new();
-        public FileMetadataDto ReqDocTaxDeclaration { get; set; } = new();
-        public FileMetadataDto ReqDocRealPropTaxReceipt { get; set; } = new();
-        public FileMetadataDto? ReqDocECCorCNC { get; set; }
-        public FileMetadataDto? ReqDocSpecialClearances { get; set; }
+        public List<FileMetadataDto> ReqDocProofOwnership { get; set; } = new();
+        public List<FileMetadataDto> ReqDocBarangayClearance { get; set; } = new();
+        public List<FileMetadataDto> ReqDocTaxDeclaration { get; set; } = new();
+        public List<FileMetadataDto> ReqDocRealPropTaxReceipt { get; set; } = new();
+        public List<FileMetadataDto> ReqDocECCorCNC { get; set; } = new();
+        public List<FileMetadataDto> ReqDocSpecialClearances { get; set; } = new();
     }
 
     public class BasicInformationDto
@@ -115,13 +115,13 @@ namespace ePermitsApp.DTOs
 
     public class CoORequiredDocsDto
     {
-        public FileMetadataDto ReqDocBldgPermitSPlans { get; set; } = new();
-        public FileMetadataDto ReqDocAsBuiltPlans { get; set; } = new();
-        public FileMetadataDto ReqDocConsLogbook { get; set; } = new();
-        public FileMetadataDto ReqDocConsPhotos { get; set; } = new();
-        public FileMetadataDto ReqDocBrgyClearance { get; set; } = new();
-        public FileMetadataDto ReqDocFSIC { get; set; } = new();
-        public FileMetadataDto? ReqDocOthers { get; set; }
+        public List<FileMetadataDto> ReqDocBldgPermitSPlans { get; set; } = new();
+        public List<FileMetadataDto> ReqDocAsBuiltPlans { get; set; } = new();
+        public List<FileMetadataDto> ReqDocConsLogbook { get; set; } = new();
+        public List<FileMetadataDto> ReqDocConsPhotos { get; set; } = new();
+        public List<FileMetadataDto> ReqDocBrgyClearance { get; set; } = new();
+        public List<FileMetadataDto> ReqDocFSIC { get; set; } = new();
+        public List<FileMetadataDto> ReqDocOthers { get; set; } = new();
     }
 
     public class CoOProfessionalInfoDto
