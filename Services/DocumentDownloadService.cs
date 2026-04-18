@@ -30,12 +30,12 @@ namespace ePermitsApp.Services
             var usedNames = new Dictionary<string, int>();
 
             // Required documents
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocProofOwnership);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocBarangayClearance);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocTaxDeclaration);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocRealPropTaxReceipt);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocECCorCNC);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocSpecialClearances);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocProofOwnership);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocBarangayClearance);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocTaxDeclaration);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocRealPropTaxReceipt);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocECCorCNC);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocSpecialClearances);
 
             // Technical documents
             AddFiles(files, usedNames, "technical-docs", app.BuildingPermitTechDocs.TechDocIoCPlans);
@@ -58,13 +58,13 @@ namespace ePermitsApp.Services
             var files = new List<(string Folder, string FileName, string FilePath)>();
             var usedNames = new Dictionary<string, int>();
 
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocBldgPermitSPlans);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocAsBuiltPlans);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocConsLogbook);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocConsPhotos);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocBrgyClearance);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocFSIC);
-            AddFile(files, usedNames, "required-docs", app.RequiredDocs.ReqDocOthers);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocBldgPermitSPlans);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocAsBuiltPlans);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocConsLogbook);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocConsPhotos);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocBrgyClearance);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocFSIC);
+            AddFiles(files, usedNames, "required-docs", app.RequiredDocs.ReqDocOthers);
 
             return files;
         }

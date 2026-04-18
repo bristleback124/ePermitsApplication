@@ -449,8 +449,20 @@ namespace ePermitsApp.Services
         private static string NaIfEmpty(string? value) =>
             string.IsNullOrWhiteSpace(value) ? "N/A" : value;
 
-        private static string FileLabel(FileMetadataDto? file) =>
-            file == null || string.IsNullOrWhiteSpace(file.Name) ? "N/A" : file.Name;
+        private static string FileLabel(List<FileMetadataDto>? files)
+        {
+            if (files == null || files.Count == 0)
+            {
+                return "N/A";
+            }
+
+            if (files.Count == 1)
+            {
+                return NaIfEmpty(files[0].Name);
+            }
+
+            return $"{files.Count} files";
+        }
 
         private static void RenderFileList(ColumnDescriptor col, string label, List<FileMetadataDto>? files)
         {

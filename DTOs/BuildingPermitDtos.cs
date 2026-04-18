@@ -45,12 +45,12 @@ namespace ePermitsApp.DTOs
         public string TIN { get; set; } = string.Empty;
         public string MailAddress { get; set; } = string.Empty;
         public int OwnershipTypeId { get; set; }
-        public FileMetadataDto ReqDocProofOwnership { get; set; } = new();
-        public FileMetadataDto ReqDocBarangayClearance { get; set; } = new();
-        public FileMetadataDto ReqDocTaxDeclaration { get; set; } = new();
-        public FileMetadataDto ReqDocRealPropTaxReceipt { get; set; } = new();
-        public FileMetadataDto? ReqDocECCorCNC { get; set; }
-        public FileMetadataDto? ReqDocSpecialClearances { get; set; }
+        public List<FileMetadataDto> ReqDocProofOwnership { get; set; } = new();
+        public List<FileMetadataDto> ReqDocBarangayClearance { get; set; } = new();
+        public List<FileMetadataDto> ReqDocTaxDeclaration { get; set; } = new();
+        public List<FileMetadataDto> ReqDocRealPropTaxReceipt { get; set; } = new();
+        public List<FileMetadataDto> ReqDocECCorCNC { get; set; } = new();
+        public List<FileMetadataDto> ReqDocSpecialClearances { get; set; } = new();
     }
 
     public class BuildingPermitDesignProfDto
@@ -117,16 +117,16 @@ namespace ePermitsApp.DTOs
     public class BuildingPermitSupportingDocDto
     {
         public int Id { get; set; }
-        public FileMetadataDto? SupportDocZoningClearance { get; set; }
-        public FileMetadataDto? SupportDocLocationalClearance { get; set; }
-        public FileMetadataDto? SupportDocFireSafetyClearance { get; set; }
-        public FileMetadataDto? SupportDocHighwayClearance { get; set; }
-        public FileMetadataDto? SupportDocHeightClearance { get; set; }
-        public FileMetadataDto? SupportDocECCorCNC { get; set; }
-        public FileMetadataDto? SupportDocDENRClearance { get; set; }
-        public FileMetadataDto? SupportDocSECRegistration { get; set; }
-        public FileMetadataDto? SupportDocBoardResolution { get; set; }
-        public FileMetadataDto? SupportDocHOAClearance { get; set; }
+        public List<FileMetadataDto> SupportDocZoningClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocLocationalClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocFireSafetyClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocHighwayClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocHeightClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocECCorCNC { get; set; } = new();
+        public List<FileMetadataDto> SupportDocDENRClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocSECRegistration { get; set; } = new();
+        public List<FileMetadataDto> SupportDocBoardResolution { get; set; } = new();
+        public List<FileMetadataDto> SupportDocHOAClearance { get; set; } = new();
     }
 
     public class BuildingPermitCreateDto
@@ -236,12 +236,12 @@ namespace ePermitsApp.DTOs
         public string? MailAddress { get; set; }
         public int OwnershipTypeId { get; set; }
 
-        public IFormFile? ReqDocProofOwnership { get; set; }
-        public IFormFile? ReqDocBarangayClearance { get; set; }
-        public IFormFile? ReqDocTaxDeclaration { get; set; }
-        public IFormFile? ReqDocRealPropTaxReceipt { get; set; }
-        public IFormFile? ReqDocECCorCNC { get; set; }
-        public IFormFile? ReqDocSpecialClearances { get; set; }
+        public IFormFileCollection? ReqDocProofOwnership { get; set; }
+        public IFormFileCollection? ReqDocBarangayClearance { get; set; }
+        public IFormFileCollection? ReqDocTaxDeclaration { get; set; }
+        public IFormFileCollection? ReqDocRealPropTaxReceipt { get; set; }
+        public IFormFileCollection? ReqDocECCorCNC { get; set; }
+        public IFormFileCollection? ReqDocSpecialClearances { get; set; }
     }
 
     public class BuildingPermitAppInfoUpdateDto
@@ -254,19 +254,19 @@ namespace ePermitsApp.DTOs
         public string? MailAddress { get; set; }
         public int OwnershipTypeId { get; set; }
 
-        public bool KeepReqDocProofOwnership { get; set; }
-        public bool KeepReqDocBarangayClearance { get; set; }
-        public bool KeepReqDocTaxDeclaration { get; set; }
-        public bool KeepReqDocRealPropTaxReceipt { get; set; }
-        public bool KeepReqDocECCorCNC { get; set; }
-        public bool KeepReqDocSpecialClearances { get; set; }
+        public string[] KeepReqDocProofOwnership { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocBarangayClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocTaxDeclaration { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocRealPropTaxReceipt { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocECCorCNC { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocSpecialClearances { get; set; } = Array.Empty<string>();
 
-        public IFormFile? ReqDocProofOwnership { get; set; }
-        public IFormFile? ReqDocBarangayClearance { get; set; }
-        public IFormFile? ReqDocTaxDeclaration { get; set; }
-        public IFormFile? ReqDocRealPropTaxReceipt { get; set; }
-        public IFormFile? ReqDocECCorCNC { get; set; }
-        public IFormFile? ReqDocSpecialClearances { get; set; }
+        public IFormFileCollection? ReqDocProofOwnership { get; set; }
+        public IFormFileCollection? ReqDocBarangayClearance { get; set; }
+        public IFormFileCollection? ReqDocTaxDeclaration { get; set; }
+        public IFormFileCollection? ReqDocRealPropTaxReceipt { get; set; }
+        public IFormFileCollection? ReqDocECCorCNC { get; set; }
+        public IFormFileCollection? ReqDocSpecialClearances { get; set; }
     }
 
     public class BuildingPermitDesignProfCreateDto
@@ -356,40 +356,40 @@ namespace ePermitsApp.DTOs
 
     public class BuildingPermitSupportingDocCreateDto
     {
-        public IFormFile? SupportDocZoningClearance { get; set; }
-        public IFormFile? SupportDocLocationalClearance { get; set; }
-        public IFormFile? SupportDocFireSafetyClearance { get; set; }
-        public IFormFile? SupportDocHighwayClearance { get; set; }
-        public IFormFile? SupportDocHeightClearance { get; set; }
-        public IFormFile? SupportDocECCorCNC { get; set; }
-        public IFormFile? SupportDocDENRClearance { get; set; }
-        public IFormFile? SupportDocSECRegistration { get; set; }
-        public IFormFile? SupportDocBoardResolution { get; set; }
-        public IFormFile? SupportDocHOAClearance { get; set; }
+        public IFormFileCollection? SupportDocZoningClearance { get; set; }
+        public IFormFileCollection? SupportDocLocationalClearance { get; set; }
+        public IFormFileCollection? SupportDocFireSafetyClearance { get; set; }
+        public IFormFileCollection? SupportDocHighwayClearance { get; set; }
+        public IFormFileCollection? SupportDocHeightClearance { get; set; }
+        public IFormFileCollection? SupportDocECCorCNC { get; set; }
+        public IFormFileCollection? SupportDocDENRClearance { get; set; }
+        public IFormFileCollection? SupportDocSECRegistration { get; set; }
+        public IFormFileCollection? SupportDocBoardResolution { get; set; }
+        public IFormFileCollection? SupportDocHOAClearance { get; set; }
     }
 
     public class BuildingPermitSupportingDocUpdateDto
     {
-        public bool KeepSupportDocZoningClearance { get; set; }
-        public bool KeepSupportDocLocationalClearance { get; set; }
-        public bool KeepSupportDocFireSafetyClearance { get; set; }
-        public bool KeepSupportDocHighwayClearance { get; set; }
-        public bool KeepSupportDocHeightClearance { get; set; }
-        public bool KeepSupportDocECCorCNC { get; set; }
-        public bool KeepSupportDocDENRClearance { get; set; }
-        public bool KeepSupportDocSECRegistration { get; set; }
-        public bool KeepSupportDocBoardResolution { get; set; }
-        public bool KeepSupportDocHOAClearance { get; set; }
+        public string[] KeepSupportDocZoningClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocLocationalClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocFireSafetyClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocHighwayClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocHeightClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocECCorCNC { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocDENRClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocSECRegistration { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocBoardResolution { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocHOAClearance { get; set; } = Array.Empty<string>();
 
-        public IFormFile? SupportDocZoningClearance { get; set; }
-        public IFormFile? SupportDocLocationalClearance { get; set; }
-        public IFormFile? SupportDocFireSafetyClearance { get; set; }
-        public IFormFile? SupportDocHighwayClearance { get; set; }
-        public IFormFile? SupportDocHeightClearance { get; set; }
-        public IFormFile? SupportDocECCorCNC { get; set; }
-        public IFormFile? SupportDocDENRClearance { get; set; }
-        public IFormFile? SupportDocSECRegistration { get; set; }
-        public IFormFile? SupportDocBoardResolution { get; set; }
-        public IFormFile? SupportDocHOAClearance { get; set; }
+        public IFormFileCollection? SupportDocZoningClearance { get; set; }
+        public IFormFileCollection? SupportDocLocationalClearance { get; set; }
+        public IFormFileCollection? SupportDocFireSafetyClearance { get; set; }
+        public IFormFileCollection? SupportDocHighwayClearance { get; set; }
+        public IFormFileCollection? SupportDocHeightClearance { get; set; }
+        public IFormFileCollection? SupportDocECCorCNC { get; set; }
+        public IFormFileCollection? SupportDocDENRClearance { get; set; }
+        public IFormFileCollection? SupportDocSECRegistration { get; set; }
+        public IFormFileCollection? SupportDocBoardResolution { get; set; }
+        public IFormFileCollection? SupportDocHOAClearance { get; set; }
     }
 }

@@ -397,7 +397,6 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.TCTNo).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.TaxDeclarionNo).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.Coordinates).HasMaxLength(100);
-                entity.Property(e => e.Accessories).IsRequired();
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
                 entity.Property(e => e.EstimatedCost).HasPrecision(18, 10);
