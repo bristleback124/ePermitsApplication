@@ -20,6 +20,7 @@ namespace ePermits.DTOs
         public int RoleId { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string MobileNo { get; set; } = string.Empty;
         public string? LguName { get; set; }
         public int? LguId { get; set; }
         public string? DepartmentName { get; set; }
