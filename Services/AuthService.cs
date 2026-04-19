@@ -4,8 +4,11 @@ using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 
 using ePermits.Models;
+using ePermitsApp.Models.EmailModels;
 using ePermitsApp.Repositories.Interfaces;
+using ePermitsApp.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,6 +27,8 @@ namespace ePermits.Services
         private readonly IDepartmentRepository _departmentRepository;
         private readonly ILGURepository _lguRepository;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<AuthService> _logger;
 
         public AuthService(
             IUserRepository userRepository,
@@ -31,7 +36,9 @@ namespace ePermits.Services
             IUserRoleRepository userRoleRepository,
             IDepartmentRepository departmentRepository,
             ILGURepository lguRepository,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IEmailService emailService,
+            ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _userProfileRepository = userProfileRepository;
@@ -39,6 +46,8 @@ namespace ePermits.Services
             _departmentRepository = departmentRepository;
             _lguRepository = lguRepository;
             _configuration = configuration;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto)
@@ -349,12 +358,70 @@ namespace ePermits.Services
 
             var fullName = $"{dto.FirstName} {dto.LastName}".Trim();
 
+            await SendApplicantCredentialsEmailsAsync(
+                dto.Email, fullName, username, tempPassword, registeredBy);
+
             return (true, "Applicant registered successfully.", new RegisterApplicantResponseDto
             {
                 UserId = createdUser.Id,
                 FullName = fullName,
                 Email = dto.Email
             });
+        }
+
+        private async Task SendApplicantCredentialsEmailsAsync(
+            string applicantEmail,
+            string applicantName,
+            string username,
+            string tempPassword,
+            string encoderUsername)
+        {
+            try
+            {
+                var encoder = await _userRepository.GetByUsernameAsync(encoderUsername);
+                var encoderEmail = encoder?.UserProfile?.Email;
+                var encoderName = encoder?.UserProfile != null
+                    ? $"{encoder.UserProfile.FirstName} {encoder.UserProfile.LastName}".Trim()
+                    : encoderUsername;
+
+                var model = new ApplicantCredentialsModel
+                {
+                    ApplicantName = applicantName,
+                    EncoderName = string.IsNullOrWhiteSpace(encoderName) ? encoderUsername : encoderName,
+                    Username = username,
+                    TempPassword = tempPassword,
+                    ApplicantEmail = applicantEmail,
+                    RegisteredAt = DateTime.UtcNow
+                };
+
+                await _emailService.SendTemplatedEmailAsync(
+                    applicantEmail,
+                    "Welcome to ePermits — Your Account Credentials",
+                    "ApplicantAccountCreated",
+                    model);
+
+                if (!string.IsNullOrWhiteSpace(encoderEmail))
+                {
+                    await _emailService.SendTemplatedEmailAsync(
+                        encoderEmail,
+                        $"Applicant Registered — {applicantName}",
+                        "EncoderApplicantRegistered",
+                        model);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Encoder {EncoderUsername} has no profile email on file — skipping encoder confirmation email for applicant {ApplicantEmail}.",
+                        encoderUsername,
+                        applicantEmail);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to send credentials email after registering applicant {Email}",
+                    applicantEmail);
+            }
         }
 
         private static string GenerateTempPassword(int length)
