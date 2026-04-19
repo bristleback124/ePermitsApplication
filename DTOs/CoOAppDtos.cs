@@ -47,13 +47,13 @@ namespace ePermitsApp.DTOs
     public class CoOAppReqDocDto
     {
         public int Id { get; set; }
-        public string ReqDocBldgPermitSPlans { get; set; } = string.Empty;
-        public string ReqDocAsBuiltPlans { get; set; } = string.Empty;
-        public string ReqDocConsLogbook { get; set; } = string.Empty;
-        public string ReqDocConsPhotos { get; set; } = string.Empty;
-        public string ReqDocBrgyClearance { get; set; } = string.Empty;
-        public string ReqDocFSIC { get; set; } = string.Empty;
-        public string? ReqDocOthers { get; set; }
+        public List<FileMetadataDto> ReqDocBldgPermitSPlans { get; set; } = new();
+        public List<FileMetadataDto> ReqDocAsBuiltPlans { get; set; } = new();
+        public List<FileMetadataDto> ReqDocConsLogbook { get; set; } = new();
+        public List<FileMetadataDto> ReqDocConsPhotos { get; set; } = new();
+        public List<FileMetadataDto> ReqDocBrgyClearance { get; set; } = new();
+        public List<FileMetadataDto> ReqDocFSIC { get; set; } = new();
+        public List<FileMetadataDto> ReqDocOthers { get; set; } = new();
     }
 
     public class CoOAppCreateDto
@@ -159,42 +159,42 @@ namespace ePermitsApp.DTOs
 
     public class CoOAppReqDocCreateDto
     {
-        public IFormFile? ReqDocBldgPermitSPlans { get; set; }
-        public IFormFile? ReqDocAsBuiltPlans { get; set; }
-        public IFormFile? ReqDocConsLogbook { get; set; }
-        public IFormFile? ReqDocConsPhotos { get; set; }
-        public IFormFile? ReqDocBrgyClearance { get; set; }
-        public IFormFile? ReqDocFSIC { get; set; }
-        public IFormFile? ReqDocOthers { get; set; }
+        public IFormFileCollection? ReqDocBldgPermitSPlans { get; set; }
+        public IFormFileCollection? ReqDocAsBuiltPlans { get; set; }
+        public IFormFileCollection? ReqDocConsLogbook { get; set; }
+        public IFormFileCollection? ReqDocConsPhotos { get; set; }
+        public IFormFileCollection? ReqDocBrgyClearance { get; set; }
+        public IFormFileCollection? ReqDocFSIC { get; set; }
+        public IFormFileCollection? ReqDocOthers { get; set; }
     }
 
     public class CoOAppReqDocEditDto
     {
-        public FileMetadataDto ReqDocBldgPermitSPlans { get; set; } = new();
-        public FileMetadataDto ReqDocAsBuiltPlans { get; set; } = new();
-        public FileMetadataDto ReqDocConsLogbook { get; set; } = new();
-        public FileMetadataDto ReqDocConsPhotos { get; set; } = new();
-        public FileMetadataDto ReqDocBrgyClearance { get; set; } = new();
-        public FileMetadataDto ReqDocFSIC { get; set; } = new();
-        public FileMetadataDto? ReqDocOthers { get; set; }
+        public List<FileMetadataDto> ReqDocBldgPermitSPlans { get; set; } = new();
+        public List<FileMetadataDto> ReqDocAsBuiltPlans { get; set; } = new();
+        public List<FileMetadataDto> ReqDocConsLogbook { get; set; } = new();
+        public List<FileMetadataDto> ReqDocConsPhotos { get; set; } = new();
+        public List<FileMetadataDto> ReqDocBrgyClearance { get; set; } = new();
+        public List<FileMetadataDto> ReqDocFSIC { get; set; } = new();
+        public List<FileMetadataDto> ReqDocOthers { get; set; } = new();
     }
 
     public class CoOAppReqDocUpdateDto
     {
-        public bool KeepReqDocBldgPermitSPlans { get; set; }
-        public bool KeepReqDocAsBuiltPlans { get; set; }
-        public bool KeepReqDocConsLogbook { get; set; }
-        public bool KeepReqDocConsPhotos { get; set; }
-        public bool KeepReqDocBrgyClearance { get; set; }
-        public bool KeepReqDocFSIC { get; set; }
-        public bool KeepReqDocOthers { get; set; }
+        public string[] KeepReqDocBldgPermitSPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocAsBuiltPlans { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocConsLogbook { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocConsPhotos { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocBrgyClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocFSIC { get; set; } = Array.Empty<string>();
+        public string[] KeepReqDocOthers { get; set; } = Array.Empty<string>();
 
-        public IFormFile? ReqDocBldgPermitSPlans { get; set; }
-        public IFormFile? ReqDocAsBuiltPlans { get; set; }
-        public IFormFile? ReqDocConsLogbook { get; set; }
-        public IFormFile? ReqDocConsPhotos { get; set; }
-        public IFormFile? ReqDocBrgyClearance { get; set; }
-        public IFormFile? ReqDocFSIC { get; set; }
-        public IFormFile? ReqDocOthers { get; set; }
+        public IFormFileCollection? ReqDocBldgPermitSPlans { get; set; }
+        public IFormFileCollection? ReqDocAsBuiltPlans { get; set; }
+        public IFormFileCollection? ReqDocConsLogbook { get; set; }
+        public IFormFileCollection? ReqDocConsPhotos { get; set; }
+        public IFormFileCollection? ReqDocBrgyClearance { get; set; }
+        public IFormFileCollection? ReqDocFSIC { get; set; }
+        public IFormFileCollection? ReqDocOthers { get; set; }
     }
 }

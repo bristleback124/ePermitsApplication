@@ -153,15 +153,15 @@ namespace ePermitsApp.Services
             // Save files
             if (coOApp.CoOAppReqDoc != null)
             {
-                coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, coOApp.Id, "req-docs");
-                coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocAsBuiltPlans, coOApp.Id, "req-docs");
-                coOApp.CoOAppReqDoc.ReqDocConsLogbook = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocConsLogbook, coOApp.Id, "req-docs");
-                coOApp.CoOAppReqDoc.ReqDocConsPhotos = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocConsPhotos, coOApp.Id, "req-docs");
-                coOApp.CoOAppReqDoc.ReqDocBrgyClearance = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocBrgyClearance, coOApp.Id, "req-docs");
-                coOApp.CoOAppReqDoc.ReqDocFSIC = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocFSIC, coOApp.Id, "req-docs");
+                coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, "req-docs");
+                coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocAsBuiltPlans, "req-docs");
+                coOApp.CoOAppReqDoc.ReqDocConsLogbook = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocConsLogbook, "req-docs");
+                coOApp.CoOAppReqDoc.ReqDocConsPhotos = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocConsPhotos, "req-docs");
+                coOApp.CoOAppReqDoc.ReqDocBrgyClearance = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocBrgyClearance, "req-docs");
+                coOApp.CoOAppReqDoc.ReqDocFSIC = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocFSIC, "req-docs");
 
                 if (dto.CoOAppReqDoc.ReqDocOthers != null)
-                    coOApp.CoOAppReqDoc.ReqDocOthers = await SaveFileAsync(dto.CoOAppReqDoc.ReqDocOthers, coOApp.Id, "req-docs");
+                    coOApp.CoOAppReqDoc.ReqDocOthers = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocOthers, "req-docs");
             }
 
             if (!saveAsDraft)
@@ -226,13 +226,13 @@ namespace ePermitsApp.Services
                 await NormalizeDraftForeignKeysAsync(coOApp);
             }
 
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans), dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, dto.CoOAppReqDoc.KeepReqDocBldgPermitSPlans, coOApp.Id, !saveAsDraft);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans), dto.CoOAppReqDoc.ReqDocAsBuiltPlans, dto.CoOAppReqDoc.KeepReqDocAsBuiltPlans, coOApp.Id, !saveAsDraft);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsLogbook), dto.CoOAppReqDoc.ReqDocConsLogbook, dto.CoOAppReqDoc.KeepReqDocConsLogbook, coOApp.Id, !saveAsDraft);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsPhotos), dto.CoOAppReqDoc.ReqDocConsPhotos, dto.CoOAppReqDoc.KeepReqDocConsPhotos, coOApp.Id, !saveAsDraft);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBrgyClearance), dto.CoOAppReqDoc.ReqDocBrgyClearance, dto.CoOAppReqDoc.KeepReqDocBrgyClearance, coOApp.Id, !saveAsDraft);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocFSIC), dto.CoOAppReqDoc.ReqDocFSIC, dto.CoOAppReqDoc.KeepReqDocFSIC, coOApp.Id, !saveAsDraft);
-            await UpdateSingleReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocOthers), dto.CoOAppReqDoc.ReqDocOthers, dto.CoOAppReqDoc.KeepReqDocOthers, coOApp.Id, false);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans), dto.CoOAppReqDoc.ReqDocBldgPermitSPlans, dto.CoOAppReqDoc.KeepReqDocBldgPermitSPlans, !saveAsDraft);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans), dto.CoOAppReqDoc.ReqDocAsBuiltPlans, dto.CoOAppReqDoc.KeepReqDocAsBuiltPlans, !saveAsDraft);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsLogbook), dto.CoOAppReqDoc.ReqDocConsLogbook, dto.CoOAppReqDoc.KeepReqDocConsLogbook, !saveAsDraft);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocConsPhotos), dto.CoOAppReqDoc.ReqDocConsPhotos, dto.CoOAppReqDoc.KeepReqDocConsPhotos, !saveAsDraft);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBrgyClearance), dto.CoOAppReqDoc.ReqDocBrgyClearance, dto.CoOAppReqDoc.KeepReqDocBrgyClearance, !saveAsDraft);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocFSIC), dto.CoOAppReqDoc.ReqDocFSIC, dto.CoOAppReqDoc.KeepReqDocFSIC, !saveAsDraft);
+            await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocOthers), dto.CoOAppReqDoc.ReqDocOthers, dto.CoOAppReqDoc.KeepReqDocOthers, false);
 
             if (saveAsDraft)
             {
@@ -275,36 +275,77 @@ namespace ePermitsApp.Services
             return (true, saveAsDraft ? "Draft saved successfully" : "Application updated successfully", coOApp);
         }
 
-        private async Task<string> SaveFileAsync(IFormFile? file, int permitId, string subFolder)
+        private async Task<string> SaveFilesAsync(IFormFileCollection? files, string subFolder)
         {
-            if (file == null || file.Length == 0)
+            if (files == null || files.Count == 0)
                 return string.Empty;
 
-            return await _fileStorageService.UploadAsync(file);
+            var metadata = new List<FileMetadataDto>();
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                {
+                    continue;
+                }
+
+                var storedPath = await _fileStorageService.UploadAsync(file);
+                if (!string.IsNullOrWhiteSpace(storedPath))
+                {
+                    metadata.Add(new FileMetadataDto
+                    {
+                        Name = file.FileName,
+                        Size = file.Length,
+                        Path = storedPath
+                    });
+                }
+            }
+
+            return FilePathHelper.Serialize(metadata);
         }
 
-        private async Task UpdateSingleReqDocAsync(object target, string propertyName, IFormFile? newFile, bool keepExisting, int permitId, bool required)
+        private async Task UpdateMultiReqDocAsync(object target, string propertyName, IFormFileCollection? newFiles, string[] keepPaths, bool required)
         {
             var property = target.GetType().GetProperty(propertyName)!;
-            var currentValue = property.GetValue(target) as string;
+            var retained = FilePathHelper.Deserialize(property.GetValue(target) as string)
+                .Where(file => keepPaths.Contains(file.Path, StringComparer.OrdinalIgnoreCase))
+                .ToList();
 
-            if (newFile != null)
+            if (newFiles != null && newFiles.Count > 0)
             {
-                property.SetValue(target, await SaveFileAsync(newFile, permitId, "req-docs"));
-                return;
+                retained.AddRange(await SaveNewFileMetadataAsync(newFiles));
             }
 
-            if (keepExisting && !string.IsNullOrWhiteSpace(currentValue))
-            {
-                return;
-            }
-
-            if (required)
+            if (required && retained.Count == 0)
             {
                 throw new InvalidOperationException($"{propertyName} is required.");
             }
 
-            property.SetValue(target, string.Empty);
+            property.SetValue(target, FilePathHelper.Serialize(retained));
+        }
+
+        private async Task<List<FileMetadataDto>> SaveNewFileMetadataAsync(IFormFileCollection files)
+        {
+            var metadata = new List<FileMetadataDto>();
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                {
+                    continue;
+                }
+
+                var storedPath = await _fileStorageService.UploadAsync(file);
+                if (!string.IsNullOrWhiteSpace(storedPath))
+                {
+                    metadata.Add(new FileMetadataDto
+                    {
+                        Name = file.FileName,
+                        Size = file.Length,
+                        Path = storedPath
+                    });
+                }
+            }
+
+            return metadata;
         }
 
         private static void ValidateRequiredSubmission(CoOApp coOApp)
@@ -340,12 +381,20 @@ namespace ePermitsApp.Services
             if (string.IsNullOrWhiteSpace(coOApp.CoOAppProf.EoRSpecialization)) throw new InvalidOperationException("Engineer of record specialization is required.");
 
             if (coOApp.CoOAppReqDoc == null) throw new InvalidOperationException("Required documents are required.");
-            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans)) throw new InvalidOperationException("Approved building permit set of plans is required.");
-            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans)) throw new InvalidOperationException("As-built plans are required.");
-            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocConsLogbook)) throw new InvalidOperationException("Construction logbook is required.");
-            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocConsPhotos)) throw new InvalidOperationException("Construction photos are required.");
-            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocBrgyClearance)) throw new InvalidOperationException("Barangay clearance is required.");
-            if (string.IsNullOrWhiteSpace(coOApp.CoOAppReqDoc.ReqDocFSIC)) throw new InvalidOperationException("Fire safety inspection certificate is required.");
+            RequireSerializedFiles(coOApp.CoOAppReqDoc.ReqDocBldgPermitSPlans, "Approved building permit set of plans");
+            RequireSerializedFiles(coOApp.CoOAppReqDoc.ReqDocAsBuiltPlans, "As-built plans");
+            RequireSerializedFiles(coOApp.CoOAppReqDoc.ReqDocConsLogbook, "Construction logbook");
+            RequireSerializedFiles(coOApp.CoOAppReqDoc.ReqDocConsPhotos, "Construction photos");
+            RequireSerializedFiles(coOApp.CoOAppReqDoc.ReqDocBrgyClearance, "Barangay clearance");
+            RequireSerializedFiles(coOApp.CoOAppReqDoc.ReqDocFSIC, "Fire safety inspection certificate");
+        }
+
+        private static void RequireSerializedFiles(string? value, string label)
+        {
+            if (string.IsNullOrWhiteSpace(value) || FilePathHelper.Deserialize(value).Count == 0)
+            {
+                throw new InvalidOperationException($"{label} is required.");
+            }
         }
 
         private static void EnsureSubmittedState(Application application, DateTime now)

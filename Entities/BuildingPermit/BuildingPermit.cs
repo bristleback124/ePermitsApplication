@@ -27,7 +27,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string TCTNo { get; set; } = string.Empty;
         public string TaxDeclarionNo { get; set; } = string.Empty;
         public string? Coordinates { get; set; }
-        public string Accessories { get; set; } = string.Empty;
+        public string? Accessories { get; set; }
         public string DigitalSignature { get; set; } = string.Empty;
         public DateTime DateofSignature { get; set; }
         

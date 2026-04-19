@@ -12,15 +12,30 @@ namespace ePermitsApp.Mappings
             CreateMap<CoOApp, CoOAppDto>().ReverseMap();
             CreateMap<CoOAppProf, CoOAppProfDto>().ReverseMap();
             CreateMap<CoOAppProf, CoOAppProfEditDto>();
-            CreateMap<CoOAppReqDoc, CoOAppReqDocDto>().ReverseMap();
+            CreateMap<CoOAppReqDoc, CoOAppReqDocDto>()
+                .ForMember(dest => dest.ReqDocBldgPermitSPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocBldgPermitSPlans)))
+                .ForMember(dest => dest.ReqDocAsBuiltPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocAsBuiltPlans)))
+                .ForMember(dest => dest.ReqDocConsLogbook, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocConsLogbook)))
+                .ForMember(dest => dest.ReqDocConsPhotos, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocConsPhotos)))
+                .ForMember(dest => dest.ReqDocBrgyClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocBrgyClearance)))
+                .ForMember(dest => dest.ReqDocFSIC, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocFSIC)))
+                .ForMember(dest => dest.ReqDocOthers, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocOthers)));
+            CreateMap<CoOAppReqDocDto, CoOAppReqDoc>()
+                .ForMember(dest => dest.ReqDocBldgPermitSPlans, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocBldgPermitSPlans)))
+                .ForMember(dest => dest.ReqDocAsBuiltPlans, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocAsBuiltPlans)))
+                .ForMember(dest => dest.ReqDocConsLogbook, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocConsLogbook)))
+                .ForMember(dest => dest.ReqDocConsPhotos, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocConsPhotos)))
+                .ForMember(dest => dest.ReqDocBrgyClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocBrgyClearance)))
+                .ForMember(dest => dest.ReqDocFSIC, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocFSIC)))
+                .ForMember(dest => dest.ReqDocOthers, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.ReqDocOthers)));
             CreateMap<CoOAppReqDoc, CoOAppReqDocEditDto>()
-                .ForMember(dest => dest.ReqDocBldgPermitSPlans, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocBldgPermitSPlans)))
-                .ForMember(dest => dest.ReqDocAsBuiltPlans, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocAsBuiltPlans)))
-                .ForMember(dest => dest.ReqDocConsLogbook, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocConsLogbook)))
-                .ForMember(dest => dest.ReqDocConsPhotos, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocConsPhotos)))
-                .ForMember(dest => dest.ReqDocBrgyClearance, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocBrgyClearance)))
-                .ForMember(dest => dest.ReqDocFSIC, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocFSIC)))
-                .ForMember(dest => dest.ReqDocOthers, opt => opt.MapFrom(src => FilePathHelper.DeserializeSingle(src.ReqDocOthers)));
+                .ForMember(dest => dest.ReqDocBldgPermitSPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocBldgPermitSPlans)))
+                .ForMember(dest => dest.ReqDocAsBuiltPlans, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocAsBuiltPlans)))
+                .ForMember(dest => dest.ReqDocConsLogbook, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocConsLogbook)))
+                .ForMember(dest => dest.ReqDocConsPhotos, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocConsPhotos)))
+                .ForMember(dest => dest.ReqDocBrgyClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocBrgyClearance)))
+                .ForMember(dest => dest.ReqDocFSIC, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocFSIC)))
+                .ForMember(dest => dest.ReqDocOthers, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.ReqDocOthers)));
 
             CreateMap<CoOApp, CoOAppEditDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Application != null ? src.Application.Status : string.Empty));

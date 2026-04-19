@@ -115,6 +115,7 @@ namespace ePermits.Services
                     ? $"{profile.FirstName} {profile.MiddleName} {profile.LastName}".Trim()
                     : user.Username,
                 Email = profile?.Email ?? "",
+                MobileNo = profile?.MobileNo ?? "",
                 LguName = user.LGU?.LGUName,
                 LguId = user.LGUId,
                 DepartmentName = user.Department?.DepartmentName,

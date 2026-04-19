@@ -12,6 +12,8 @@ namespace ePermitsApp.DTOs
         public string? ApplicationTypeScope { get; set; }
         public int? BuildingPermitCategoryId { get; set; }
         public string? BuildingPermitCategoryName { get; set; }
+        public List<int> BuildingPermitCategoryIds { get; set; } = new();
+        public List<string> BuildingPermitCategoryNames { get; set; } = new();
         public int? ParentId { get; set; }
         public string? ParentName { get; set; }
     }
