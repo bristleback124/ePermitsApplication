@@ -160,6 +160,34 @@ namespace ePermits.Controllers
             });
         }
 
+        [HttpPost("change-password")]
+        [Authorize]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(object), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { success = false, message = "Invalid input data", errors = ModelState });
+            }
+
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { success = false, message = "Invalid token" });
+            }
+
+            var result = await _authService.ChangePasswordAsync(userId, dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.Message });
+            }
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
         [HttpPost("register-applicant")]
         [Authorize(Roles = "admin,superadmin,sysadmin,encoder")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]

@@ -13,5 +13,6 @@ namespace ePermits.Services
         string GenerateJwtToken(int userId, string username, string role, int roleId);
         Task<bool> CheckEmailExistsAsync(string email);
         Task<(bool Success, string Message, RegisterApplicantResponseDto? Data)> RegisterApplicantAsync(RegisterApplicantDto dto, string registeredBy);
+        Task<(bool Success, string Message)> ChangePasswordAsync(int userId, ChangePasswordDto dto);
     }
 }
