@@ -29,6 +29,33 @@ namespace ePermitsApp.Services
         private const string CertificateOfOccupancyRequirementsClassification = "Certificate of Occupancy Requirements";
         private const string CertificateOfOccupancyGeneralCategory = "General Requirements";
 
+        private const string PermitApplicationTypesSheet = "PermitApplicationTypes";
+        private const string ProjectClassificationsSheet = "ProjectClassifications";
+        private const string OwnershipTypesSheet = "OwnershipTypes";
+        private const string OccupancyNaturesSheet = "OccupancyNatures";
+        private const string ApplicantTypesSheet = "ApplicantTypes";
+        private const string ProvincesSheet = "Provinces";
+        private const string LgusSheet = "LGUs";
+        private const string BarangaysSheet = "Barangays";
+        private const string RequirementCategoriesSheet = "BuildingPermitReqCategories";
+        private const string BuildingPermitRequirementsSheet = "BuildingPermitRequirements";
+        private const string CertificateOfOccupancyRequirementsSheet = "CertificateOfOccupancyRequirements";
+
+        private static readonly IReadOnlyList<(string SheetName, string GroupLabel)> ImportSheetOrder = new[]
+        {
+            (PermitApplicationTypesSheet, "Types of Application"),
+            (ProjectClassificationsSheet, "Project Classification"),
+            (OwnershipTypesSheet, "Mode of Ownership"),
+            (OccupancyNaturesSheet, "Occupancy Classification"),
+            (ApplicantTypesSheet, "Applicant Type"),
+            (ProvincesSheet, "Province"),
+            (LgusSheet, "Municipality / City"),
+            (BarangaysSheet, "Barangay"),
+            (RequirementCategoriesSheet, "Building Permit Category"),
+            (BuildingPermitRequirementsSheet, "Requirements (Building Permit)"),
+            (CertificateOfOccupancyRequirementsSheet, "Requirements (Certificate of Occupancy)"),
+        };
+
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUser;
 
@@ -387,8 +414,24 @@ namespace ePermitsApp.Services
             var actor = _currentUser.UserName ?? "System";
             var now = DateTime.UtcNow;
 
-            foreach (var sheet in workbookPart.Workbook.Sheets!.Elements<Sheet>())
+            var sheetByName = workbookPart.Workbook.Sheets!
+                .Elements<Sheet>()
+                .Where(s => s.Name?.Value != null)
+                .GroupBy(s => s.Name!.Value!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var (sheetName, groupLabel) in ImportSheetOrder)
             {
+                var summary = new MaintenanceImportGroupSummaryDto
+                {
+                    SheetName = sheetName,
+                    GroupLabel = groupLabel,
+                };
+                result.Groups.Add(summary);
+
+                if (!sheetByName.TryGetValue(sheetName, out var sheet))
+                    continue;
+
                 var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);
                 var rows = ReadWorksheetRows(workbookPart, worksheetPart).ToList();
                 if (rows.Count <= 1)
@@ -406,43 +449,40 @@ namespace ePermitsApp.Services
 
                     try
                     {
-                        switch (sheet.Name?.Value)
+                        switch (sheetName)
                         {
-                            case "PermitApplicationTypes":
-                                await UpsertPermitApplicationTypeAsync(rowData, now, actor, result);
+                            case PermitApplicationTypesSheet:
+                                await InsertPermitApplicationTypeIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "ProjectClassifications":
-                                await UpsertProjectClassificationAsync(rowData, now, actor, result);
+                            case ProjectClassificationsSheet:
+                                await InsertProjectClassificationIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "OwnershipTypes":
-                                await UpsertOwnershipTypeAsync(rowData, now, actor, result);
+                            case OwnershipTypesSheet:
+                                await InsertOwnershipTypeIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "OccupancyNatures":
-                                await UpsertOccupancyNatureAsync(rowData, now, actor, result);
+                            case OccupancyNaturesSheet:
+                                await InsertOccupancyNatureIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "ApplicantTypes":
-                                await UpsertApplicantTypeAsync(rowData, now, actor, result);
+                            case ApplicantTypesSheet:
+                                await InsertApplicantTypeIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "BuildingPermitCategories":
-                                await UpsertBuildingPermitCategoryAsync(rowData, now, actor, result);
+                            case ProvincesSheet:
+                                await InsertProvinceIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "Provinces":
-                                await UpsertProvinceAsync(rowData, now, actor, result);
+                            case LgusSheet:
+                                await InsertLguIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "LGUs":
-                                await UpsertLguAsync(rowData, now, actor, result);
+                            case BarangaysSheet:
+                                await InsertBarangayIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "Barangays":
-                                await UpsertBarangayAsync(rowData, now, actor, result);
+                            case RequirementCategoriesSheet:
+                                await InsertRequirementCategoryIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "RequirementClassifications":
-                                await UpsertRequirementClassificationAsync(rowData, now, actor, result);
+                            case BuildingPermitRequirementsSheet:
+                                await InsertBuildingPermitRequirementIfMissingAsync(rowData, now, actor, summary);
                                 break;
-                            case "RequirementCategories":
-                                await UpsertRequirementCategoryAsync(rowData, now, actor, result);
-                                break;
-                            case "Requirements":
-                                await UpsertRequirementAsync(rowData, now, actor, result);
+                            case CertificateOfOccupancyRequirementsSheet:
+                                await InsertCertificateOfOccupancyRequirementIfMissingAsync(rowData, now, actor, summary);
                                 break;
                         }
                     }
@@ -450,15 +490,18 @@ namespace ePermitsApp.Services
                     {
                         result.Errors.Add(new MaintenanceImportErrorDto
                         {
-                            SheetName = sheet.Name ?? string.Empty,
+                            SheetName = sheetName,
                             RowNumber = rowNumber,
                             Message = ex.Message
                         });
                     }
                 }
 
-                // Persist each completed sheet so child sheets can resolve parents
-                // created earlier in the workbook within the same transaction.
+                result.CreatedCount += summary.CreatedCount;
+                result.SkippedCount += summary.SkippedCount;
+
+                // Flush after each sheet so later sheets can resolve parents created
+                // earlier in the same workbook within this transaction.
                 if (result.Errors.Count == 0)
                     await _context.SaveChangesAsync();
             }
@@ -487,35 +530,31 @@ namespace ePermitsApp.Services
                 AppendWorksheet(workbookPart, sheets, ref sheetId, "Instructions", new[]
                 {
                     new[] { "Sheet", "Purpose", "Required columns" },
-                    new[] { "PermitApplicationTypes", "Seed building permit application types", "PermitAppTypeDesc, IsActive" },
-                    new[] { "ProjectClassifications", "Seed project classifications", "ProjectClassDesc, IsActive" },
-                    new[] { "OwnershipTypes", "Seed mode of ownership values", "OwnershipTypeDesc, IsActive" },
-                    new[] { "OccupancyNatures", "Seed occupancy classifications", "OccupancyNatureDesc, IsActive" },
-                    new[] { "ApplicantTypes", "Seed applicant types", "ApplicantTypeDesc, IsActive" },
-                    new[] { "BuildingPermitCategories", "Seed building permit categories", "CategoryName, IsActive" },
-                    new[] { "Provinces", "Seed provinces", "ProvinceName, IsActive" },
-                    new[] { "LGUs", "Seed municipalities or cities", "ProvinceName, LGUName, IsActive" },
-                    new[] { "Barangays", "Seed barangays", "ProvinceName, LGUName, BarangayName, IsActive" },
-                    new[] { "RequirementClassifications", "Seed requirement classifications", "ReqClassDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
-                    new[] { "RequirementCategories", "Seed building permit requirement categories only", "ReqClassDesc, ReqCatDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
-                    new[] { "Requirements", "Seed requirements", "ReqClassDesc, ReqCatDesc (optional for CertificateOfOccupancy), ReqDesc, ApplicationTypeScope, BuildingPermitCategoryName, IsActive" },
-                    new[] { "ApplicationTypeScope", "Allowed values", "BuildingPermit, CertificateOfOccupancy, Both" },
-                    new[] { "IsActive", "Allowed values", "TRUE or FALSE" },
-                    new[] { "Notes", "Behavior", "Existing referenced values should be deactivated instead of deleted." }
+                    new[] { PermitApplicationTypesSheet, "Types of Application", "PermitAppTypeDesc" },
+                    new[] { ProjectClassificationsSheet, "Project Classification", "ProjectClassDesc" },
+                    new[] { OwnershipTypesSheet, "Mode of Ownership", "OwnershipTypeDesc" },
+                    new[] { OccupancyNaturesSheet, "Occupancy Classification", "OccupancyNatureDesc" },
+                    new[] { ApplicantTypesSheet, "Applicant Type", "ApplicantTypeDesc" },
+                    new[] { ProvincesSheet, "Province", "ProvinceName" },
+                    new[] { LgusSheet, "Municipality / City", "ProvinceName, LGUName" },
+                    new[] { BarangaysSheet, "Barangay", "ProvinceName, LGUName, BarangayName" },
+                    new[] { RequirementCategoriesSheet, "Building Permit Category (requirement grouping)", "BuildingPermitReqCatDesc, BuildingPermitCategoryName" },
+                    new[] { BuildingPermitRequirementsSheet, "Requirements scoped to Building Permit", "BuildingPermitReqCatDesc, ReqDesc, BuildingPermitCategoryName" },
+                    new[] { CertificateOfOccupancyRequirementsSheet, "Requirements scoped to Certificate of Occupancy", "ReqDesc" },
+                    new[] { "Notes", "Behavior", "Existing values are skipped. Rows are only added when they do not already exist for that group." },
                 });
 
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "PermitApplicationTypes", BuildSheet(new[] { "PermitAppTypeDesc", "IsActive" }, new[] { "New Construction", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "ProjectClassifications", BuildSheet(new[] { "ProjectClassDesc", "IsActive" }, new[] { "Residential", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "OwnershipTypes", BuildSheet(new[] { "OwnershipTypeDesc", "IsActive" }, new[] { "Single Ownership", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "OccupancyNatures", BuildSheet(new[] { "OccupancyNatureDesc", "IsActive" }, new[] { "Residential Dwelling", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "ApplicantTypes", BuildSheet(new[] { "ApplicantTypeDesc", "IsActive" }, new[] { "Owner", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "BuildingPermitCategories", BuildSheet(new[] { "CategoryName", "IsActive" }, new[] { "Simple", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "Provinces", BuildSheet(new[] { "ProvinceName", "IsActive" }, new[] { "Batangas", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "LGUs", BuildSheet(new[] { "ProvinceName", "LGUName", "IsActive" }, new[] { "Batangas", "Batangas City", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "Barangays", BuildSheet(new[] { "ProvinceName", "LGUName", "BarangayName", "IsActive" }, new[] { "Batangas", "Batangas City", "Pallocan West", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementClassifications", BuildSheet(new[] { "ReqClassDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "BuildingPermit", "Simple", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "RequirementCategories", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "BuildingPermit", "Simple", "TRUE" }));
-                AppendWorksheet(workbookPart, sheets, ref sheetId, "Requirements", BuildSheet(new[] { "ReqClassDesc", "ReqCatDesc", "ReqDesc", "ApplicationTypeScope", "BuildingPermitCategoryName", "IsActive" }, new[] { "Administrative", "General Documents", "Signed application form", "BuildingPermit", "Simple", "TRUE" }, new[] { "Certificate of Occupancy Requirements", string.Empty, "Fire Safety Inspection Certificate (FSIC) from BFP", "CertificateOfOccupancy", string.Empty, "TRUE" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, PermitApplicationTypesSheet, BuildSheet(new[] { "PermitAppTypeDesc" }, new[] { "New Construction" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, ProjectClassificationsSheet, BuildSheet(new[] { "ProjectClassDesc" }, new[] { "Residential" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, OwnershipTypesSheet, BuildSheet(new[] { "OwnershipTypeDesc" }, new[] { "Single Ownership" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, OccupancyNaturesSheet, BuildSheet(new[] { "OccupancyNatureDesc" }, new[] { "Residential Dwelling" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, ApplicantTypesSheet, BuildSheet(new[] { "ApplicantTypeDesc" }, new[] { "Owner" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, ProvincesSheet, BuildSheet(new[] { "ProvinceName" }, new[] { "Batangas" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, LgusSheet, BuildSheet(new[] { "ProvinceName", "LGUName" }, new[] { "Batangas", "Batangas City" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, BarangaysSheet, BuildSheet(new[] { "ProvinceName", "LGUName", "BarangayName" }, new[] { "Batangas", "Batangas City", "Pallocan West" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, RequirementCategoriesSheet, BuildSheet(new[] { "BuildingPermitReqCatDesc", "BuildingPermitCategoryName" }, new[] { "General Documents", "Simple" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, BuildingPermitRequirementsSheet, BuildSheet(new[] { "BuildingPermitReqCatDesc", "ReqDesc", "BuildingPermitCategoryName" }, new[] { "General Documents", "Signed application form", "Simple" }));
+                AppendWorksheet(workbookPart, sheets, ref sheetId, CertificateOfOccupancyRequirementsSheet, BuildSheet(new[] { "ReqDesc" }, new[] { "Fire Safety Inspection Certificate (FSIC) from BFP" }));
 
                 workbookPart.Workbook.Save();
             }
@@ -1452,154 +1491,110 @@ namespace ePermitsApp.Services
             return categoryId ?? throw new InvalidOperationException("Certificate of Occupancy general requirements category is not configured.");
         }
 
-        private async Task UpsertPermitApplicationTypeAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertPermitApplicationTypeIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var name = RequiredValue(row, "PermitAppTypeDesc");
-            var entity = await _context.PermitApplicationTypes.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.PermitAppTypeDesc == name);
-
-            if (entity == null)
+            var exists = await _context.PermitApplicationTypes.IgnoreQueryFilters().AnyAsync(x => x.PermitAppTypeDesc == name);
+            if (exists)
             {
-                _context.PermitApplicationTypes.Add(new PermitApplicationType { PermitAppTypeDesc = name, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, name);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.PermitAppTypeDesc = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.PermitApplicationTypes.Add(new PermitApplicationType { PermitAppTypeDesc = name, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, name);
         }
 
-        private async Task UpsertProjectClassificationAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertProjectClassificationIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var name = RequiredValue(row, "ProjectClassDesc");
-            var entity = await _context.ProjectClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ProjectClassDesc == name);
-
-            if (entity == null)
+            var exists = await _context.ProjectClassifications.IgnoreQueryFilters().AnyAsync(x => x.ProjectClassDesc == name);
+            if (exists)
             {
-                _context.ProjectClassifications.Add(new ProjectClassification { ProjectClassDesc = name, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, name);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ProjectClassDesc = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.ProjectClassifications.Add(new ProjectClassification { ProjectClassDesc = name, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, name);
         }
 
-        private async Task UpsertOwnershipTypeAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertOwnershipTypeIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var name = RequiredValue(row, "OwnershipTypeDesc");
-            var entity = await _context.OwnershipTypes.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.OwnershipTypeDesc == name);
-
-            if (entity == null)
+            var exists = await _context.OwnershipTypes.IgnoreQueryFilters().AnyAsync(x => x.OwnershipTypeDesc == name);
+            if (exists)
             {
-                _context.OwnershipTypes.Add(new OwnershipType { OwnershipTypeDesc = name, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, name);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.OwnershipTypeDesc = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.OwnershipTypes.Add(new OwnershipType { OwnershipTypeDesc = name, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, name);
         }
 
-        private async Task UpsertOccupancyNatureAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertOccupancyNatureIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var name = RequiredValue(row, "OccupancyNatureDesc");
-            var entity = await _context.OccupancyNatures.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.OccupancyNatureDesc == name);
-
-            if (entity == null)
+            var exists = await _context.OccupancyNatures.IgnoreQueryFilters().AnyAsync(x => x.OccupancyNatureDesc == name);
+            if (exists)
             {
-                _context.OccupancyNatures.Add(new OccupancyNature { OccupancyNatureDesc = name, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, name);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.OccupancyNatureDesc = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.OccupancyNatures.Add(new OccupancyNature { OccupancyNatureDesc = name, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, name);
         }
 
-        private async Task UpsertApplicantTypeAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertApplicantTypeIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var name = RequiredValue(row, "ApplicantTypeDesc");
-            var entity = await _context.ApplicantTypes.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ApplicantTypeDesc == name);
-
-            if (entity == null)
+            var exists = await _context.ApplicantTypes.IgnoreQueryFilters().AnyAsync(x => x.ApplicantTypeDesc == name);
+            if (exists)
             {
-                _context.ApplicantTypes.Add(new ApplicantType { ApplicantTypeDesc = name, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, name);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ApplicantTypeDesc = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.ApplicantTypes.Add(new ApplicantType { ApplicantTypeDesc = name, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, name);
         }
 
-        private async Task UpsertBuildingPermitCategoryAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
-        {
-            var name = RequiredValue(row, "CategoryName");
-            var entity = await _context.BuildingPermitCategories.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.CategoryName == name);
-
-            if (entity == null)
-            {
-                _context.BuildingPermitCategories.Add(new BuildingPermitCategory
-                {
-                    CategoryName = name,
-                    Description = string.Empty,
-                    IsActive = ParseBoolean(row, "IsActive"),
-                    CreatedAt = now,
-                    CreatedBy = actor
-                });
-                result.CreatedCount++;
-                return;
-            }
-
-            UpdateImportAudit(entity, now, actor, result);
-            entity.CategoryName = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
-        }
-
-        private async Task UpsertProvinceAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertProvinceIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var name = RequiredValue(row, "ProvinceName");
-            var entity = await _context.Provinces.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ProvinceName == name);
-
-            if (entity == null)
+            var exists = await _context.Provinces.IgnoreQueryFilters().AnyAsync(x => x.ProvinceName == name);
+            if (exists)
             {
-                _context.Provinces.Add(new Province { ProvinceName = name, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, name);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ProvinceName = name;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.Provinces.Add(new Province { ProvinceName = name, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, name);
         }
 
-        private async Task UpsertLguAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertLguIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var provinceName = RequiredValue(row, "ProvinceName");
             var lguName = RequiredValue(row, "LGUName");
             var province = await _context.Provinces.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ProvinceName == provinceName)
                 ?? throw new InvalidOperationException($"Province '{provinceName}' does not exist.");
-            var entity = await _context.LGUs.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ProvinceId == province.Id && x.LGUName == lguName);
 
-            if (entity == null)
+            var displayName = $"{lguName} ({provinceName})";
+            var exists = await _context.LGUs.IgnoreQueryFilters().AnyAsync(x => x.ProvinceId == province.Id && x.LGUName == lguName);
+            if (exists)
             {
-                _context.LGUs.Add(new LGU { ProvinceId = province.Id, LGUName = lguName, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, displayName);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ProvinceId = province.Id;
-            entity.LGUName = lguName;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.LGUs.Add(new LGU { ProvinceId = province.Id, LGUName = lguName, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, displayName);
         }
 
-        private async Task UpsertBarangayAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertBarangayIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
             var provinceName = RequiredValue(row, "ProvinceName");
             var lguName = RequiredValue(row, "LGUName");
@@ -1608,130 +1603,157 @@ namespace ePermitsApp.Services
                 ?? throw new InvalidOperationException($"Province '{provinceName}' does not exist.");
             var lgu = await _context.LGUs.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ProvinceId == province.Id && x.LGUName == lguName)
                 ?? throw new InvalidOperationException($"Municipality '{lguName}' does not exist in province '{provinceName}'.");
-            var entity = await _context.Barangays.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.LGUId == lgu.Id && x.BarangayName == barangayName);
 
-            if (entity == null)
+            var displayName = $"{barangayName} ({lguName}, {provinceName})";
+            var exists = await _context.Barangays.IgnoreQueryFilters().AnyAsync(x => x.LGUId == lgu.Id && x.BarangayName == barangayName);
+            if (exists)
             {
-                _context.Barangays.Add(new Barangay { LGUId = lgu.Id, BarangayName = barangayName, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, displayName);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.LGUId = lgu.Id;
-            entity.BarangayName = barangayName;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.Barangays.Add(new Barangay { LGUId = lgu.Id, BarangayName = barangayName, CreatedAt = now, CreatedBy = actor });
+            RecordAdded(summary, displayName);
         }
 
-        private async Task UpsertRequirementClassificationAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertRequirementCategoryIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
-            var name = RequiredValue(row, "ReqClassDesc");
-            var scope = NormalizeScope(row);
+            var categoryName = RequiredValue(row, "BuildingPermitReqCatDesc");
             row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
+            var scope = MaintenanceApplicationScopes.BuildingPermit;
             var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
             var buildingPermitCategoryId = buildingPermitCategory?.Id;
-            var entity = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == name && x.BuildingPermitCategoryId == buildingPermitCategoryId);
+            var classification = await ResolveBuildingPermitClassificationAsync(buildingPermitCategoryId);
 
-            if (entity == null)
+            var displayName = buildingPermitCategory != null
+                ? $"{categoryName} ({buildingPermitCategory.CategoryName})"
+                : categoryName;
+            var exists = await _context.RequirementCategorys.IgnoreQueryFilters()
+                .AnyAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
+            if (exists)
             {
-                _context.RequirementClassifications.Add(new RequirementClassification { ReqClassDesc = name, ApplicationTypeScope = scope, BuildingPermitCategoryId = buildingPermitCategoryId, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, displayName);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ReqClassDesc = name;
-            entity.ApplicationTypeScope = scope;
-            entity.BuildingPermitCategoryId = buildingPermitCategoryId;
-            entity.IsActive = ParseBoolean(row, "IsActive");
-        }
-
-        private async Task UpsertRequirementCategoryAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
-        {
-            var className = RequiredValue(row, "ReqClassDesc");
-            var categoryName = RequiredValue(row, "ReqCatDesc");
-            var scope = NormalizeScope(row);
-            if (!string.Equals(scope, MaintenanceApplicationScopes.BuildingPermit, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Requirement categories are only supported for Building Permit.");
-            row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
-            var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == className)
-                ?? throw new InvalidOperationException($"Requirement classification '{className}' does not exist.");
-            var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
-            var buildingPermitCategoryId = buildingPermitCategory?.Id;
-            var entity = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
-
-            if (entity == null)
+            _context.RequirementCategorys.Add(new RequirementCategory
             {
-                _context.RequirementCategorys.Add(new RequirementCategory { ReqClassId = classification.Id, ReqCatDesc = categoryName, ApplicationTypeScope = scope, BuildingPermitCategoryId = buildingPermitCategoryId, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
-                return;
-            }
-
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ReqClassId = classification.Id;
-            entity.ReqCatDesc = categoryName;
-            entity.ApplicationTypeScope = scope;
-            entity.BuildingPermitCategoryId = buildingPermitCategoryId;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+                ReqClassId = classification.Id,
+                ReqCatDesc = categoryName,
+                ApplicationTypeScope = scope,
+                BuildingPermitCategoryId = buildingPermitCategoryId,
+                CreatedAt = now,
+                CreatedBy = actor
+            });
+            RecordAdded(summary, displayName);
         }
 
-        private async Task UpsertRequirementAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertBuildingPermitRequirementIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
-            var className = RequiredValue(row, "ReqClassDesc");
+            var categoryName = RequiredValue(row, "BuildingPermitReqCatDesc");
             var reqName = RequiredValue(row, "ReqDesc");
-            var scope = NormalizeScope(row);
             row.TryGetValue("BuildingPermitCategoryName", out var buildingPermitCategoryName);
-            var classification = await _context.RequirementClassifications.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassDesc == className)
-                ?? throw new InvalidOperationException($"Requirement classification '{className}' does not exist.");
-            RequirementCategory category;
-            if (string.Equals(scope, MaintenanceApplicationScopes.CertificateOfOccupancy, StringComparison.OrdinalIgnoreCase))
-            {
-                var categoryId = await ResolveCertificateOfOccupancyGeneralCategoryIdAsync();
-                category = await _context.RequirementCategorys.IgnoreQueryFilters()
-                    .FirstOrDefaultAsync(x => x.Id == categoryId)
-                    ?? throw new InvalidOperationException("Certificate of Occupancy general requirements category is not configured.");
-                buildingPermitCategoryName = null;
-            }
-            else
-            {
-                var categoryName = RequiredValue(row, "ReqCatDesc");
-                category = await _context.RequirementCategorys.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqClassId == classification.Id && x.ReqCatDesc == categoryName)
-                    ?? throw new InvalidOperationException($"Requirement category '{categoryName}' does not exist in classification '{className}'.");
-            }
+            var scope = MaintenanceApplicationScopes.BuildingPermit;
             var buildingPermitCategory = await ResolveBuildingPermitCategoryByNameAsync(buildingPermitCategoryName, scope);
             var buildingPermitCategoryId = buildingPermitCategory?.Id;
-            var entity = await _context.Requirements.IgnoreQueryFilters().FirstOrDefaultAsync(x => x.ReqCatId == category.Id && x.ReqDesc == reqName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
 
-            if (entity == null)
+            var category = await _context.RequirementCategorys.IgnoreQueryFilters()
+                .Include(x => x.RequirementClassification)
+                .FirstOrDefaultAsync(x =>
+                    x.ReqCatDesc == categoryName
+                    && x.BuildingPermitCategoryId == buildingPermitCategoryId
+                    && x.ApplicationTypeScope == scope)
+                ?? throw new InvalidOperationException(
+                    buildingPermitCategory != null
+                        ? $"Requirement category '{categoryName}' does not exist for building permit category '{buildingPermitCategory.CategoryName}'."
+                        : $"Requirement category '{categoryName}' does not exist.");
+
+            var displayName = buildingPermitCategory != null
+                ? $"{reqName} \u2014 {categoryName} ({buildingPermitCategory.CategoryName})"
+                : $"{reqName} \u2014 {categoryName}";
+            var exists = await _context.Requirements.IgnoreQueryFilters()
+                .AnyAsync(x => x.ReqCatId == category.Id && x.ReqDesc == reqName && x.BuildingPermitCategoryId == buildingPermitCategoryId);
+            if (exists)
             {
-                _context.Requirements.Add(new Requirement { ReqCatId = category.Id, ReqDesc = reqName, ApplicationTypeScope = scope, BuildingPermitCategoryId = buildingPermitCategoryId, IsActive = ParseBoolean(row, "IsActive"), CreatedAt = now, CreatedBy = actor });
-                result.CreatedCount++;
+                RecordSkipped(summary, displayName);
                 return;
             }
 
-            UpdateImportAudit(entity, now, actor, result);
-            entity.ReqCatId = category.Id;
-            entity.ReqDesc = reqName;
-            entity.ApplicationTypeScope = scope;
-            entity.BuildingPermitCategoryId = buildingPermitCategoryId;
-            entity.IsActive = ParseBoolean(row, "IsActive");
+            _context.Requirements.Add(new Requirement
+            {
+                ReqCatId = category.Id,
+                ReqDesc = reqName,
+                ApplicationTypeScope = scope,
+                BuildingPermitCategoryId = buildingPermitCategoryId,
+                CreatedAt = now,
+                CreatedBy = actor
+            });
+            RecordAdded(summary, displayName);
         }
 
-        private static void UpdateImportAudit(object entity, DateTime now, string actor, MaintenanceImportResultDto result)
+        private async Task InsertCertificateOfOccupancyRequirementIfMissingAsync(Dictionary<string, string> row, DateTime now, string actor, MaintenanceImportGroupSummaryDto summary)
         {
-            var wasDeleted = (bool)(entity.GetType().GetProperty("IsDeleted")?.GetValue(entity) ?? false);
-            if (wasDeleted)
+            var reqName = RequiredValue(row, "ReqDesc");
+            var scope = MaintenanceApplicationScopes.CertificateOfOccupancy;
+
+            var categoryId = await ResolveCertificateOfOccupancyGeneralCategoryIdAsync();
+            var exists = await _context.Requirements.IgnoreQueryFilters()
+                .AnyAsync(x => x.ReqCatId == categoryId && x.ReqDesc == reqName && x.BuildingPermitCategoryId == null);
+            if (exists)
             {
-                SetProperty(entity, "IsDeleted", false);
-                result.ReactivatedCount++;
-            }
-            else
-            {
-                result.UpdatedCount++;
+                RecordSkipped(summary, reqName);
+                return;
             }
 
-            SetProperty(entity, "UpdatedAt", now);
-            SetProperty(entity, "UpdatedBy", actor);
+            _context.Requirements.Add(new Requirement
+            {
+                ReqCatId = categoryId,
+                ReqDesc = reqName,
+                ApplicationTypeScope = scope,
+                BuildingPermitCategoryId = null,
+                CreatedAt = now,
+                CreatedBy = actor
+            });
+            RecordAdded(summary, reqName);
+        }
+
+        private async Task<RequirementClassification> ResolveBuildingPermitClassificationAsync(int? buildingPermitCategoryId)
+        {
+            var bpClassifications = await _context.RequirementClassifications.IgnoreQueryFilters()
+                .Where(x => x.ApplicationTypeScope == MaintenanceApplicationScopes.BuildingPermit)
+                .ToListAsync();
+
+            if (buildingPermitCategoryId.HasValue)
+            {
+                var scoped = bpClassifications.Where(x => x.BuildingPermitCategoryId == buildingPermitCategoryId).ToList();
+                if (scoped.Count == 1)
+                    return scoped[0];
+                if (scoped.Count > 1)
+                    throw new InvalidOperationException(
+                        "Multiple Building Permit requirement classifications match this building permit category. Resolve the ambiguity in the management page before importing.");
+            }
+
+            var umbrella = bpClassifications.Where(x => x.BuildingPermitCategoryId == null).ToList();
+            if (umbrella.Count == 1)
+                return umbrella[0];
+            if (umbrella.Count > 1)
+                throw new InvalidOperationException(
+                    "Multiple umbrella Building Permit requirement classifications exist. Resolve the ambiguity in the management page before importing.");
+
+            throw new InvalidOperationException(
+                "No Building Permit requirement classification is configured. Seed a classification before importing.");
+        }
+
+        private static void RecordAdded(MaintenanceImportGroupSummaryDto summary, string name)
+        {
+            summary.CreatedCount++;
+            summary.AddedNames.Add(name);
+        }
+
+        private static void RecordSkipped(MaintenanceImportGroupSummaryDto summary, string name)
+        {
+            summary.SkippedCount++;
+            summary.SkippedNames.Add(name);
         }
 
         private static string RequiredValue(Dictionary<string, string> row, string key)
@@ -1740,33 +1762,6 @@ namespace ePermitsApp.Services
                 throw new InvalidOperationException($"'{key}' is required.");
 
             return value.Trim();
-        }
-
-        private static bool ParseBoolean(Dictionary<string, string> row, string key)
-        {
-            if (!row.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
-                return true;
-
-            if (bool.TryParse(value, out var parsed))
-                return parsed;
-
-            if (string.Equals(value, "1", StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            if (string.Equals(value, "0", StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            throw new InvalidOperationException($"'{key}' must be TRUE or FALSE.");
-        }
-
-        private static string NormalizeScope(Dictionary<string, string> row)
-        {
-            row.TryGetValue("ApplicationTypeScope", out var scope);
-            var normalizedScope = MaintenanceApplicationScopes.Normalize(scope);
-            if (!MaintenanceApplicationScopes.IsValid(normalizedScope))
-                throw new InvalidOperationException("ApplicationTypeScope must be BuildingPermit, CertificateOfOccupancy, or Both.");
-
-            return normalizedScope;
         }
 
         private static string NormalizeEntityType(string entityType)
