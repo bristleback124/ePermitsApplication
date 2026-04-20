@@ -56,10 +56,20 @@ namespace ePermitsApp.DTOs
     public class MaintenanceImportResultDto
     {
         public int CreatedCount { get; set; }
-        public int UpdatedCount { get; set; }
-        public int ReactivatedCount { get; set; }
+        public int SkippedCount { get; set; }
         public bool Succeeded => Errors.Count == 0;
+        public List<MaintenanceImportGroupSummaryDto> Groups { get; set; } = new();
         public List<MaintenanceImportErrorDto> Errors { get; set; } = new();
+    }
+
+    public class MaintenanceImportGroupSummaryDto
+    {
+        public string SheetName { get; set; } = string.Empty;
+        public string GroupLabel { get; set; } = string.Empty;
+        public int CreatedCount { get; set; }
+        public int SkippedCount { get; set; }
+        public List<string> AddedNames { get; set; } = new();
+        public List<string> SkippedNames { get; set; } = new();
     }
 
     public class MaintenanceImportErrorDto

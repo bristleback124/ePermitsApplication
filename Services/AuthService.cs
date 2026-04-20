@@ -142,6 +142,7 @@ namespace ePermits.Services
                 Token = token,
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                MustChangePassword = createdUser.MustChangePassword,
                 Profile = new UserProfileDto
                 {
                     FirstName = createdProfile.FirstName,
@@ -193,6 +194,7 @@ namespace ePermits.Services
                 Token = token,
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                MustChangePassword = user.MustChangePassword,
                 Profile = new UserProfileDto
                 {
                     FirstName = profile.FirstName,
@@ -292,6 +294,7 @@ namespace ePermits.Services
                 Token = null, // No token here
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                MustChangePassword = user.MustChangePassword,
                 Profile = new UserProfileDto
                 {
                     FirstName = profile.FirstName,
@@ -422,6 +425,44 @@ namespace ePermits.Services
                     "Failed to send credentials email after registering applicant {Email}",
                     applicantEmail);
             }
+        }
+
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(int userId, ChangePasswordDto dto)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return (false, "User not found.");
+            }
+
+            if (!user.MustChangePassword)
+            {
+                // Voluntary flow: require and verify current password.
+                if (string.IsNullOrEmpty(dto.CurrentPassword))
+                {
+                    return (false, "Current password is required.");
+                }
+
+                if (!VerifyPassword(dto.CurrentPassword, user.Password))
+                {
+                    return (false, "Current password is incorrect.");
+                }
+            }
+
+            var newHash = HashPassword(dto.NewPassword);
+            if (newHash == user.Password)
+            {
+                return (false, "New password must be different from the current password.");
+            }
+
+            user.Password = newHash;
+            user.MustChangePassword = false;
+            user.UpdatedBy = user.Username;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+
+            return (true, "Password changed successfully.");
         }
 
         private static string GenerateTempPassword(int length)
