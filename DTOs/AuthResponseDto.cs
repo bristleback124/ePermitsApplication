@@ -7,6 +7,7 @@ namespace ePermits.DTOs
         public string Token { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public int RoleId { get; set; }
+        public bool MustChangePassword { get; set; }
         public UserProfileDto Profile { get; set; } = new UserProfileDto();
     }
 
