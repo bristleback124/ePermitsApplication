@@ -512,13 +512,11 @@ namespace ePermitsApp.Services
             if (buildingPermit.TotalFloorArea <= 0) throw new InvalidOperationException("Total floor area is required.");
             if (buildingPermit.ProjectScopeLotArea <= 0) throw new InvalidOperationException("Project scope lot area is required.");
             if (string.IsNullOrWhiteSpace(buildingPermit.PropertyAddLot)) throw new InvalidOperationException("Lot is required.");
-            if (string.IsNullOrWhiteSpace(buildingPermit.PropertyAddStreet)) throw new InvalidOperationException("Street is required.");
             if (buildingPermit.ProvinceId <= 0) throw new InvalidOperationException("Province is required.");
             if (buildingPermit.LGUId <= 0) throw new InvalidOperationException("LGU is required.");
             if (buildingPermit.BarangayId <= 0) throw new InvalidOperationException("Barangay is required.");
             if (buildingPermit.PropertyDetailLotArea <= 0) throw new InvalidOperationException("Property lot area is required.");
             if (string.IsNullOrWhiteSpace(buildingPermit.TCTNo)) throw new InvalidOperationException("TCT number is required.");
-            if (string.IsNullOrWhiteSpace(buildingPermit.TaxDeclarionNo)) throw new InvalidOperationException("Tax declaration number is required.");
             if (string.IsNullOrWhiteSpace(buildingPermit.DigitalSignature)) throw new InvalidOperationException("Digital signature is required.");
             if (IsDraftPlaceholderDate(buildingPermit.DateofSignature)) throw new InvalidOperationException("Signature date is required.");
 

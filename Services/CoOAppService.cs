@@ -353,7 +353,6 @@ namespace ePermitsApp.Services
             if (string.IsNullOrWhiteSpace(coOApp.BldgPermitNo)) throw new InvalidOperationException("Building permit number is required.");
             if (string.IsNullOrWhiteSpace(coOApp.ProjectTitle)) throw new InvalidOperationException("Project title is required.");
             if (string.IsNullOrWhiteSpace(coOApp.ProjLocLot)) throw new InvalidOperationException("Lot is required.");
-            if (string.IsNullOrWhiteSpace(coOApp.ProjLocStreet)) throw new InvalidOperationException("Street is required.");
             if (coOApp.ProvinceId <= 0) throw new InvalidOperationException("Province is required.");
             if (coOApp.LGUId <= 0) throw new InvalidOperationException("LGU is required.");
             if (coOApp.BarangayId <= 0) throw new InvalidOperationException("Barangay is required.");
