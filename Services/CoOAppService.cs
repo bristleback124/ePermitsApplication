@@ -353,7 +353,6 @@ namespace ePermitsApp.Services
             if (string.IsNullOrWhiteSpace(coOApp.BldgPermitNo)) throw new InvalidOperationException("Building permit number is required.");
             if (string.IsNullOrWhiteSpace(coOApp.ProjectTitle)) throw new InvalidOperationException("Project title is required.");
             if (string.IsNullOrWhiteSpace(coOApp.ProjLocLot)) throw new InvalidOperationException("Lot is required.");
-            if (string.IsNullOrWhiteSpace(coOApp.ProjLocStreet)) throw new InvalidOperationException("Street is required.");
             if (coOApp.ProvinceId <= 0) throw new InvalidOperationException("Province is required.");
             if (coOApp.LGUId <= 0) throw new InvalidOperationException("LGU is required.");
             if (coOApp.BarangayId <= 0) throw new InvalidOperationException("Barangay is required.");
@@ -560,7 +559,7 @@ namespace ePermitsApp.Services
         {
             var role = user?.UserRole?.UserRoleDesc;
             if (string.IsNullOrWhiteSpace(role)) return false;
-            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "technical-reviewer", "fee-assessor", "final-reviewer", "final-approver", "releasing-officer" };
             return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 

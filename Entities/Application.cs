@@ -12,14 +12,19 @@ namespace ePermits.Models
         public int? SubmittedById { get; set; } // Encoder who submitted on behalf of applicant (null = self-submitted)
         public string Status { get; set; } = "Submitted";
         public string? StatusReason { get; set; } // Reason for reject/cancel/deficiency/reopen
+        public string RequirementsReviewStatus { get; set; } = "Review Not Started";
+        public string TechnicalPlansReviewStatus { get; set; } = "Review Not Started";
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? IssuedAt { get; set; }
+        public int? IssuedById { get; set; }
 
         // Navigation properties
         public User? User { get; set; } // Applicant
         public User? SubmittedBy { get; set; } // Encoder (if submitted on behalf)
+        public User? IssuedBy { get; set; } // Releasing Officer who closed Approved-For-Issuance → Closed-Issued
         public BuildingPermit? BuildingPermit { get; set; }
         public CoOApp? CoOApp { get; set; }
         public ICollection<Message>? Messages { get; set; }

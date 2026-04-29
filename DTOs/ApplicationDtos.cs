@@ -67,6 +67,8 @@ namespace ePermitsApp.DTOs
         public string ProjectDescription { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string? StatusReason { get; set; }
+        public string RequirementsReviewStatus { get; set; } = string.Empty;
+        public string TechnicalPlansReviewStatus { get; set; } = string.Empty;
         public string? NextStep { get; set; }
         public string Applicant { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;

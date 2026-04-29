@@ -26,7 +26,7 @@ namespace ePermits.Controllers
 
         [HttpPost("{applicationId}")]
         [RequestSizeLimit(10_000_000)]
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         public async Task<IActionResult> Upload(int applicationId, IFormFile file)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -36,7 +36,7 @@ namespace ePermits.Controllers
         }
 
         [HttpDelete("{documentId}")]
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         public async Task<IActionResult> Delete(int documentId)
         {
             var result = await _service.DeleteAsync(documentId);

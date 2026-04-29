@@ -6,14 +6,10 @@ namespace ePermitsApp.DTOs
     {
         [Required]
         [MaxLength(100)]
-        public string FirstName { get; set; } = string.Empty;
+        public string ApplicantName { get; set; } = string.Empty;
 
         [MaxLength(100)]
-        public string? MiddleName { get; set; }
-
-        [Required]
-        [MaxLength(100)]
-        public string LastName { get; set; } = string.Empty;
+        public string? RepresentativeName { get; set; }
 
         [Required]
         [EmailAddress]

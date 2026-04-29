@@ -253,11 +253,24 @@ namespace ePermitsApp.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(e => e.StatusReason).HasMaxLength(500);
+                entity.Property(e => e.RequirementsReviewStatus)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue(ApplicationWorkflowDefinitions.ReviewSubstatuses.ReviewNotStarted);
+                entity.Property(e => e.TechnicalPlansReviewStatus)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue(ApplicationWorkflowDefinitions.ReviewSubstatuses.ReviewNotStarted);
 
                 entity.HasOne(e => e.SubmittedBy)
                     .WithMany()
                     .HasForeignKey(e => e.SubmittedById)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(e => e.IssuedBy)
+                    .WithMany()
+                    .HasForeignKey(e => e.IssuedById)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasMany(e => e.DepartmentReviews)
                     .WithOne(r => r.Application)
@@ -384,7 +397,9 @@ namespace ePermitsApp.Data
                 new UserRole { Id = 7, UserRoleDesc = "final-reviewer", CreatedBy = "System", CreatedAt = seedDate },
                 new UserRole { Id = 8, UserRoleDesc = "final-approver", CreatedBy = "System", CreatedAt = seedDate },
                 new UserRole { Id = 9, UserRoleDesc = "executive", CreatedBy = "System", CreatedAt = seedDate },
-                new UserRole { Id = 10, UserRoleDesc = "sysadmin", CreatedBy = "System", CreatedAt = seedDate }
+                new UserRole { Id = 10, UserRoleDesc = "sysadmin", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 11, UserRoleDesc = "technical-reviewer", CreatedBy = "System", CreatedAt = seedDate },
+                new UserRole { Id = 12, UserRoleDesc = "releasing-officer", CreatedBy = "System", CreatedAt = seedDate }
             );
 
             // BuildingPermit configuration
