@@ -23,7 +23,7 @@ namespace ePermitsApp.Controllers
             {
                 ApplicantName = "Test Applicant",
                 ApplicationType = "Building Permit",
-                FormattedId = "BP-01-26-01-001",
+                FormattedId = "BP-01-26-01-0001",
                 SubmittedAt = DateTime.Now
             };
 
