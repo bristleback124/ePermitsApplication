@@ -559,7 +559,7 @@ namespace ePermitsApp.Services
         {
             var role = user?.UserRole?.UserRoleDesc;
             if (string.IsNullOrWhiteSpace(role)) return false;
-            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver", "releasing-officer" };
             return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 

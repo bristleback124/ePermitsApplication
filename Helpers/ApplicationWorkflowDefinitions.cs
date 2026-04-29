@@ -30,6 +30,7 @@ namespace ePermitsApp.Helpers
             public const string FinalApprover = "final-approver";
             public const string Executive = "executive";
             public const string SysAdmin = "sysadmin";
+            public const string ReleasingOfficer = "releasing-officer";
         }
 
         public static class OverallStatuses
@@ -75,7 +76,8 @@ namespace ePermitsApp.Helpers
             Roles.FinalReviewer,
             Roles.FinalApprover,
             Roles.Executive,
-            Roles.SysAdmin
+            Roles.SysAdmin,
+            Roles.ReleasingOfficer
         };
 
         public static readonly IReadOnlyList<WorkflowTransition> Transitions = new List<WorkflowTransition>
@@ -118,8 +120,9 @@ namespace ePermitsApp.Helpers
             // === Final Approver: reset ===
             new(OverallStatuses.ForFinalApproval, Roles.FinalApprover, OverallStatuses.ForFinalReview, "Re-open", "reset"),
 
-            // === Final Approver: issue permit (final step) ===
-            new(OverallStatuses.ApprovedForIssuance, Roles.FinalApprover, OverallStatuses.ClosedIssued, "Mark as Issued", "close"),
+            // === Releasing Officer: issue permit (final step) + reset ===
+            new(OverallStatuses.ApprovedForIssuance, Roles.ReleasingOfficer, OverallStatuses.ClosedIssued, "Mark as Issued", "close"),
+            new(OverallStatuses.ApprovedForIssuance, Roles.ReleasingOfficer, OverallStatuses.ForFinalApproval, "Re-open", "reset"),
 
             // === Final Approver: re-open closed ===
             new(OverallStatuses.ClosedRejected, Roles.FinalApprover, OverallStatuses.ForFinalApproval, "Re-open", "reset"),

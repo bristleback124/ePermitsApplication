@@ -8,6 +8,7 @@ using ePermitsApp.Constants;
 using ePermitsApp.Models.EmailModels;
 using ePermitsApp.Services.Interfaces;
 using ePermits.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -255,12 +256,33 @@ namespace ePermitsApp.Services
                 return (false, validationMessage);
             }
 
+            // Block close to "Closed - Issued" without an uploaded permit document
+            if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.OverallStatuses.ClosedIssued, StringComparison.OrdinalIgnoreCase))
+            {
+                var hasIssuedDoc = await _dbContext.IssuedPermitDocuments
+                    .AnyAsync(d => d.ApplicationId == applicationId);
+                if (!hasIssuedDoc)
+                {
+                    return (false, "Cannot mark as issued without uploading the permit document.");
+                }
+            }
+
             var previousStatus = application.Status;
             application.Status = dto.Status;
             if (dto.Reason != null)
                 application.StatusReason = dto.Reason;
             application.UpdatedAt = DateTime.UtcNow;
             application.UpdatedBy = currentUser?.Username ?? "System";
+
+            // Stamp issuance audit fields when transitioning into "Closed - Issued"
+            if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.OverallStatuses.ClosedIssued, StringComparison.OrdinalIgnoreCase))
+            {
+                application.IssuedAt = DateTime.UtcNow;
+                if (int.TryParse(_currentUserService.UserId, out var issuedById))
+                {
+                    application.IssuedById = issuedById;
+                }
+            }
 
             await _applicationRepository.UpdateAsync(application);
 
