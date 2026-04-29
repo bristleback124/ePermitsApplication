@@ -33,7 +33,7 @@ namespace ePermitsApp.Extensions
                         Type,
                         CreatedAt,
                         ROW_NUMBER() OVER (
-                            PARTITION BY Type, YEAR(CreatedAt), MONTH(CreatedAt)
+                            PARTITION BY Type, YEAR(CreatedAt)
                             ORDER BY CreatedAt, Id
                         ) AS SequenceNumber
                     FROM Applications
@@ -56,7 +56,7 @@ namespace ePermitsApp.Extensions
                         + '-'
                         + RIGHT('0' + CAST(MONTH(ranked.CreatedAt) AS varchar(2)), 2)
                         + '-'
-                        + RIGHT('00' + CAST(ranked.SequenceNumber AS varchar(3)), 3) AS ExpectedFormattedId
+                        + RIGHT('0000' + CAST(ranked.SequenceNumber AS varchar(16)), 4) AS ExpectedFormattedId
                     FROM RankedApplications ranked
                 ) expected ON expected.Id = app.Id
                 WHERE app.FormattedId <> expected.ExpectedFormattedId;

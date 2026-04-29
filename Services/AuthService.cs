@@ -313,13 +313,18 @@ namespace ePermits.Services
 
         public async Task<(bool Success, string Message, RegisterApplicantResponseDto? Data)> RegisterApplicantAsync(RegisterApplicantDto dto, string registeredBy)
         {
-            if (await _userRepository.EmailExistsAsync(dto.Email))
+            var applicantName = dto.ApplicantName.Trim();
+            var representativeName = dto.RepresentativeName?.Trim() ?? string.Empty;
+            var email = dto.Email.Trim();
+            var mobileNo = dto.MobileNo.Trim();
+
+            if (await _userRepository.EmailExistsAsync(email))
             {
                 return (false, "An account with this email already exists.", null);
             }
 
             // Generate username from email prefix
-            var username = dto.Email.Split('@')[0].ToLowerInvariant();
+            var username = email.Split('@')[0].ToLowerInvariant();
             if (await _userRepository.UsernameExistsAsync(username))
             {
                 username = $"{username}{DateTime.UtcNow.Ticks % 10000}";
@@ -345,11 +350,11 @@ namespace ePermits.Services
             var userProfile = new UserProfile
             {
                 UserId = createdUser.Id,
-                FirstName = dto.FirstName,
-                MiddleName = dto.MiddleName ?? string.Empty,
-                LastName = dto.LastName,
-                Email = dto.Email,
-                MobileNo = dto.MobileNo,
+                FirstName = applicantName,
+                MiddleName = representativeName,
+                LastName = string.Empty,
+                Email = email,
+                MobileNo = mobileNo,
                 CreatedBy = registeredBy,
                 CreatedAt = DateTime.UtcNow
             };
@@ -359,16 +364,16 @@ namespace ePermits.Services
             createdUser.UserProfileId = userProfile.Id;
             await _userRepository.UpdateAsync(createdUser);
 
-            var fullName = $"{dto.FirstName} {dto.LastName}".Trim();
+            var fullName = applicantName;
 
             await SendApplicantCredentialsEmailsAsync(
-                dto.Email, fullName, username, tempPassword, registeredBy);
+                email, fullName, username, tempPassword, registeredBy);
 
             return (true, "Applicant registered successfully.", new RegisterApplicantResponseDto
             {
                 UserId = createdUser.Id,
                 FullName = fullName,
-                Email = dto.Email
+                Email = email
             });
         }
 

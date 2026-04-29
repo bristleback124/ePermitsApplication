@@ -55,11 +55,10 @@ namespace ePermitsApp.Services
                         a.Id != application.Id &&
                         a.Type == application.Type &&
                         a.Status != ApplicationWorkflowDefinitions.OverallStatuses.Draft &&
-                        a.CreatedAt.Year == year &&
-                        a.CreatedAt.Month == month)
+                        a.CreatedAt.Year == year)
                     .CountAsync(cancellationToken) + 1;
 
-                application.FormattedId = $"{prefix}-01-{yy}-{mm}-{sequence:D3}";
+                application.FormattedId = $"{prefix}-01-{yy}-{mm}-{sequence:D4}";
 
                 try
                 {

@@ -90,7 +90,7 @@ namespace ePermits.Services
                     if (string.IsNullOrWhiteSpace(search)) return true;
                     var term = search.ToLowerInvariant();
                     var name = u.UserProfile != null
-                        ? $"{u.UserProfile.FirstName} {u.UserProfile.LastName}".ToLowerInvariant()
+                        ? $"{u.UserProfile.FirstName} {u.UserProfile.MiddleName} {u.UserProfile.LastName}".ToLowerInvariant()
                         : u.Username.ToLowerInvariant();
                     var email = u.UserProfile?.Email?.ToLowerInvariant() ?? "";
                     return name.Contains(term) || email.Contains(term) || u.Username.ToLowerInvariant().Contains(term);
@@ -112,7 +112,9 @@ namespace ePermits.Services
                 Role = user.UserRole?.UserRoleDesc ?? "unknown",
                 RoleId = user.UserRoleId,
                 FullName = profile != null
-                    ? $"{profile.FirstName} {profile.MiddleName} {profile.LastName}".Trim()
+                    ? string.IsNullOrWhiteSpace(profile.LastName)
+                        ? profile.FirstName.Trim()
+                        : $"{profile.FirstName} {profile.MiddleName} {profile.LastName}".Trim()
                     : user.Username,
                 Email = profile?.Email ?? "",
                 MobileNo = profile?.MobileNo ?? "",
