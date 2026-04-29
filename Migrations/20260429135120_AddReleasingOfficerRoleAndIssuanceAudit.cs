@@ -31,20 +31,33 @@ namespace ePermitsApp.Migrations
                 type: "int",
                 nullable: true);
 
-            migrationBuilder.InsertData(
-                table: "UserRoles",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "UpdatedAt", "UpdatedBy", "UserRoleDesc" },
-                values: new object[] { 12, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", null, null, "releasing-officer" });
+            migrationBuilder.Sql(
+                """
+                IF NOT EXISTS (SELECT 1 FROM [UserRoles] WHERE [Id] = 12 OR [UserRoleDesc] = 'releasing-officer')
+                BEGIN
+                    SET IDENTITY_INSERT [UserRoles] ON;
+                    INSERT INTO [UserRoles] ([Id], [UserRoleDesc], [CreatedBy], [CreatedAt])
+                    VALUES (12, 'releasing-officer', 'System', '2025-01-01T00:00:00.0000000Z');
+                    SET IDENTITY_INSERT [UserRoles] OFF;
+                END;
 
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "DepartmentId", "LGUId", "MustChangePassword", "Password", "UpdatedAt", "UpdatedBy", "UserProfileId", "UserRoleId", "Username" },
-                values: new object[] { 108, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", null, 1, false, "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=", null, null, 108, 12, "releasingofficer" });
+                DECLARE @ReleasingOfficerRoleId int = (SELECT TOP 1 [Id] FROM [UserRoles] WHERE [UserRoleDesc] = 'releasing-officer');
 
-            migrationBuilder.InsertData(
-                table: "UserProfiles",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "Email", "FirstName", "LastName", "MiddleName", "MobileNo", "UpdatedAt", "UpdatedBy", "UserId" },
-                values: new object[] { 108, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", "releasingofficer@lgu.gov.ph", "Liza", "Mendoza", "", "09171000009", null, null, 108 });
+                IF @ReleasingOfficerRoleId IS NOT NULL
+                    AND NOT EXISTS (SELECT 1 FROM [Users] WHERE [Id] = 108 OR [Username] = 'releasingofficer')
+                    AND NOT EXISTS (SELECT 1 FROM [UserProfiles] WHERE [Id] = 108 OR [Email] = 'releasingofficer@lgu.gov.ph')
+                BEGIN
+                    SET IDENTITY_INSERT [Users] ON;
+                    INSERT INTO [Users] ([Id], [Username], [Password], [UserRoleId], [UserProfileId], [LGUId], [DepartmentId], [CreatedBy], [CreatedAt], [UpdatedBy], [UpdatedAt], [MustChangePassword])
+                    VALUES (108, 'releasingofficer', '75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=', @ReleasingOfficerRoleId, 108, 1, NULL, 'System', '2025-01-01T00:00:00.0000000Z', NULL, NULL, 0);
+                    SET IDENTITY_INSERT [Users] OFF;
+
+                    SET IDENTITY_INSERT [UserProfiles] ON;
+                    INSERT INTO [UserProfiles] ([Id], [UserId], [FirstName], [MiddleName], [LastName], [Email], [MobileNo], [CreatedBy], [CreatedAt], [UpdatedBy], [UpdatedAt])
+                    VALUES (108, 108, 'Liza', '', 'Mendoza', 'releasingofficer@lgu.gov.ph', '09171000009', 'System', '2025-01-01T00:00:00.0000000Z', NULL, NULL);
+                    SET IDENTITY_INSERT [UserProfiles] OFF;
+                END;
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Applications_IssuedById",
@@ -71,20 +84,17 @@ namespace ePermitsApp.Migrations
                 name: "IX_Applications_IssuedById",
                 table: "Applications");
 
-            migrationBuilder.DeleteData(
-                table: "UserProfiles",
-                keyColumn: "Id",
-                keyValue: 108);
+            migrationBuilder.Sql(
+                """
+                DELETE FROM [UserProfiles]
+                WHERE [Id] = 108 AND [Email] = 'releasingofficer@lgu.gov.ph';
 
-            migrationBuilder.DeleteData(
-                table: "Users",
-                keyColumn: "Id",
-                keyValue: 108);
+                DELETE FROM [Users]
+                WHERE [Id] = 108 AND [Username] = 'releasingofficer';
 
-            migrationBuilder.DeleteData(
-                table: "UserRoles",
-                keyColumn: "Id",
-                keyValue: 12);
+                DELETE FROM [UserRoles]
+                WHERE [Id] = 12 AND [UserRoleDesc] = 'releasing-officer';
+                """);
 
             migrationBuilder.DropColumn(
                 name: "IssuedAt",
