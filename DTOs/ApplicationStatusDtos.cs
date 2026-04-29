@@ -7,6 +7,7 @@ namespace ePermitsApp.DTOs
     {
         public List<string> OverallStatuses { get; set; } = new();
         public List<string> DepartmentStatuses { get; set; } = new();
+        public List<string> ReviewSubstatuses { get; set; } = new();
     }
 
     public class AssignApplicationReviewerDto
@@ -23,6 +24,16 @@ namespace ePermitsApp.DTOs
 
     public class UpdateApplicationOverallStatusDto
     {
+        [Required]
+        public string Status { get; set; } = string.Empty;
+        [MaxLength(500)]
+        public string? Reason { get; set; }
+    }
+
+    public class UpdateApplicationReviewSubstatusDto
+    {
+        [Required]
+        public string ReviewType { get; set; } = string.Empty;
         [Required]
         public string Status { get; set; } = string.Empty;
         [MaxLength(500)]

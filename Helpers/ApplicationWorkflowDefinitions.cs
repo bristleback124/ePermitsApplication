@@ -25,6 +25,7 @@ namespace ePermitsApp.Helpers
             public const string Applicant = "applicant";
             public const string Encoder = "encoder";
             public const string InitialReviewer = "initial-reviewer";
+            public const string TechnicalReviewer = "technical-reviewer";
             public const string FeeAssessor = "fee-assessor";
             public const string FinalReviewer = "final-reviewer";
             public const string FinalApprover = "final-approver";
@@ -72,6 +73,7 @@ namespace ePermitsApp.Helpers
             Roles.Applicant,
             Roles.Encoder,
             Roles.InitialReviewer,
+            Roles.TechnicalReviewer,
             Roles.FeeAssessor,
             Roles.FinalReviewer,
             Roles.FinalApprover,
@@ -80,15 +82,29 @@ namespace ePermitsApp.Helpers
             Roles.ReleasingOfficer
         };
 
+        public static class ReviewSubstatuses
+        {
+            public const string ReviewNotStarted = "Review Not Started";
+            public const string InProgress = "In Progress";
+            public const string Complete = "Complete";
+            public const string DeficiencyIssued = "Deficiency Issued";
+        }
+
+        public static readonly string[] ReviewSubstatusOptions =
+        {
+            ReviewSubstatuses.ReviewNotStarted,
+            ReviewSubstatuses.InProgress,
+            ReviewSubstatuses.Complete,
+            ReviewSubstatuses.DeficiencyIssued
+        };
+
         public static readonly IReadOnlyList<WorkflowTransition> Transitions = new List<WorkflowTransition>
         {
             // === Initial Reviewer: forward (direct from Submitted — matches reference site) ===
             new(OverallStatuses.Submitted, Roles.InitialReviewer, OverallStatuses.ForFeeComputation, "Proceed to Fee Computation", "forward"),
-            new(OverallStatuses.Submitted, Roles.InitialReviewer, OverallStatuses.DeficiencyIssued, "Issue Deficiency", "close"),
 
             // === Initial Reviewer: also handle Under Initial Review (for apps already in this state) ===
             new(OverallStatuses.UnderInitialReview, Roles.InitialReviewer, OverallStatuses.ForFeeComputation, "Proceed to Fee Computation", "forward"),
-            new(OverallStatuses.UnderInitialReview, Roles.InitialReviewer, OverallStatuses.DeficiencyIssued, "Issue Deficiency", "close"),
             new(OverallStatuses.UnderInitialReview, Roles.InitialReviewer, OverallStatuses.Submitted, "Re-open", "reset"),
 
             // === Initial Reviewer: re-open deficiency ===
@@ -158,6 +174,11 @@ namespace ePermitsApp.Helpers
         public static bool IsValidRole(string role)
         {
             return AllRoles.Contains(role, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public static bool IsValidReviewSubstatus(string status)
+        {
+            return ReviewSubstatusOptions.Contains(status, StringComparer.OrdinalIgnoreCase);
         }
 
         public static bool IsTerminalStatus(string status)

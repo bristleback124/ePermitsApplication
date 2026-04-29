@@ -39,12 +39,12 @@ namespace ePermitsApp.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CreatedAt", "CreatedBy", "DepartmentId", "LGUId", "MustChangePassword", "Password", "UpdatedAt", "UpdatedBy", "UserProfileId", "UserRoleId", "Username" },
-                values: new object[] { 107, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", null, 1, false, "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=", null, null, 107, 12, "releasingofficer" });
+                values: new object[] { 108, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", null, 1, false, "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=", null, null, 108, 12, "releasingofficer" });
 
             migrationBuilder.InsertData(
                 table: "UserProfiles",
                 columns: new[] { "Id", "CreatedAt", "CreatedBy", "Email", "FirstName", "LastName", "MiddleName", "MobileNo", "UpdatedAt", "UpdatedBy", "UserId" },
-                values: new object[] { 107, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", "releasingofficer@lgu.gov.ph", "Liza", "Mendoza", "", "09171000008", null, null, 107 });
+                values: new object[] { 108, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "System", "releasingofficer@lgu.gov.ph", "Liza", "Mendoza", "", "09171000009", null, null, 108 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Applications_IssuedById",
@@ -74,12 +74,12 @@ namespace ePermitsApp.Migrations
             migrationBuilder.DeleteData(
                 table: "UserProfiles",
                 keyColumn: "Id",
-                keyValue: 107);
+                keyValue: 108);
 
             migrationBuilder.DeleteData(
                 table: "Users",
                 keyColumn: "Id",
-                keyValue: 107);
+                keyValue: 108);
 
             migrationBuilder.DeleteData(
                 table: "UserRoles",

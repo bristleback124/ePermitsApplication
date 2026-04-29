@@ -98,6 +98,8 @@ namespace ePermitsApp.Mappings
                     : string.Empty))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.StatusReason, opt => opt.MapFrom(src => src.StatusReason))
+                .ForMember(dest => dest.RequirementsReviewStatus, opt => opt.MapFrom(src => src.RequirementsReviewStatus))
+                .ForMember(dest => dest.TechnicalPlansReviewStatus, opt => opt.MapFrom(src => src.TechnicalPlansReviewStatus))
                 .ForMember(dest => dest.NextStep, opt => opt.MapFrom(src =>
                     ApplicationWorkflowDefinitions.NextStepDescriptions.ContainsKey(src.Status)
                         ? ApplicationWorkflowDefinitions.NextStepDescriptions[src.Status] : null))

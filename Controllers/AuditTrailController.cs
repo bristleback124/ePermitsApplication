@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ePermits.Controllers
 {
-    [Authorize(Roles = "admin,superadmin,sysadmin,user,encoder,initial-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
+    [Authorize(Roles = "admin,superadmin,sysadmin,user,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
     [ApiController]
     [Route("api/audit-trail")]
     public class AuditTrailController : ControllerBase

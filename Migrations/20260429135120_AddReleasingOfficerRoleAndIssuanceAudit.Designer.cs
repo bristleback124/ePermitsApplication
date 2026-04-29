@@ -12,7 +12,7 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260429120928_AddReleasingOfficerRoleAndIssuanceAudit")]
+    [Migration("20260429135120_AddReleasingOfficerRoleAndIssuanceAudit")]
     partial class AddReleasingOfficerRoleAndIssuanceAudit
     {
         /// <inheritdoc />
@@ -51,6 +51,13 @@ namespace ePermitsApp.Migrations
                     b.Property<int?>("IssuedById")
                         .HasColumnType("int");
 
+                    b.Property<string>("RequirementsReviewStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Review Not Started");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -61,6 +68,13 @@ namespace ePermitsApp.Migrations
 
                     b.Property<int?>("SubmittedById")
                         .HasColumnType("int");
+
+                    b.Property<string>("TechnicalPlansReviewStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Review Not Started");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -493,6 +507,18 @@ namespace ePermitsApp.Migrations
                             MustChangePassword = false,
                             Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
                             UserProfileId = 107,
+                            UserRoleId = 11,
+                            Username = "technicalreviewer"
+                        },
+                        new
+                        {
+                            Id = 108,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            LGUId = 1,
+                            MustChangePassword = false,
+                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
+                            UserProfileId = 108,
                             UserRoleId = 12,
                             Username = "releasingofficer"
                         });
@@ -659,12 +685,24 @@ namespace ePermitsApp.Migrations
                             Id = 107,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
+                            Email = "technicalreviewer@lgu.gov.ph",
+                            FirstName = "Teresa",
+                            LastName = "Villanueva",
+                            MiddleName = "",
+                            MobileNo = "09171000008",
+                            UserId = 107
+                        },
+                        new
+                        {
+                            Id = 108,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
                             Email = "releasingofficer@lgu.gov.ph",
                             FirstName = "Liza",
                             LastName = "Mendoza",
                             MiddleName = "",
-                            MobileNo = "09171000008",
-                            UserId = 107
+                            MobileNo = "09171000009",
+                            UserId = 108
                         });
                 });
 
@@ -768,6 +806,13 @@ namespace ePermitsApp.Migrations
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             UserRoleDesc = "sysadmin"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            UserRoleDesc = "technical-reviewer"
                         },
                         new
                         {
