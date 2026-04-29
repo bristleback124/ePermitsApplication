@@ -1,21 +1,50 @@
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using ePermitsApp.Data;
 
 #nullable disable
 
 namespace ePermitsApp.Migrations
 {
     /// <inheritdoc />
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20260429120000_UseYearlyApplicationFormattedIdSequence")]
     public partial class UseYearlyApplicationFormattedIdSequence : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Applications_FormattedId",
-                table: "Applications");
-
             migrationBuilder.Sql(
                 """
+                IF EXISTS (
+                    SELECT 1
+                    FROM sys.indexes
+                    WHERE name = 'IX_Applications_FormattedId'
+                        AND object_id = OBJECT_ID('Applications')
+                )
+                BEGIN
+                    DROP INDEX [IX_Applications_FormattedId] ON [Applications];
+                END;
+
+                UPDATE Applications
+                SET FormattedId = ''
+                WHERE FormattedId IS NULL;
+
+                DECLARE @FormattedIdDefaultConstraint nvarchar(128);
+                SELECT @FormattedIdDefaultConstraint = dc.name
+                FROM sys.default_constraints dc
+                INNER JOIN sys.columns c ON c.default_object_id = dc.object_id
+                WHERE dc.parent_object_id = OBJECT_ID('Applications')
+                    AND c.name = 'FormattedId';
+
+                IF @FormattedIdDefaultConstraint IS NOT NULL
+                BEGIN
+                    EXEC(N'ALTER TABLE [Applications] DROP CONSTRAINT [' + @FormattedIdDefaultConstraint + N']');
+                END;
+
+                ALTER TABLE [Applications]
+                ALTER COLUMN [FormattedId] nvarchar(32) NOT NULL;
+
                 ;WITH RankedApplications AS (
                     SELECT
                         Id,
@@ -47,25 +76,55 @@ namespace ePermitsApp.Migrations
                 UPDATE Applications
                 SET FormattedId = ''
                 WHERE Status = 'Draft';
-                """);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Applications_FormattedId",
-                table: "Applications",
-                column: "FormattedId",
-                unique: true,
-                filter: "[FormattedId] IS NOT NULL AND [FormattedId] <> ''");
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM sys.indexes
+                    WHERE name = 'IX_Applications_FormattedId'
+                        AND object_id = OBJECT_ID('Applications')
+                )
+                BEGIN
+                    CREATE UNIQUE INDEX [IX_Applications_FormattedId]
+                    ON [Applications] ([FormattedId])
+                    WHERE [FormattedId] IS NOT NULL AND [FormattedId] <> '';
+                END;
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_Applications_FormattedId",
-                table: "Applications");
-
             migrationBuilder.Sql(
                 """
+                IF EXISTS (
+                    SELECT 1
+                    FROM sys.indexes
+                    WHERE name = 'IX_Applications_FormattedId'
+                        AND object_id = OBJECT_ID('Applications')
+                )
+                BEGIN
+                    DROP INDEX [IX_Applications_FormattedId] ON [Applications];
+                END;
+
+                UPDATE Applications
+                SET FormattedId = ''
+                WHERE FormattedId IS NULL;
+
+                DECLARE @FormattedIdDefaultConstraint nvarchar(128);
+                SELECT @FormattedIdDefaultConstraint = dc.name
+                FROM sys.default_constraints dc
+                INNER JOIN sys.columns c ON c.default_object_id = dc.object_id
+                WHERE dc.parent_object_id = OBJECT_ID('Applications')
+                    AND c.name = 'FormattedId';
+
+                IF @FormattedIdDefaultConstraint IS NOT NULL
+                BEGIN
+                    EXEC(N'ALTER TABLE [Applications] DROP CONSTRAINT [' + @FormattedIdDefaultConstraint + N']');
+                END;
+
+                ALTER TABLE [Applications]
+                ALTER COLUMN [FormattedId] nvarchar(32) NOT NULL;
+
                 ;WITH RankedApplications AS (
                     SELECT
                         Id,
@@ -97,14 +156,19 @@ namespace ePermitsApp.Migrations
                 UPDATE Applications
                 SET FormattedId = ''
                 WHERE Status = 'Draft';
-                """);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Applications_FormattedId",
-                table: "Applications",
-                column: "FormattedId",
-                unique: true,
-                filter: "[FormattedId] IS NOT NULL AND [FormattedId] <> ''");
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM sys.indexes
+                    WHERE name = 'IX_Applications_FormattedId'
+                        AND object_id = OBJECT_ID('Applications')
+                )
+                BEGIN
+                    CREATE UNIQUE INDEX [IX_Applications_FormattedId]
+                    ON [Applications] ([FormattedId])
+                    WHERE [FormattedId] IS NOT NULL AND [FormattedId] <> '';
+                END;
+                """);
         }
     }
 }

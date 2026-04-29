@@ -119,7 +119,8 @@ namespace ePermitsApp.Services
             return Task.FromResult(new ApplicationStatusOptionsDto
             {
                 OverallStatuses = ApplicationWorkflowDefinitions.AllStatuses.ToList(),
-                DepartmentStatuses = ApplicationWorkflowDefinitions.DepartmentStatusOptions.ToList()
+                DepartmentStatuses = ApplicationWorkflowDefinitions.DepartmentStatusOptions.ToList(),
+                ReviewSubstatuses = ApplicationWorkflowDefinitions.ReviewSubstatusOptions.ToList()
             });
         }
 
@@ -255,8 +256,31 @@ namespace ePermitsApp.Services
                 return (false, validationMessage);
             }
 
+            if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.OverallStatuses.ForFeeComputation, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(userRole, ApplicationWorkflowDefinitions.Roles.InitialReviewer, StringComparison.OrdinalIgnoreCase)
+                && (!string.Equals(application.RequirementsReviewStatus, ApplicationWorkflowDefinitions.ReviewSubstatuses.Complete, StringComparison.OrdinalIgnoreCase)
+                    || !string.Equals(application.TechnicalPlansReviewStatus, ApplicationWorkflowDefinitions.ReviewSubstatuses.Complete, StringComparison.OrdinalIgnoreCase)))
+            {
+                return (false, "Requirements and Technical Plans reviews must both be Complete before proceeding to fee computation");
+            }
+
             var previousStatus = application.Status;
             application.Status = dto.Status;
+
+            if (string.Equals(previousStatus, ApplicationWorkflowDefinitions.OverallStatuses.DeficiencyIssued, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(dto.Status, ApplicationWorkflowDefinitions.OverallStatuses.Submitted, StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.Equals(application.RequirementsReviewStatus, ApplicationWorkflowDefinitions.ReviewSubstatuses.DeficiencyIssued, StringComparison.OrdinalIgnoreCase))
+                {
+                    application.RequirementsReviewStatus = ApplicationWorkflowDefinitions.ReviewSubstatuses.ReviewNotStarted;
+                }
+
+                if (string.Equals(application.TechnicalPlansReviewStatus, ApplicationWorkflowDefinitions.ReviewSubstatuses.DeficiencyIssued, StringComparison.OrdinalIgnoreCase))
+                {
+                    application.TechnicalPlansReviewStatus = ApplicationWorkflowDefinitions.ReviewSubstatuses.ReviewNotStarted;
+                }
+            }
+
             if (dto.Reason != null)
                 application.StatusReason = dto.Reason;
             application.UpdatedAt = DateTime.UtcNow;
@@ -280,6 +304,84 @@ namespace ePermitsApp.Services
                 overallUserName);
 
             return (true, "Status updated successfully");
+        }
+
+        public async Task<(bool Success, string Message)> UpdateReviewSubstatusAsync(int applicationId, UpdateApplicationReviewSubstatusDto dto)
+        {
+            var application = await _applicationRepository.GetByIdAsync(applicationId);
+            if (application == null)
+            {
+                return (false, "Application not found");
+            }
+
+            if (!ApplicationWorkflowDefinitions.IsValidReviewSubstatus(dto.Status))
+            {
+                return (false, "Invalid review substatus");
+            }
+
+            var currentUser = await GetCurrentUserAsync();
+            var userRole = currentUser?.UserRole?.UserRoleDesc ?? string.Empty;
+            var reviewType = dto.ReviewType.Trim().ToLowerInvariant();
+            var canEditRequirements = reviewType == "requirements"
+                && string.Equals(userRole, ApplicationWorkflowDefinitions.Roles.InitialReviewer, StringComparison.OrdinalIgnoreCase);
+            var canEditTechnicalPlans = reviewType == "technical-plans"
+                && string.Equals(userRole, ApplicationWorkflowDefinitions.Roles.TechnicalReviewer, StringComparison.OrdinalIgnoreCase);
+
+            if (!canEditRequirements && !canEditTechnicalPlans)
+            {
+                return (false, "You are not allowed to update this review substatus");
+            }
+
+            if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.ReviewSubstatuses.DeficiencyIssued, StringComparison.OrdinalIgnoreCase)
+                && string.IsNullOrWhiteSpace(dto.Reason))
+            {
+                return (false, "A deficiency reason is required");
+            }
+
+            var previousStatus = canEditRequirements
+                ? application.RequirementsReviewStatus
+                : application.TechnicalPlansReviewStatus;
+            var previousOverallStatus = application.Status;
+
+            if (canEditRequirements)
+            {
+                application.RequirementsReviewStatus = dto.Status;
+            }
+            else
+            {
+                application.TechnicalPlansReviewStatus = dto.Status;
+            }
+
+            if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.ReviewSubstatuses.DeficiencyIssued, StringComparison.OrdinalIgnoreCase))
+            {
+                application.Status = ApplicationWorkflowDefinitions.OverallStatuses.DeficiencyIssued;
+                application.StatusReason = dto.Reason;
+            }
+
+            application.UpdatedAt = DateTime.UtcNow;
+            application.UpdatedBy = currentUser?.Username ?? "System";
+
+            await _applicationRepository.UpdateAsync(application);
+
+            if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.ReviewSubstatuses.DeficiencyIssued, StringComparison.OrdinalIgnoreCase))
+            {
+                await SendStatusUpdateEmailAsync(applicationId, application.Status, previousStatus: previousOverallStatus);
+            }
+
+            var userId = int.TryParse(_currentUserService.UserId, out var uid) ? uid : 0;
+            var reviewLabel = canEditRequirements ? "Requirements" : "Technical Plans";
+            var details = string.IsNullOrWhiteSpace(dto.Reason)
+                ? $"Previous {reviewLabel} review substatus: {previousStatus}"
+                : $"Previous {reviewLabel} review substatus: {previousStatus}. Reason: {dto.Reason}";
+            await _auditTrailService.LogAsync(
+                applicationId,
+                AuditActionTypes.StatusChange,
+                $"{reviewLabel} review substatus changed to {dto.Status}",
+                details,
+                userId,
+                currentUser?.Username ?? "System");
+
+            return (true, "Review substatus updated successfully");
         }
 
         private async Task<User?> GetCurrentUserAsync()
