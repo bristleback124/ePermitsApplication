@@ -18,7 +18,7 @@ namespace ePermitsApp.Data.Seeders
             // Seed users for each workflow role
             // UserRole IDs: 4=encoder, 5=initial-reviewer, 6=fee-assessor,
             //               7=final-reviewer, 8=final-approver, 9=executive, 10=sysadmin,
-            //               11=technical-reviewer
+            //               11=technical-reviewer, 12=releasing-officer
 
             var users = new[]
             {
@@ -30,6 +30,7 @@ namespace ePermitsApp.Data.Seeders
                 new { Id = 105, Username = "mayor", RoleId = 9, FirstName = "Mayor", LastName = "Torres", Email = "mayor@lgu.gov.ph", Mobile = "09171000006" },
                 new { Id = 106, Username = "sysadmin", RoleId = 10, FirstName = "Carl", LastName = "Rivera", Email = "sysadmin@lgu.gov.ph", Mobile = "09171000007" },
                 new { Id = 107, Username = "technicalreviewer", RoleId = 11, FirstName = "Teresa", LastName = "Villanueva", Email = "technicalreviewer@lgu.gov.ph", Mobile = "09171000008" },
+                new { Id = 108, Username = "releasingofficer", RoleId = 12, FirstName = "Liza", LastName = "Mendoza", Email = "releasingofficer@lgu.gov.ph", Mobile = "09171000009" },
             };
 
             foreach (var u in users)

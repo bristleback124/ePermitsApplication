@@ -53,7 +53,7 @@ namespace ePermits.Controllers
         }
 
         [HttpPost("{applicationId}")]
-        [Authorize(Roles = "admin,superadmin,sysadmin,final-approver,encoder")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,releasing-officer")]
         [RequestSizeLimit(10 * 1024 * 1024)] // 10MB
         public async Task<IActionResult> Upload(int applicationId, IFormFile file, [FromForm] string? description)
         {
@@ -101,7 +101,7 @@ namespace ePermits.Controllers
         }
 
         [HttpDelete("{documentId}")]
-        [Authorize(Roles = "admin,superadmin,sysadmin,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,releasing-officer")]
         public async Task<IActionResult> Delete(int documentId)
         {
             var document = await _context.IssuedPermitDocuments.FindAsync(documentId);

@@ -40,7 +40,7 @@ namespace ePermitsApp.Controllers
             return Ok(options);
         }
 
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         [HttpGet("reviewers")]
         public async Task<ActionResult<IEnumerable<ReviewAssignableUserDto>>> GetAssignableReviewers([FromQuery] int departmentId)
         {
@@ -68,7 +68,7 @@ namespace ePermitsApp.Controllers
             return Ok(application);
         }
 
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         [HttpPut("{applicationId}/reviews/{departmentId}/assign")]
         public async Task<ActionResult<ApplicationDepartmentReviewDto>> AssignReviewer(int applicationId, int departmentId, [FromBody] AssignApplicationReviewerDto dto)
         {
@@ -82,7 +82,7 @@ namespace ePermitsApp.Controllers
             return Ok(new { success = true, message = result.Message, data = result.Review });
         }
 
-        [Authorize(Roles = "admin,superadmin,sysadmin,user,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,user,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         [HttpPut("{applicationId}/reviews/{departmentId}/status")]
         public async Task<ActionResult<ApplicationDepartmentReviewDto>> UpdateDepartmentReviewStatus(int applicationId, int departmentId, [FromBody] UpdateApplicationDepartmentReviewStatusDto dto)
         {
@@ -96,7 +96,7 @@ namespace ePermitsApp.Controllers
             return Ok(new { success = true, message = result.Message, data = result.Review });
         }
 
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,applicant")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer,applicant")]
         [HttpPut("{applicationId}/overall-status")]
         public async Task<IActionResult> UpdateOverallStatus(int applicationId, [FromBody] UpdateApplicationOverallStatusDto dto)
         {

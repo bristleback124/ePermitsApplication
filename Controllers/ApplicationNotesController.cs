@@ -29,7 +29,7 @@ namespace ePermits.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         public async Task<IActionResult> CreateNote([FromBody] CreateApplicationNoteDto dto)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -39,7 +39,7 @@ namespace ePermits.Controllers
         }
 
         [HttpPatch("{noteId}/visibility")]
-        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver")]
+        [Authorize(Roles = "admin,superadmin,sysadmin,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,releasing-officer")]
         public async Task<IActionResult> UpdateVisibility(int noteId, [FromBody] UpdateNoteVisibilityDto dto)
         {
             var result = await _noteService.UpdateVisibilityAsync(noteId, dto.IsVisibleToApplicant);

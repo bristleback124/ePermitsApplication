@@ -12,7 +12,7 @@ namespace ePermits.Controllers
     [Authorize]
     public class ClearanceDocumentsController : ControllerBase
     {
-        private const string InternalRoles = "admin,superadmin,sysadmin,user,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,executive";
+        private const string InternalRoles = "admin,superadmin,sysadmin,user,encoder,initial-reviewer,technical-reviewer,fee-assessor,final-reviewer,final-approver,executive,releasing-officer";
 
         private readonly ApplicationDbContext _context;
         private readonly IFileStorageService _fileStorage;
