@@ -13,5 +13,6 @@ namespace ePermitsApp.Services.Interfaces
         Task<(bool Success, string Message, ApplicationDepartmentReviewDto? Review)> AssignReviewerAsync(int applicationId, int departmentId, AssignApplicationReviewerDto dto);
         Task<(bool Success, string Message, ApplicationDepartmentReviewDto? Review)> UpdateDepartmentReviewStatusAsync(int applicationId, int departmentId, UpdateApplicationDepartmentReviewStatusDto dto);
         Task<(bool Success, string Message)> UpdateOverallStatusAsync(int applicationId, UpdateApplicationOverallStatusDto dto);
+        Task<(bool Success, string Message)> UpdateReviewSubstatusAsync(int applicationId, UpdateApplicationReviewSubstatusDto dto);
     }
 }

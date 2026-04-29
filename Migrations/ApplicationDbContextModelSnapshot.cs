@@ -42,6 +42,12 @@ namespace ePermitsApp.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<string>("RequirementsReviewStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Review Not Started");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -52,6 +58,12 @@ namespace ePermitsApp.Migrations
 
                     b.Property<int?>("SubmittedById")
                         .HasColumnType("int");
+
+                    b.Property<string>("TechnicalPlansReviewStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Review Not Started");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -472,6 +484,18 @@ namespace ePermitsApp.Migrations
                             UserProfileId = 106,
                             UserRoleId = 10,
                             Username = "sysadmin"
+                        },
+                        new
+                        {
+                            Id = 107,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            LGUId = 1,
+                            MustChangePassword = false,
+                            Password = "75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=",
+                            UserProfileId = 107,
+                            UserRoleId = 11,
+                            Username = "technicalreviewer"
                         });
                 });
 
@@ -630,6 +654,18 @@ namespace ePermitsApp.Migrations
                             MiddleName = "",
                             MobileNo = "09171000007",
                             UserId = 106
+                        },
+                        new
+                        {
+                            Id = 107,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            Email = "technicalreviewer@lgu.gov.ph",
+                            FirstName = "Teresa",
+                            LastName = "Villanueva",
+                            MiddleName = "",
+                            MobileNo = "09171000008",
+                            UserId = 107
                         });
                 });
 
@@ -733,6 +769,13 @@ namespace ePermitsApp.Migrations
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "System",
                             UserRoleDesc = "sysadmin"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            UserRoleDesc = "technical-reviewer"
                         });
                 });
 

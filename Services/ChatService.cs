@@ -174,7 +174,7 @@ namespace ePermits.Services
         private static bool IsGovernmentRole(string? role)
         {
             if (string.IsNullOrWhiteSpace(role)) return false;
-            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
+            var govRoles = new[] { "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "technical-reviewer", "fee-assessor", "final-reviewer", "final-approver" };
             return govRoles.Any(r => string.Equals(role, r, StringComparison.OrdinalIgnoreCase));
         }
 

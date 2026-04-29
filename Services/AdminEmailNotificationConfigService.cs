@@ -110,7 +110,7 @@ public class AdminEmailNotificationConfigService : IAdminEmailNotificationConfig
 
     private static readonly HashSet<string> SelectableRoles = new(StringComparer.OrdinalIgnoreCase)
     {
-        "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "fee-assessor", "final-reviewer", "final-approver"
+        "admin", "superadmin", "sysadmin", "user", "encoder", "initial-reviewer", "technical-reviewer", "fee-assessor", "final-reviewer", "final-approver"
     };
 
     private async Task<List<ePermits.Models.User>> GetAllUsersWithProfilesAsync()
