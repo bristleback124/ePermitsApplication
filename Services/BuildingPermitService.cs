@@ -87,6 +87,7 @@ namespace ePermitsApp.Services
         public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
+            NormalizeDraftValues(buildingPermit);
 
             var now = DateTime.UtcNow;
             int currentUserId = 15;
@@ -104,7 +105,6 @@ namespace ePermitsApp.Services
 
             if (saveAsDraft)
             {
-                NormalizeDraftValues(buildingPermit);
                 await NormalizeDraftForeignKeysAsync(buildingPermit);
             }
 
@@ -168,8 +168,17 @@ namespace ePermitsApp.Services
             {
                 buildingPermit.AppInfo.ReqDocProofOwnership = await SaveFilesAsync(dto.AppInfo.ReqDocProofOwnership, buildingPermit.Id, "req-docs");
                 buildingPermit.AppInfo.ReqDocBarangayClearance = await SaveFilesAsync(dto.AppInfo.ReqDocBarangayClearance, buildingPermit.Id, "req-docs");
-                buildingPermit.AppInfo.ReqDocTaxDeclaration = await SaveFilesAsync(dto.AppInfo.ReqDocTaxDeclaration, buildingPermit.Id, "req-docs");
-                buildingPermit.AppInfo.ReqDocRealPropTaxReceipt = await SaveFilesAsync(dto.AppInfo.ReqDocRealPropTaxReceipt, buildingPermit.Id, "req-docs");
+                if (AreSameSubmittedFileSet(dto.AppInfo.ReqDocTaxDeclaration, dto.AppInfo.ReqDocRealPropTaxReceipt))
+                {
+                    var combinedTaxRpt = await SaveFilesAsync(dto.AppInfo.ReqDocTaxDeclaration, buildingPermit.Id, "req-docs");
+                    buildingPermit.AppInfo.ReqDocTaxDeclaration = combinedTaxRpt;
+                    buildingPermit.AppInfo.ReqDocRealPropTaxReceipt = combinedTaxRpt;
+                }
+                else
+                {
+                    buildingPermit.AppInfo.ReqDocTaxDeclaration = await SaveFilesAsync(dto.AppInfo.ReqDocTaxDeclaration, buildingPermit.Id, "req-docs");
+                    buildingPermit.AppInfo.ReqDocRealPropTaxReceipt = await SaveFilesAsync(dto.AppInfo.ReqDocRealPropTaxReceipt, buildingPermit.Id, "req-docs");
+                }
 
                 if (dto.AppInfo.ReqDocECCorCNC != null)
                     buildingPermit.AppInfo.ReqDocECCorCNC = await SaveFilesAsync(dto.AppInfo.ReqDocECCorCNC, buildingPermit.Id, "req-docs");
@@ -277,14 +286,14 @@ namespace ePermitsApp.Services
 
             if (saveAsDraft)
             {
-                NormalizeDraftValues(buildingPermit);
                 await NormalizeDraftForeignKeysAsync(buildingPermit);
             }
 
+            NormalizeDraftValues(buildingPermit);
+
             await UpdateMultiFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocProofOwnership), dto.AppInfo.KeepReqDocProofOwnership, dto.AppInfo.ReqDocProofOwnership, buildingPermit.Id, !saveAsDraft);
             await UpdateMultiFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocBarangayClearance), dto.AppInfo.KeepReqDocBarangayClearance, dto.AppInfo.ReqDocBarangayClearance, buildingPermit.Id, !saveAsDraft);
-            await UpdateMultiFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocTaxDeclaration), dto.AppInfo.KeepReqDocTaxDeclaration, dto.AppInfo.ReqDocTaxDeclaration, buildingPermit.Id, !saveAsDraft);
-            await UpdateMultiFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocRealPropTaxReceipt), dto.AppInfo.KeepReqDocRealPropTaxReceipt, dto.AppInfo.ReqDocRealPropTaxReceipt, buildingPermit.Id, !saveAsDraft);
+            await UpdateCombinedTaxDeclarationAndRptAsync(buildingPermit.AppInfo, dto.AppInfo, buildingPermit.Id, !saveAsDraft);
             await UpdateMultiFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocECCorCNC), dto.AppInfo.KeepReqDocECCorCNC, dto.AppInfo.ReqDocECCorCNC, buildingPermit.Id, false);
             await UpdateMultiFileAsync(buildingPermit.AppInfo, nameof(buildingPermit.AppInfo.ReqDocSpecialClearances), dto.AppInfo.KeepReqDocSpecialClearances, dto.AppInfo.ReqDocSpecialClearances, buildingPermit.Id, false);
 
@@ -378,6 +387,103 @@ namespace ePermitsApp.Services
             return FilePathHelper.Serialize(metadataList);
         }
 
+        private async Task UpdateCombinedTaxDeclarationAndRptAsync(BuildingPermitAppInfo appInfo, BuildingPermitAppInfoUpdateDto dto, int permitId, bool required)
+        {
+            var existing = FilePathHelper.Deserialize(appInfo.ReqDocTaxDeclaration)
+                .Concat(FilePathHelper.Deserialize(appInfo.ReqDocRealPropTaxReceipt))
+                .ToList();
+            var keepPaths = dto.KeepReqDocTaxDeclaration
+                .Concat(dto.KeepReqDocRealPropTaxReceipt)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var keptIdentities = existing
+                .Where(file => keepPaths.Contains(file.Path))
+                .Select(GetFileMetadataIdentity)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var retained = DedupeFileMetadata(existing)
+                .Where(file => keepPaths.Contains(file.Path) || keptIdentities.Contains(GetFileMetadataIdentity(file)))
+                .ToList();
+
+            if (AreSameSubmittedFileSet(dto.ReqDocTaxDeclaration, dto.ReqDocRealPropTaxReceipt))
+            {
+                if (dto.ReqDocTaxDeclaration != null && dto.ReqDocTaxDeclaration.Count > 0)
+                {
+                    retained.AddRange(await SaveNewFileMetadataAsync(dto.ReqDocTaxDeclaration, permitId, "req-docs"));
+                }
+            }
+            else
+            {
+                if (dto.ReqDocTaxDeclaration != null && dto.ReqDocTaxDeclaration.Count > 0)
+                {
+                    retained.AddRange(await SaveNewFileMetadataAsync(dto.ReqDocTaxDeclaration, permitId, "req-docs"));
+                }
+
+                if (dto.ReqDocRealPropTaxReceipt != null && dto.ReqDocRealPropTaxReceipt.Count > 0)
+                {
+                    retained.AddRange(await SaveNewFileMetadataAsync(dto.ReqDocRealPropTaxReceipt, permitId, "req-docs"));
+                }
+            }
+
+            retained = DedupeFileMetadata(retained);
+            if (required && retained.Count == 0)
+            {
+                throw new InvalidOperationException($"{nameof(appInfo.ReqDocTaxDeclaration)} is required.");
+            }
+
+            var serialized = FilePathHelper.Serialize(retained);
+            appInfo.ReqDocTaxDeclaration = serialized;
+            appInfo.ReqDocRealPropTaxReceipt = serialized;
+        }
+
+        private static bool AreSameSubmittedFileSet(IFormFileCollection? first, IFormFileCollection? second)
+        {
+            var firstKeys = GetSubmittedFileKeys(first);
+            var secondKeys = GetSubmittedFileKeys(second);
+
+            return firstKeys.SequenceEqual(secondKeys, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static List<string> GetSubmittedFileKeys(IFormFileCollection? files)
+        {
+            return files?
+                .Where(file => file.Length > 0)
+                .Select(file => $"{file.FileName.Trim().ToLowerInvariant()}::{file.Length}")
+                .OrderBy(key => key, StringComparer.OrdinalIgnoreCase)
+                .ToList()
+                ?? new List<string>();
+        }
+
+        private static List<FileMetadataDto> DedupeFileMetadata(IEnumerable<FileMetadataDto> files)
+        {
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var result = new List<FileMetadataDto>();
+
+            foreach (var file in files)
+            {
+                if (string.IsNullOrWhiteSpace(file.Path))
+                {
+                    continue;
+                }
+
+                if (seen.Add(GetFileMetadataIdentity(file)))
+                {
+                    result.Add(file);
+                }
+            }
+
+            return result;
+        }
+
+        private static string GetFileMetadataIdentity(FileMetadataDto file)
+        {
+            if (!string.IsNullOrWhiteSpace(file.Name) && file.Size > 0)
+            {
+                return $"{file.Name.Trim().ToLowerInvariant()}::{file.Size}";
+            }
+
+            return file.Path.Trim().ToLowerInvariant();
+        }
+
         private async Task<string> SaveFileInternalAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -391,7 +497,7 @@ namespace ePermitsApp.Services
             buildingPermit.PermitAppTypeId = dto.PermitAppTypeId;
             buildingPermit.BuildingPermitCategoryId = dto.BuildingPermitCategoryId;
             buildingPermit.OccupancyNatureId = dto.OccupancyNatureId;
-            buildingPermit.ProjectTitle = dto.ProjectTitle;
+            buildingPermit.ProjectTitle = dto.ProjectTitle ?? string.Empty;
             buildingPermit.ProjectClassId = dto.ProjectClassId;
             buildingPermit.EstimatedCost = dto.EstimatedCost;
             buildingPermit.NoOfStoreys = dto.NoOfStoreys;
@@ -399,17 +505,17 @@ namespace ePermitsApp.Services
             buildingPermit.TotalFloorArea = dto.TotalFloorArea;
             buildingPermit.ProjectScopeLotArea = dto.ProjectScopeLotArea;
             buildingPermit.PropertyAddBlock = dto.PropertyAddBlock;
-            buildingPermit.PropertyAddLot = dto.PropertyAddLot;
-            buildingPermit.PropertyAddStreet = dto.PropertyAddStreet;
+            buildingPermit.PropertyAddLot = dto.PropertyAddLot ?? string.Empty;
+            buildingPermit.PropertyAddStreet = dto.PropertyAddStreet ?? string.Empty;
             buildingPermit.ProvinceId = dto.ProvinceId;
             buildingPermit.LGUId = dto.LGUId;
             buildingPermit.BarangayId = dto.BarangayId;
             buildingPermit.PropertyDetailLotArea = dto.PropertyDetailLotArea;
-            buildingPermit.TCTNo = dto.TCTNo;
-            buildingPermit.TaxDeclarionNo = dto.TaxDeclarionNo;
+            buildingPermit.TCTNo = dto.TCTNo ?? string.Empty;
+            buildingPermit.TaxDeclarionNo = dto.TaxDeclarionNo ?? string.Empty;
             buildingPermit.Coordinates = dto.Coordinates;
             buildingPermit.Accessories = string.Join("|", dto.Accessories);
-            buildingPermit.DigitalSignature = dto.DigitalSignature;
+            buildingPermit.DigitalSignature = dto.DigitalSignature ?? string.Empty;
             buildingPermit.DateofSignature = dto.DateofSignature ?? default;
             buildingPermit.UpdatedAt = now;
             buildingPermit.UpdatedBy = currentUserId;
@@ -418,11 +524,11 @@ namespace ePermitsApp.Services
         private static void UpdateAppInfoFields(BuildingPermitAppInfo appInfo, BuildingPermitAppInfoUpdateDto dto, DateTime now, int currentUserId)
         {
             appInfo.ApplicantTypeId = dto.ApplicantTypeId;
-            appInfo.FullName = dto.FullName;
-            appInfo.ContactNo = dto.ContactNo;
-            appInfo.Email = dto.Email;
-            appInfo.TIN = dto.TIN;
-            appInfo.MailAddress = dto.MailAddress;
+            appInfo.FullName = dto.FullName ?? string.Empty;
+            appInfo.ContactNo = dto.ContactNo ?? string.Empty;
+            appInfo.Email = dto.Email ?? string.Empty;
+            appInfo.TIN = dto.TIN ?? string.Empty;
+            appInfo.MailAddress = dto.MailAddress ?? string.Empty;
             appInfo.OwnershipTypeId = dto.OwnershipTypeId;
             appInfo.UpdatedAt = now;
             appInfo.UpdatedBy = currentUserId;
