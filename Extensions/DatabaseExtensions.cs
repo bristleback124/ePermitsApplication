@@ -1,5 +1,8 @@
 using ePermitsApp.Data;
+using ePermitsApp.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ePermitsApp.Extensions
 {
@@ -10,6 +13,9 @@ namespace ePermitsApp.Extensions
             using var scope = app.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+            var appIdSettings = scope.ServiceProvider
+                .GetRequiredService<IOptions<ApplicationIdSettings>>()
+                .Value;
 
             var pending = await db.Database.GetPendingMigrationsAsync();
             if (pending.Any())
@@ -25,6 +31,13 @@ namespace ePermitsApp.Extensions
 
             logger.LogInformation("Using database: {Database}", db.Database.GetDbConnection().Database);
 
+            logger.LogInformation(
+                "ApplicationIdSettings: BuildingPermit (offset={BpOffset}, year={BpYear}); CertificateOfOccupancy (offset={CoOffset}, year={CoYear}). Normalizer skips rows in offset years.",
+                appIdSettings.BuildingPermit.LegacySequenceOffset,
+                appIdSettings.BuildingPermit.LegacyYear,
+                appIdSettings.CertificateOfOccupancy.LegacySequenceOffset,
+                appIdSettings.CertificateOfOccupancy.LegacyYear);
+
             await db.Database.ExecuteSqlRawAsync(
                 """
                 ;WITH RankedApplications AS (
@@ -38,6 +51,8 @@ namespace ePermitsApp.Extensions
                         ) AS SequenceNumber
                     FROM Applications
                     WHERE Status <> 'Draft'
+                        AND NOT (Type = 'BuildingPermit'         AND YEAR(CreatedAt) = @bpYear AND @bpYear > 0)
+                        AND NOT (Type = 'CertificateOfOccupancy' AND YEAR(CreatedAt) = @coYear AND @coYear > 0)
                 )
                 UPDATE app
                 SET FormattedId =
@@ -65,7 +80,9 @@ namespace ePermitsApp.Extensions
                 SET FormattedId = ''
                 WHERE Status = 'Draft'
                     AND FormattedId <> '';
-                """);
+                """,
+                new SqlParameter("@bpYear", appIdSettings.BuildingPermit.LegacyYear),
+                new SqlParameter("@coYear", appIdSettings.CertificateOfOccupancy.LegacyYear));
 
             logger.LogInformation("Application formatted IDs normalized.");
         }

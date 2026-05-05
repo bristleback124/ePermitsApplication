@@ -57,6 +57,19 @@ namespace ePermitsApp
             builder.Services.Configure<EmailSettings>(
                 builder.Configuration.GetSection("EmailSettings"));
 
+            builder.Services
+                .AddOptions<ApplicationIdSettings>()
+                .Bind(builder.Configuration.GetSection("ApplicationIdSettings"))
+                .Validate(s =>
+                    s.BuildingPermit.LegacySequenceOffset >= 0 &&
+                    s.BuildingPermit.LegacySequenceOffset < 9999 &&
+                    s.CertificateOfOccupancy.LegacySequenceOffset >= 0 &&
+                    s.CertificateOfOccupancy.LegacySequenceOffset < 9999 &&
+                    (s.BuildingPermit.LegacyYear == 0 || s.BuildingPermit.LegacyYear >= 2000) &&
+                    (s.CertificateOfOccupancy.LegacyYear == 0 || s.CertificateOfOccupancy.LegacyYear >= 2000),
+                    "ApplicationIdSettings: offsets must be 0-9998 and years must be 0 or >= 2000.")
+                .ValidateOnStart();
+
             builder.Services.AddSingleton<RazorLightEngine>(sp =>
             {
                 var templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EmailTemplates");
