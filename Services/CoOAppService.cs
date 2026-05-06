@@ -87,6 +87,7 @@ namespace ePermitsApp.Services
         public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
             var coOApp = _mapper.Map<CoOApp>(dto);
+            NormalizePersistedStringValues(coOApp);
 
             var now = DateTime.UtcNow;
             int currentUserId = 15;
@@ -213,6 +214,7 @@ namespace ePermitsApp.Services
 
             _mapper.Map(dto, coOApp);
             _mapper.Map(dto.CoOAppProf, coOApp.CoOAppProf);
+            NormalizePersistedStringValues(coOApp);
             coOApp.UpdatedAt = now;
             coOApp.UpdatedBy = currentUserId;
             coOApp.CoOAppProf.UpdatedAt = now;
@@ -418,6 +420,21 @@ namespace ePermitsApp.Services
 
         private static void NormalizeDraftValues(CoOApp coOApp)
         {
+            NormalizePersistedStringValues(coOApp);
+            coOApp.CompletionDate = NormalizeDraftDate(coOApp.CompletionDate);
+            coOApp.DateOfSignature = NormalizeDraftDate(coOApp.DateOfSignature);
+
+            if (coOApp.CoOAppProf == null)
+            {
+                return;
+            }
+
+            coOApp.CoOAppProf.IOCValidity = NormalizeDraftDate(coOApp.CoOAppProf.IOCValidity);
+            coOApp.CoOAppProf.EoRValidity = NormalizeDraftDate(coOApp.CoOAppProf.EoRValidity);
+        }
+
+        private static void NormalizePersistedStringValues(CoOApp coOApp)
+        {
             coOApp.BldgPermitNo ??= string.Empty;
             coOApp.ProjectTitle ??= string.Empty;
             coOApp.ProjLocLot ??= string.Empty;
@@ -428,8 +445,6 @@ namespace ePermitsApp.Services
             coOApp.TIN ??= string.Empty;
             coOApp.MailAddress ??= string.Empty;
             coOApp.DigitalSignature ??= string.Empty;
-            coOApp.CompletionDate = NormalizeDraftDate(coOApp.CompletionDate);
-            coOApp.DateOfSignature = NormalizeDraftDate(coOApp.DateOfSignature);
 
             if (coOApp.CoOAppProf == null)
             {
@@ -442,8 +457,6 @@ namespace ePermitsApp.Services
             coOApp.CoOAppProf.EoRFullName ??= string.Empty;
             coOApp.CoOAppProf.EoRPRCorPTRNo ??= string.Empty;
             coOApp.CoOAppProf.EoRSpecialization ??= string.Empty;
-            coOApp.CoOAppProf.IOCValidity = NormalizeDraftDate(coOApp.CoOAppProf.IOCValidity);
-            coOApp.CoOAppProf.EoRValidity = NormalizeDraftDate(coOApp.CoOAppProf.EoRValidity);
         }
 
         private static DateTime NormalizeDraftDate(DateTime date)
