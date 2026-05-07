@@ -85,6 +85,51 @@ namespace ePermitsApp.Extensions
                 new SqlParameter("@coYear", appIdSettings.CertificateOfOccupancy.LegacyYear));
 
             logger.LogInformation("Application formatted IDs normalized.");
+
+            if (app.Environment.IsProduction())
+            {
+                await EnsureProductionSystemAdminPasswordAsync(app, db, logger);
+            }
         }
+
+        private static async Task EnsureProductionSystemAdminPasswordAsync(
+            WebApplication app,
+            ApplicationDbContext db,
+            ILogger<ApplicationDbContext> logger)
+        {
+            const string systemAdminEmail = "admin@epermits.com";
+            const string defaultProductionPasswordHash = "9nq3hbQl8Xv44MHNOUDhv0UXYNGvu8MTIrW+n+nJ5uY=";
+
+            var productionPasswordHash = app.Configuration["SystemAdmin:ProductionPasswordHash"];
+            if (string.IsNullOrWhiteSpace(productionPasswordHash))
+            {
+                productionPasswordHash = defaultProductionPasswordHash;
+            }
+
+            var systemAdmin = await db.Users
+                .Include(u => u.UserProfile)
+                .FirstOrDefaultAsync(u => u.UserProfile != null && u.UserProfile.Email == systemAdminEmail);
+
+            if (systemAdmin is null)
+            {
+                logger.LogWarning("Production system admin user {Email} was not found.", systemAdminEmail);
+                return;
+            }
+
+            if (systemAdmin.Password == productionPasswordHash)
+            {
+                logger.LogInformation("Production system admin password is already up to date.");
+                return;
+            }
+
+            systemAdmin.Password = productionPasswordHash;
+            systemAdmin.UpdatedBy = "System";
+            systemAdmin.UpdatedAt = DateTime.UtcNow;
+
+            await db.SaveChangesAsync();
+
+            logger.LogInformation("Production system admin password updated for {Email}.", systemAdminEmail);
+        }
+
     }
 }
