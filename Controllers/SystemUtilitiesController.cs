@@ -8,7 +8,7 @@ namespace ePermitsApp.Controllers
 {
     [ApiController]
     [Route("api/admin/system-utilities")]
-    [Authorize(Roles = "superadmin")]
+    [Authorize(Roles = "sysadmin")]
     public class SystemUtilitiesController : ControllerBase
     {
         private readonly ISystemUtilitiesService _service;
