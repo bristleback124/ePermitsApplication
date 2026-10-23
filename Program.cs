@@ -26,8 +26,6 @@ namespace ePermitsApp
 {
     public class Program
     {
-        private const long PermitUploadLimitBytes = 200L * 1024 * 1024;
-
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +67,19 @@ namespace ePermitsApp
                     (s.CertificateOfOccupancy.LegacyYear == 0 || s.CertificateOfOccupancy.LegacyYear >= 2000),
                     "ApplicationIdSettings: offsets must be 0-9998 and years must be 0 or >= 2000.")
                 .ValidateOnStart();
+
+            builder.Services
+                .AddOptions<UploadSettings>()
+                .Bind(builder.Configuration.GetSection("Uploads"))
+                .Validate(s =>
+                    s.MaxPermitBytes > 0 &&
+                    s.MaxPermitBytes <= UploadSettings.IisMaxAllowedContentLength,
+                    "Uploads:MaxPermitBytes must be > 0 and <= 2 GB (the IIS ceiling in web.config).")
+                .ValidateOnStart();
+
+            var permitUploadLimitBytes =
+                builder.Configuration.GetSection("Uploads").Get<UploadSettings>()?.MaxPermitBytes
+                ?? UploadSettings.DefaultMaxPermitBytes;
 
             builder.Services.AddSingleton<RazorLightEngine>(sp =>
             {
@@ -160,17 +171,17 @@ namespace ePermitsApp
 
             builder.Services.Configure<FormOptions>(options =>
             {
-                options.MultipartBodyLengthLimit = PermitUploadLimitBytes;
+                options.MultipartBodyLengthLimit = permitUploadLimitBytes;
             });
 
             builder.Services.Configure<IISServerOptions>(options =>
             {
-                options.MaxRequestBodySize = PermitUploadLimitBytes;
+                options.MaxRequestBodySize = permitUploadLimitBytes;
             });
 
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.Limits.MaxRequestBodySize = PermitUploadLimitBytes;
+                options.Limits.MaxRequestBodySize = permitUploadLimitBytes;
             });
 
             builder.Services.AddControllers();
