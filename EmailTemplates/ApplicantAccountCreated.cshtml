@@ -42,7 +42,7 @@
                 </div>
             </div>
 
-            <p class="meta">Registered on @Model.RegisteredAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+            <p class="meta">Registered on @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.RegisteredAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
 
             <p>If you did not expect this registration, please contact your local government office immediately.</p>
         </div>

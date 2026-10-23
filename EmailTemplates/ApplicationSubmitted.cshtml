@@ -29,7 +29,7 @@
 
             <div class="details">
                 <p><span class="label">Reference Number:</span> @Model.FormattedId</p>
-                <p><span class="label">Date Submitted:</span> @Model.SubmittedAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                <p><span class="label">Date Submitted:</span> @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.SubmittedAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
             </div>
 
             <p>You can track the status of your application through the ePermits portal.</p>
