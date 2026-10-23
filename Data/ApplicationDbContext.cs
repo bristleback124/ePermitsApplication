@@ -1,4 +1,5 @@
-﻿using ePermitsApp.Entities;
+﻿using ePermitsApp.Constants;
+using ePermitsApp.Entities;
 using ePermitsApp.Entities.BuildingPermit;
 using ePermits.Models;
 using ePermitsApp.Entities.CoOApp;
@@ -332,7 +333,7 @@ namespace ePermitsApp.Data
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Username).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Username).IsRequired().HasMaxLength(ValidationLimits.UsernameMaxLength);
                 entity.Property(e => e.Password).IsRequired();
                 entity.Property(e => e.CreatedBy).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -372,7 +373,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.MiddleName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.MobileNo).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.CreatedBy).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -479,7 +480,7 @@ namespace ePermitsApp.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FullName).IsRequired();
                 entity.Property(e => e.ContactNo).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.TIN).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.MailAddress).IsRequired();
                 entity.Property(e => e.ReqDocProofOwnership).IsRequired();
@@ -552,7 +553,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.ProjLocStreet).IsRequired();
                 entity.Property(e => e.FullName).IsRequired();
                 entity.Property(e => e.ContactNo).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.TIN).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.MailAddress).IsRequired();
                 entity.Property(e => e.DigitalSignature).IsRequired();

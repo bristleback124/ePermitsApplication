@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
+using ePermitsApp.Constants;
 
 namespace ePermitsApp.DTOs
 {
@@ -231,6 +233,7 @@ namespace ePermitsApp.DTOs
         public int ApplicantTypeId { get; set; }
         public string? FullName { get; set; }
         public string? ContactNo { get; set; }
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string? Email { get; set; }
         public string? TIN { get; set; }
         public string? MailAddress { get; set; }
@@ -249,6 +252,7 @@ namespace ePermitsApp.DTOs
         public int ApplicantTypeId { get; set; }
         public string? FullName { get; set; }
         public string? ContactNo { get; set; }
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string? Email { get; set; }
         public string? TIN { get; set; }
         public string? MailAddress { get; set; }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ePermitsApp.Constants;
 
 namespace ePermitsApp.DTOs
 {
@@ -13,7 +14,7 @@ namespace ePermitsApp.DTOs
 
         [Required]
         [EmailAddress]
-        [MaxLength(100)]
+        [MaxLength(ValidationLimits.EmailMaxLength)]
         public string Email { get; set; } = string.Empty;
 
         [Required]
