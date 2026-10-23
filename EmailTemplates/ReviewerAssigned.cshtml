@@ -31,7 +31,7 @@
             <div class="details">
                 <p><span class="label">Reference Number:</span> @Model.FormattedId</p>
                 <p><span class="label">Department:</span> <span class="department">@Model.DepartmentName</span></p>
-                <p><span class="label">Assigned On:</span> @Model.AssignedAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                <p><span class="label">Assigned On:</span> @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.AssignedAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
             </div>
 
             <p>Please log in to the ePermits portal to begin your review.</p>

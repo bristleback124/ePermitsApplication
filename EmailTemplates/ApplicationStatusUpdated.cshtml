@@ -53,7 +53,7 @@
                 {
                     <p><span class="label">Updated By:</span> @Model.UpdatedBy</p>
                 }
-                <p><span class="label">Updated On:</span> @Model.UpdatedAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                <p><span class="label">Updated On:</span> @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.UpdatedAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
             </div>
 
             <p>You can view the full details of your application through the ePermits portal.</p>

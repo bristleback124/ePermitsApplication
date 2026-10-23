@@ -5,6 +5,7 @@ using ePermitsApp.Entities.CoOApp;
 using ePermitsApp.Data.Seeders;
 using ePermitsApp.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ePermitsApp.Data
 {
@@ -721,10 +722,40 @@ namespace ePermitsApp.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            MarkTimestampsAsUtc(modelBuilder);
+
             // Run modular seeders (HasData calls)
             DatabaseSeederRunner.RunSeeders(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        // Timestamps are written as UTC, but datetime2 carries no zone, so EF reads them back as
+        // DateTimeKind.Unspecified and they serialize without a 'Z' (browsers then parse them as local
+        // time). Only "*At" / "Timestamp" properties are timestamps; calendar dates such as validity,
+        // completion and signature dates are left as-is.
+        private static void MarkTimestampsAsUtc(ModelBuilder modelBuilder)
+        {
+            var utc = new ValueConverter<DateTime, DateTime>(
+                v => v,
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            var nullableUtc = new ValueConverter<DateTime?, DateTime?>(
+                v => v,
+                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (!property.Name.EndsWith("At", StringComparison.Ordinal) && property.Name != "Timestamp")
+                        continue;
+
+                    if (property.ClrType == typeof(DateTime))
+                        property.SetValueConverter(utc);
+                    else if (property.ClrType == typeof(DateTime?))
+                        property.SetValueConverter(nullableUtc);
+                }
+            }
         }
     }
 }
