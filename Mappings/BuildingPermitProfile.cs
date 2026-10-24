@@ -82,7 +82,8 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocDENRClearance)))
                 .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocSECRegistration)))
                 .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocBoardResolution)))
-                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHOAClearance)));
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHOAClearance)))
+                .ForMember(dest => dest.SupportDocOthers, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocOthers)));
 
             CreateMap<BuildingPermitSupportingDocDto, BuildingPermitSupportingDoc>()
                 .ForMember(dest => dest.SupportDocZoningClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocZoningClearance)))
@@ -94,7 +95,8 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocDENRClearance)))
                 .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocSECRegistration)))
                 .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocBoardResolution)))
-                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocHOAClearance)));
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocHOAClearance)))
+                .ForMember(dest => dest.SupportDocOthers, opt => opt.MapFrom(src => FilePathHelper.Serialize(src.SupportDocOthers)));
 
             CreateMap<BuildingPermitCreateDto, BuildingPermit>()
                 .ForMember(dest => dest.AppInfo, opt => opt.MapFrom(src => src.AppInfo))
@@ -141,7 +143,8 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.Ignore())
                 .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.Ignore())
                 .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.Ignore())
-                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.Ignore());
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.Ignore())
+                .ForMember(dest => dest.SupportDocOthers, opt => opt.Ignore());
         }
     }
 }

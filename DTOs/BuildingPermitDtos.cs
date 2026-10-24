@@ -129,6 +129,7 @@ namespace ePermitsApp.DTOs
         public List<FileMetadataDto> SupportDocSECRegistration { get; set; } = new();
         public List<FileMetadataDto> SupportDocBoardResolution { get; set; } = new();
         public List<FileMetadataDto> SupportDocHOAClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocOthers { get; set; } = new();
     }
 
     public class BuildingPermitCreateDto
@@ -370,6 +371,7 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection? SupportDocSECRegistration { get; set; }
         public IFormFileCollection? SupportDocBoardResolution { get; set; }
         public IFormFileCollection? SupportDocHOAClearance { get; set; }
+        public IFormFileCollection? SupportDocOthers { get; set; }
     }
 
     public class BuildingPermitSupportingDocUpdateDto
@@ -384,6 +386,7 @@ namespace ePermitsApp.DTOs
         public string[] KeepSupportDocSECRegistration { get; set; } = Array.Empty<string>();
         public string[] KeepSupportDocBoardResolution { get; set; } = Array.Empty<string>();
         public string[] KeepSupportDocHOAClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocOthers { get; set; } = Array.Empty<string>();
 
         public IFormFileCollection? SupportDocZoningClearance { get; set; }
         public IFormFileCollection? SupportDocLocationalClearance { get; set; }
@@ -395,5 +398,6 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection? SupportDocSECRegistration { get; set; }
         public IFormFileCollection? SupportDocBoardResolution { get; set; }
         public IFormFileCollection? SupportDocHOAClearance { get; set; }
+        public IFormFileCollection? SupportDocOthers { get; set; }
     }
 }

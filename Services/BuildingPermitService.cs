@@ -320,6 +320,7 @@ namespace ePermitsApp.Services
             await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocSECRegistration), dto.SupportingDoc.KeepSupportDocSECRegistration, dto.SupportingDoc.SupportDocSECRegistration, buildingPermit.Id, false, "supporting-docs");
             await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocBoardResolution), dto.SupportingDoc.KeepSupportDocBoardResolution, dto.SupportingDoc.SupportDocBoardResolution, buildingPermit.Id, false, "supporting-docs");
             await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocHOAClearance), dto.SupportingDoc.KeepSupportDocHOAClearance, dto.SupportingDoc.SupportDocHOAClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocOthers), dto.SupportingDoc.KeepSupportDocOthers, dto.SupportingDoc.SupportDocOthers, buildingPermit.Id, false, "supporting-docs");
 
             if (saveAsDraft)
             {
@@ -546,6 +547,7 @@ namespace ePermitsApp.Services
             supportingDoc.SupportDocSECRegistration = await SaveFilesAsync(dto.SupportDocSECRegistration, permitId, "supporting-docs");
             supportingDoc.SupportDocBoardResolution = await SaveFilesAsync(dto.SupportDocBoardResolution, permitId, "supporting-docs");
             supportingDoc.SupportDocHOAClearance = await SaveFilesAsync(dto.SupportDocHOAClearance, permitId, "supporting-docs");
+            supportingDoc.SupportDocOthers = await SaveFilesAsync(dto.SupportDocOthers, permitId, "supporting-docs");
         }
 
         private async Task UpdateMultiFileAsync(object target, string propertyName, string[] keepPaths, IFormFileCollection? newFiles, int permitId, bool required, string subFolder = "tech-docs")
