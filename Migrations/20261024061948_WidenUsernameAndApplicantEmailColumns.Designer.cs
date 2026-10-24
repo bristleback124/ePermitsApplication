@@ -12,8 +12,8 @@ using ePermitsApp.Data;
 namespace ePermitsApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261023165115_WidenApplicantEmailColumns")]
-    partial class WidenApplicantEmailColumns
+    [Migration("20261024061948_WidenUsernameAndApplicantEmailColumns")]
+    partial class WidenUsernameAndApplicantEmailColumns
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -388,8 +388,8 @@ namespace ePermitsApp.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 

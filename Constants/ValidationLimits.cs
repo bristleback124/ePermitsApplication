@@ -5,7 +5,8 @@ namespace ePermitsApp.Constants
     public static class ValidationLimits
     {
         public const int UsernameMinLength = 3;
-        public const int UsernameMaxLength = 20;
+        public const int UsernameMaxLength = 100;
         public const int EmailMaxLength = 100;
+        public const int NameMaxLength = 100;
     }
 }

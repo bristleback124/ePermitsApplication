@@ -370,9 +370,9 @@ namespace ePermitsApp.Data
             modelBuilder.Entity<UserProfile>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.MiddleName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(ValidationLimits.NameMaxLength);
+                entity.Property(e => e.MiddleName).IsRequired().HasMaxLength(ValidationLimits.NameMaxLength);
+                entity.Property(e => e.LastName).IsRequired().HasMaxLength(ValidationLimits.NameMaxLength);
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.MobileNo).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.CreatedBy).IsRequired();

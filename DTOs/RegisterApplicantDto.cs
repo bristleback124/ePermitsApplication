@@ -6,10 +6,10 @@ namespace ePermitsApp.DTOs
     public class RegisterApplicantDto
     {
         [Required]
-        [MaxLength(100)]
+        [MaxLength(ValidationLimits.NameMaxLength)]
         public string ApplicantName { get; set; } = string.Empty;
 
-        [MaxLength(100)]
+        [MaxLength(ValidationLimits.NameMaxLength)]
         public string? RepresentativeName { get; set; }
 
         [Required]

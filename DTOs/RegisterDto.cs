@@ -18,15 +18,15 @@ namespace ePermits.DTOs
         public string ConfirmPassword { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.NameMaxLength)]
         public string FirstName { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.NameMaxLength)]
         public string MiddleName { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.NameMaxLength)]
         public string LastName { get; set; } = string.Empty;
 
         [Required]
