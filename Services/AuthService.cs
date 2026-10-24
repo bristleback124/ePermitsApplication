@@ -474,6 +474,38 @@ namespace ePermits.Services
             return (true, "Password changed successfully.");
         }
 
+        public async Task<(bool Success, bool Forbidden, string Message)> SetPasswordByAdminAsync(int targetUserId, string newPassword, int adminUserId, string adminRole)
+        {
+            if (targetUserId == adminUserId)
+            {
+                return (false, false, "Use Change Password to change your own password.");
+            }
+
+            var user = await _userRepository.GetByIdAsync(targetUserId);
+            if (user == null)
+            {
+                return (false, false, "User not found.");
+            }
+
+            var targetRole = user.UserRole?.UserRoleDesc ?? string.Empty;
+            if (string.Equals(targetRole, "superadmin", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(adminRole, "superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return (false, true, "Only a superadmin can change a superadmin's password.");
+            }
+
+            var admin = await _userRepository.GetByIdAsync(adminUserId);
+            user.Password = HashPassword(newPassword);
+            user.MustChangePassword = false;
+            user.UpdatedBy = admin?.Username ?? "admin";
+            user.UpdatedAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+
+            _logger.LogInformation("Password for user {TargetUserId} ({TargetUsername}) set by admin {AdminUserId} ({AdminUsername}).",
+                user.Id, user.Username, adminUserId, admin?.Username);
+            return (true, false, "Password changed.");
+        }
+
         private static string GenerateTempPassword(int length)
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
