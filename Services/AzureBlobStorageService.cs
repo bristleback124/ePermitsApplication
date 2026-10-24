@@ -69,7 +69,13 @@ namespace ePermitsApp.Services
         {
             await _containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
             var blockClient = _containerClient.GetBlockBlobClient(NormalizeStoredFileName(fileName));
-            await blockClient.StageBlockAsync(BlockId(index), content, cancellationToken: cancellationToken);
+
+            // StageBlock needs the length up front, which a request body stream can't give.
+            // Chunks are small (UploadsController caps them), so buffering one is fine.
+            using var buffer = new MemoryStream();
+            await content.CopyToAsync(buffer, cancellationToken);
+            buffer.Position = 0;
+            await blockClient.StageBlockAsync(BlockId(index), buffer, cancellationToken: cancellationToken);
         }
 
         public async Task<long> CommitChunksAsync(string fileName, int chunkCount, CancellationToken cancellationToken = default)
