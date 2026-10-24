@@ -52,7 +52,9 @@ namespace ePermitsApp.Controllers
             return Ok(_mapper.Map<UserRoleDto>(userRole));
         }
 
+        // Role names drive authorization and the workflow table, so only a superadmin may change the role table.
         [HttpPost]
+        [Authorize(Roles = "superadmin")]
         public async Task<ActionResult<UserRoleDto>> Create(CreateUserRoleDto dto)
         {
             var userRole = await _service.CreateAsync(dto);
@@ -64,6 +66,7 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "superadmin")]
         public async Task<IActionResult> Update(int id, UpdateUserRoleDto dto)
         {
             var success = await _service.UpdateAsync(id, dto);
@@ -76,6 +79,7 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "superadmin")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteAsync(id);

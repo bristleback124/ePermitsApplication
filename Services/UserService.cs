@@ -39,7 +39,7 @@ namespace ePermits.Services
             return MapToDto(user);
         }
 
-        public async Task<(bool Success, string Message)> UpdateUserRoleAsync(int userId, UpdateUserAssignmentDto dto, string actingAdminRole)
+        public async Task<(bool Success, string Message)> UpdateUserRoleAsync(int userId, UpdateUserAssignmentDto dto, string actingAdminRole, int actingUserId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
@@ -74,6 +74,12 @@ namespace ePermits.Services
                 || roleNames.Contains(Roles.SuperAdmin, System.StringComparer.OrdinalIgnoreCase);
             if (touchesSuperAdmin && !callerIsSuperAdmin)
                 return (false, "Only a superadmin can change superadmin roles");
+
+            // A superadmin can't demote themselves (it could leave the system with no superadmin).
+            if (userId == actingUserId
+                && UserRoleRules.HasRole(user, Roles.SuperAdmin)
+                && !roleNames.Contains(Roles.SuperAdmin, System.StringComparer.OrdinalIgnoreCase))
+                return (false, "You can't remove your own superadmin role");
 
             var isDepartmentUser = roleNames.Count == 1
                 && string.Equals(roleNames[0], Roles.User, System.StringComparison.OrdinalIgnoreCase);

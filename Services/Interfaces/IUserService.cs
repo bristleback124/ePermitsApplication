@@ -6,7 +6,7 @@ namespace ePermits.Services
     {
         Task<List<UserListItemDto>> GetAllUsersAsync();
         Task<UserListItemDto?> GetUserByIdAsync(int id);
-        Task<(bool Success, string Message)> UpdateUserRoleAsync(int userId, UpdateUserAssignmentDto dto, string actingAdminRole);
+        Task<(bool Success, string Message)> UpdateUserRoleAsync(int userId, UpdateUserAssignmentDto dto, string actingAdminRole, int actingUserId);
         Task<List<UserListItemDto>> SearchApplicantsAsync(string search);
     }
 }

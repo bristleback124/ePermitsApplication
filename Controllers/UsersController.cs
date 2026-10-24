@@ -67,8 +67,11 @@ namespace ePermits.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(new { success = false, message = "Invalid input data" });
 
+            if (!int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
+                return Unauthorized(new { success = false, message = "Invalid token" });
+
             var adminRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? string.Empty;
-            var (success, message) = await _userService.UpdateUserRoleAsync(id, dto, adminRole);
+            var (success, message) = await _userService.UpdateUserRoleAsync(id, dto, adminRole, adminUserId);
 
             if (!success)
                 return BadRequest(new { success = false, message });
