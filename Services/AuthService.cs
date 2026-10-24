@@ -1,5 +1,6 @@
 using ePermits.Data;
 using ePermits.DTOs;
+using ePermitsApp.Constants;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
 
@@ -323,11 +324,14 @@ namespace ePermits.Services
                 return (false, "An account with this email already exists.", null);
             }
 
-            // Generate username from email prefix
-            var username = email.Split('@')[0].ToLowerInvariant();
+            // Generate username from email prefix, truncated to fit the Username column
+            var emailPrefix = email.Split('@')[0].ToLowerInvariant();
+            var username = Truncate(emailPrefix, ValidationLimits.UsernameMaxLength);
             if (await _userRepository.UsernameExistsAsync(username))
             {
-                username = $"{username}{DateTime.UtcNow.Ticks % 10000}";
+                // Leave room for the up-to-4-digit suffix
+                var suffix = (DateTime.UtcNow.Ticks % 10000).ToString();
+                username = Truncate(emailPrefix, ValidationLimits.UsernameMaxLength - suffix.Length) + suffix;
             }
 
             // Generate temp password (8 chars alphanumeric)
@@ -475,6 +479,11 @@ namespace ePermits.Services
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
             var random = new Random();
             return new string(Enumerable.Range(0, length).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+        }
+
+        private static string Truncate(string value, int maxLength)
+        {
+            return value.Length <= maxLength ? value : value[..maxLength];
         }
 
     }
