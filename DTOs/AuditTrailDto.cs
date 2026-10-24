@@ -8,6 +8,7 @@ namespace ePermitsApp.DTOs
         public string Action { get; set; } = string.Empty;
         public string? Details { get; set; }
         public string PerformedByName { get; set; } = string.Empty;
+        public string? PerformedByRole { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }
