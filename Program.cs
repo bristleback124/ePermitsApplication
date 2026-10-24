@@ -52,6 +52,8 @@ namespace ePermitsApp
                 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             }
 
+            builder.Services.AddScoped<IPermitUploadService, PermitUploadService>();
+
             builder.Services.Configure<EmailSettings>(
                 builder.Configuration.GetSection("EmailSettings"));
 
