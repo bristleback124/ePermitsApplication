@@ -1,6 +1,9 @@
 using ePermits.Data;
 using ePermits.DTOs;
 using ePermitsApp.Repositories.Interfaces;
+using ePermits.Models;
+using ePermitsApp.Helpers;
+using Roles = ePermitsApp.Helpers.ApplicationWorkflowDefinitions.Roles;
 
 namespace ePermits.Services
 {
@@ -36,19 +39,46 @@ namespace ePermits.Services
             return MapToDto(user);
         }
 
-        public async Task<(bool Success, string Message)> UpdateUserRoleAsync(int userId, UpdateUserAssignmentDto dto)
+        public async Task<(bool Success, string Message)> UpdateUserRoleAsync(int userId, UpdateUserAssignmentDto dto, string actingAdminRole)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 return (false, "User not found");
 
-            var targetRole = await _userRoleRepository.GetByIdAsync(dto.UserRoleId);
-            if (targetRole == null)
-                return (false, "Invalid role");
+            // Old clients send a single UserRoleId; new ones send UserRoleIds.
+            var roleIds = (dto.UserRoleIds is { Count: > 0 }
+                    ? dto.UserRoleIds
+                    : dto.UserRoleId.HasValue ? new List<int> { dto.UserRoleId.Value } : new List<int>())
+                .Distinct()
+                .ToList();
+            if (roleIds.Count == 0)
+                return (false, "At least one role is required");
 
-            var roleName = targetRole.UserRoleDesc.ToLower();
+            var targetRoles = new List<UserRole>();
+            foreach (var roleId in roleIds)
+            {
+                var role = await _userRoleRepository.GetByIdAsync(roleId);
+                if (role == null)
+                    return (false, "Invalid role");
+                targetRoles.Add(role);
+            }
 
-            if (roleName == "user")
+            var roleNames = targetRoles.Select(r => r.UserRoleDesc).ToList();
+            var (isValidCombination, combinationMessage) = UserRoleRules.ValidateCombination(roleNames);
+            if (!isValidCombination)
+                return (false, combinationMessage);
+
+            // Only a superadmin can grant superadmin or change a superadmin's roles (mirrors SetPasswordByAdminAsync).
+            var callerIsSuperAdmin = string.Equals(actingAdminRole, Roles.SuperAdmin, System.StringComparison.OrdinalIgnoreCase);
+            var touchesSuperAdmin = UserRoleRules.HasRole(user, Roles.SuperAdmin)
+                || roleNames.Contains(Roles.SuperAdmin, System.StringComparer.OrdinalIgnoreCase);
+            if (touchesSuperAdmin && !callerIsSuperAdmin)
+                return (false, "Only a superadmin can change superadmin roles");
+
+            var isDepartmentUser = roleNames.Count == 1
+                && string.Equals(roleNames[0], Roles.User, System.StringComparison.OrdinalIgnoreCase);
+
+            if (isDepartmentUser)
             {
                 // "user" role requires LGU and Department
                 if (!dto.LGUId.HasValue || !dto.DepartmentId.HasValue)
@@ -67,17 +97,20 @@ namespace ePermits.Services
             }
             else
             {
-                // "admin" and "applicant" roles don't need LGU/Department
+                // Other roles don't need LGU/Department
                 user.LGUId = null;
                 user.DepartmentId = null;
             }
 
-            user.UserRoleId = dto.UserRoleId;
+            var primaryName = UserRoleRules.PickPrimary(roleNames);
+            var primary = targetRoles.First(r => string.Equals(r.UserRoleDesc, primaryName, System.StringComparison.OrdinalIgnoreCase));
+            user.UserRoleId = primary.Id;
+            user.UserRole = primary;
             user.UpdatedAt = System.DateTime.UtcNow;
             user.UpdatedBy = "admin";
 
-            await _userRepository.UpdateAsync(user);
-            return (true, "User role updated successfully");
+            await _userRepository.UpdateWithRolesAsync(user, roleIds);
+            return (true, roleIds.Count == 1 ? "User role updated successfully" : "User roles updated successfully");
         }
 
         public async Task<List<UserListItemDto>> SearchApplicantsAsync(string search)
@@ -111,6 +144,8 @@ namespace ePermits.Services
                 Username = user.Username,
                 Role = user.UserRole?.UserRoleDesc ?? "unknown",
                 RoleId = user.UserRoleId,
+                Roles = UserRoleRules.GetRoleNames(user).ToList(),
+                RoleIds = user.RoleAssignments.Select(a => a.UserRoleId).Append(user.UserRoleId).Distinct().ToList(),
                 FullName = profile != null
                     ? string.IsNullOrWhiteSpace(profile.LastName)
                         ? profile.FirstName.Trim()

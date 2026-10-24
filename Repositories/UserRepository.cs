@@ -105,6 +105,24 @@ namespace ePermits.Data
             return user;
         }
 
+        public async Task<User> UpdateWithRolesAsync(User user, IReadOnlyCollection<int> roleIds)
+        {
+            // Edit the tracked collection rather than calling Users.Update(): Update() would mark the new
+            // assignment rows (keys already set) as Modified instead of Added.
+            foreach (var assignment in user.RoleAssignments.Where(a => !roleIds.Contains(a.UserRoleId)).ToList())
+            {
+                user.RoleAssignments.Remove(assignment);
+            }
+
+            foreach (var roleId in roleIds.Where(id => user.RoleAssignments.All(a => a.UserRoleId != id)))
+            {
+                user.RoleAssignments.Add(new UserRoleAssignment { UserId = user.Id, UserRoleId = roleId });
+            }
+
+            await _context.SaveChangesAsync();
+            return user;
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
