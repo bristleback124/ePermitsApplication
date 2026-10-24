@@ -196,7 +196,8 @@ namespace ePermitsApp.Services
                 table.ColumnsDefinition(c => { c.RelativeColumn(1); c.RelativeColumn(2); });
                 AddFieldRow(table, "Project Type", NaIfEmpty(details.ProjectType));
                 AddFieldRow(table, "Project Value", $"₱{details.ProjectValue:N2}");
-                AddFieldRow(table, "Lot Area", $"{details.LotArea:N2} sq.m.");
+                AddFieldRow(table, "Property Lot Area", $"{details.LotArea:N2} sq.m.");
+                AddFieldRow(table, "Project Lot Area", $"{details.ProjectLotArea:N2} sq.m.");
                 AddFieldRow(table, "Number of Stories", details.NumberOfStories.ToString());
                 AddFieldRow(table, "Permit Type", NaIfEmpty(details.PermitType));
                 AddFieldRow(table, "Occupancy Type", NaIfEmpty(details.OccupancyType));

@@ -239,6 +239,7 @@ namespace ePermitsApp.Services
             {
                 ValidateRequiredSubmission(buildingPermit);
                 ValidateCategorySpecificRequirements(buildingPermit);
+                ValidateLotAreas(buildingPermit);
             }
 
             // Update again with file paths
@@ -287,6 +288,9 @@ namespace ePermitsApp.Services
                 buildingPermit.Application.Status,
                 ApplicationWorkflowDefinitions.OverallStatuses.Draft,
                 StringComparison.OrdinalIgnoreCase);
+
+            var lotAreasChanged = buildingPermit.ProjectScopeLotArea != dto.ProjectScopeLotArea
+                || buildingPermit.PropertyDetailLotArea != dto.PropertyDetailLotArea;
 
             UpdateBuildingPermitFields(buildingPermit, dto, now, currentUserId);
             UpdateAppInfoFields(buildingPermit.AppInfo, dto.AppInfo, now, currentUserId);
@@ -356,6 +360,13 @@ namespace ePermitsApp.Services
                 EnsureSubmittedState(buildingPermit.Application, now);
                 ValidateRequiredSubmission(buildingPermit);
                 ValidateCategorySpecificRequirements(buildingPermit);
+
+                // Only when the lot areas are being set, so older applications that already break
+                // the rule stay editable (e.g. staff document updates).
+                if (wasDraft || lotAreasChanged)
+                {
+                    ValidateLotAreas(buildingPermit);
+                }
 
                 if (wasDraft)
                 {
@@ -675,6 +686,16 @@ namespace ePermitsApp.Services
             nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
         };
+
+        /// The project can cover part of the property, but never more than the whole lot.
+        private static void ValidateLotAreas(BuildingPermit buildingPermit)
+        {
+            if (buildingPermit.ProjectScopeLotArea > buildingPermit.PropertyDetailLotArea)
+            {
+                throw new InvalidOperationException(
+                    $"Project lot area ({buildingPermit.ProjectScopeLotArea:0.##} sqm) can't be more than the property lot area ({buildingPermit.PropertyDetailLotArea:0.##} sqm).");
+            }
+        }
 
         private static void ValidateRequiredSubmission(BuildingPermit buildingPermit)
         {
