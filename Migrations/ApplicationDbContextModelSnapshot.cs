@@ -174,6 +174,10 @@ namespace ePermitsApp.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("PerformedByRole")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<int>("PerformedByUserId")
                         .HasColumnType("int");
 
@@ -821,6 +825,21 @@ namespace ePermitsApp.Migrations
                             CreatedBy = "System",
                             UserRoleDesc = "releasing-officer"
                         });
+                });
+
+            modelBuilder.Entity("ePermits.Models.UserRoleAssignment", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserRoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "UserRoleId");
+
+                    b.HasIndex("UserRoleId");
+
+                    b.ToTable("UserRoleAssignments", (string)null);
                 });
 
             modelBuilder.Entity("ePermitsApp.Entities.AdminEmailNotificationConfig", b =>
@@ -3486,6 +3505,25 @@ namespace ePermitsApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ePermits.Models.UserRoleAssignment", b =>
+                {
+                    b.HasOne("ePermits.Models.User", "User")
+                        .WithMany("RoleAssignments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ePermits.Models.UserRole", "UserRole")
+                        .WithMany()
+                        .HasForeignKey("UserRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserRole");
+                });
+
             modelBuilder.Entity("ePermitsApp.Entities.AdminEmailNotificationConfig", b =>
                 {
                     b.HasOne("ePermits.Models.User", "User")
@@ -3824,6 +3862,8 @@ namespace ePermitsApp.Migrations
 
             modelBuilder.Entity("ePermits.Models.User", b =>
                 {
+                    b.Navigation("RoleAssignments");
+
                     b.Navigation("UserProfile");
                 });
 

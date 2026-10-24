@@ -18,6 +18,7 @@ namespace ePermits.Data
         {
             return await _context.Users
                 .Include(u => u.UserRole)
+                .Include(u => u.RoleAssignments).ThenInclude(a => a.UserRole)
                 .Include(u => u.UserProfile)
                 .Include(u => u.LGU)
                 .Include(u => u.Department)
@@ -28,6 +29,7 @@ namespace ePermits.Data
         {
             return await _context.Users
                 .Include(u => u.UserRole)
+                .Include(u => u.RoleAssignments).ThenInclude(a => a.UserRole)
                 .Include(u => u.UserProfile)
                 .Include(u => u.LGU)
                 .Include(u => u.Department)
@@ -53,6 +55,7 @@ namespace ePermits.Data
         {
             return await _context.Users
                 .Include(u => u.UserRole)
+                .Include(u => u.RoleAssignments).ThenInclude(a => a.UserRole)
                 .Include(u => u.UserProfile)
                 .Include(u => u.LGU)
                 .Include(u => u.Department)
@@ -64,6 +67,9 @@ namespace ePermits.Data
             var userProfile = await _context.UserProfiles
                 .Include(up => up.User)
                     .ThenInclude(u => u!.UserRole)
+                .Include(up => up.User)
+                    .ThenInclude(u => u!.RoleAssignments)
+                        .ThenInclude(a => a.UserRole)
                 .Include(up => up.User)
                     .ThenInclude(u => u!.LGU)
                 .Include(up => up.User)
