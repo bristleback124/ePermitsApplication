@@ -1,3 +1,4 @@
+using ePermitsApp.Helpers;
 using ePermitsApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,7 +32,7 @@ public class FileController : ControllerBase
         }
 
         var downloadName = Path.GetFileName(path);
-        var mimeType = GetMimeType(downloadName);
+        var mimeType = FileContentTypes.FromFileName(downloadName);
 
         if (download)
         {
@@ -40,14 +41,4 @@ public class FileController : ControllerBase
 
         return File(stream, mimeType);
     }
-
-    private string GetMimeType(string filePath) => Path.GetExtension(filePath).ToLowerInvariant() switch
-    {
-        ".pdf"  => "application/pdf",
-        ".png"  => "image/png",
-        ".jpg" or ".jpeg" => "image/jpeg",
-        ".doc"  => "application/msword",
-        ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        _       => "application/octet-stream"
-    };
 }
