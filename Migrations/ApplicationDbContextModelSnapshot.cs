@@ -1606,6 +1606,9 @@ namespace ePermitsApp.Migrations
                     b.Property<string>("SupportDocLocationalClearance")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SupportDocOthers")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SupportDocSECRegistration")
                         .HasColumnType("nvarchar(max)");
 

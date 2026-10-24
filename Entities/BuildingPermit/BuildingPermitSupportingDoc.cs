@@ -17,6 +17,7 @@ namespace ePermitsApp.Entities.BuildingPermit
         public string? SupportDocSECRegistration { get; set; }
         public string? SupportDocBoardResolution { get; set; }
         public string? SupportDocHOAClearance { get; set; }
+        public string? SupportDocOthers { get; set; }
 
         public BuildingPermit? BuildingPermit { get; set; }
     }
