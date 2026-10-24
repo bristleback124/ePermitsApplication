@@ -59,13 +59,19 @@ namespace ePermits.Controllers
             return Ok(new { success = true, data = user });
         }
 
+        // Admins only: the class-level policy also admits encoders, who must not be able to grant roles.
         [HttpPut("{id}/role")]
+        [Authorize(Roles = "admin,superadmin,sysadmin")]
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserAssignmentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new { success = false, message = "Invalid input data" });
 
-            var (success, message) = await _userService.UpdateUserRoleAsync(id, dto);
+            if (!int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var adminUserId))
+                return Unauthorized(new { success = false, message = "Invalid token" });
+
+            var adminRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? string.Empty;
+            var (success, message) = await _userService.UpdateUserRoleAsync(id, dto, adminRole, adminUserId);
 
             if (!success)
                 return BadRequest(new { success = false, message });

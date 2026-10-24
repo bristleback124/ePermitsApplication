@@ -3,6 +3,7 @@ using ePermits.DTOs;
 using ePermitsApp.Constants;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Helpers;
 
 using ePermits.Models;
 using ePermitsApp.Models.EmailModels;
@@ -131,7 +132,7 @@ namespace ePermits.Services
             }
 
             // Generate JWT token
-            string token = GenerateJwtToken(createdUser.Id, createdUser.Username, role.UserRoleDesc, role.Id);
+            string token = GenerateJwtToken(createdUser.Id, createdUser.Username, new[] { role.UserRoleDesc }, role.Id);
 
             Console.WriteLine($"Registration successful for user: {createdUser.Username}");
 
@@ -143,6 +144,7 @@ namespace ePermits.Services
                 Token = token,
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                Roles = new List<string> { role.UserRoleDesc },
                 MustChangePassword = createdUser.MustChangePassword,
                 Profile = new UserProfileDto
                 {
@@ -185,7 +187,7 @@ namespace ePermits.Services
             }
 
             // Generate JWT token
-            string token = GenerateJwtToken(user.Id, user.Username, role.UserRoleDesc, role.Id);
+            string token = GenerateJwtToken(user.Id, user.Username, UserRoleRules.GetRoleNames(user), role.Id);
 
             // Return response
             return new AuthResponseDto
@@ -195,6 +197,7 @@ namespace ePermits.Services
                 Token = token,
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                Roles = UserRoleRules.GetRoleNames(user).ToList(),
                 MustChangePassword = user.MustChangePassword,
                 Profile = new UserProfileDto
                 {
@@ -234,19 +237,20 @@ namespace ePermits.Services
             }
         }
 
-        public string GenerateJwtToken(int userId, string username, string role, int roleId)
+        public string GenerateJwtToken(int userId, string username, IReadOnlyList<string> roles, int roleId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"));
 
-            var claims = new[]
+            // One role claim per role the user holds, so [Authorize(Roles = ...)] accepts any of them.
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, role),
-                new Claim("RoleId", roleId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.Add(new Claim("RoleId", roleId.ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -295,6 +299,7 @@ namespace ePermits.Services
                 Token = null, // No token here
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                Roles = UserRoleRules.GetRoleNames(user).ToList(),
                 MustChangePassword = user.MustChangePassword,
                 Profile = new UserProfileDto
                 {

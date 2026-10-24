@@ -10,7 +10,7 @@ namespace ePermits.Services
         Task<AuthResponseDto?> LoginAsync(LoginDto loginDto);
         Task<bool> ValidateTokenAsync(string token);
         Task<AuthResponseDto?> GetUserInfoAsync(int userId);
-        string GenerateJwtToken(int userId, string username, string role, int roleId);
+        string GenerateJwtToken(int userId, string username, IReadOnlyList<string> roles, int roleId);
         Task<bool> CheckEmailExistsAsync(string email);
         Task<(bool Success, string Message, RegisterApplicantResponseDto? Data)> RegisterApplicantAsync(RegisterApplicantDto dto, string registeredBy);
         Task<(bool Success, string Message)> ChangePasswordAsync(int userId, ChangePasswordDto dto);
