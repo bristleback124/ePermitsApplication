@@ -83,6 +83,9 @@ namespace ePermitsApp.DTOs
 
         public CoOAppProfCreateDto CoOAppProf { get; set; } = new();
         public CoOAppReqDocCreateDto CoOAppReqDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class CoOAppEditDto
@@ -138,6 +141,9 @@ namespace ePermitsApp.DTOs
         public DateTime? DateOfSignature { get; set; }
         public CoOAppProfUpdateDto CoOAppProf { get; set; } = new();
         public CoOAppReqDocUpdateDto CoOAppReqDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class CoOAppProfCreateDto

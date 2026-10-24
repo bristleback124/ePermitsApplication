@@ -63,6 +63,52 @@ namespace ePermitsApp.Services
             return Task.CompletedTask;
         }
 
+        public async Task StageChunkAsync(string fileName, int index, Stream content, CancellationToken cancellationToken = default)
+        {
+            var chunkDirectory = GetChunkDirectory(fileName);
+            Directory.CreateDirectory(chunkDirectory);
+
+            await using var stream = new FileStream(Path.Combine(chunkDirectory, index.ToString("D6")), FileMode.Create, FileAccess.Write, FileShare.None);
+            await content.CopyToAsync(stream, cancellationToken);
+        }
+
+        public async Task<long> CommitChunksAsync(string fileName, int chunkCount, CancellationToken cancellationToken = default)
+        {
+            var chunkDirectory = GetChunkDirectory(fileName);
+            var fullPath = Path.Combine(GetBasePath(), NormalizeStoredFileName(fileName));
+            var chunkPaths = Enumerable.Range(0, chunkCount).Select(index => Path.Combine(chunkDirectory, index.ToString("D6"))).ToList();
+
+            // Check first, so a missing part never leaves a partial file that looks complete.
+            var missing = chunkPaths.FindIndex(chunkPath => !File.Exists(chunkPath));
+            if (missing >= 0)
+            {
+                throw new InvalidOperationException($"Upload is missing part {missing + 1} of {chunkCount}.");
+            }
+
+            await using (var output = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                foreach (var chunkPath in chunkPaths)
+                {
+                    await using var chunk = new FileStream(chunkPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    await chunk.CopyToAsync(output, cancellationToken);
+                }
+            }
+
+            Directory.Delete(chunkDirectory, recursive: true);
+            return new FileInfo(fullPath).Length;
+        }
+
+        public Task<long?> GetSizeAsync(string fileName, CancellationToken cancellationToken = default)
+        {
+            var fullPath = Path.Combine(GetBasePath(), NormalizeStoredFileName(fileName));
+            return Task.FromResult(File.Exists(fullPath) ? new FileInfo(fullPath).Length : (long?)null);
+        }
+
+        public Task TrySetStatusTagAsync(string fileName, string status, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        private string GetChunkDirectory(string fileName) =>
+            Path.Combine(GetBasePath(), ".chunks", NormalizeStoredFileName(fileName));
+
         private string GetBasePath()
         {
             if (string.IsNullOrWhiteSpace(_settings.BasePath))

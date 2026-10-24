@@ -162,6 +162,9 @@ namespace ePermitsApp.DTOs
         public BuildingPermitDesignProfCreateDto DesignProf { get; set; } = new();
         public BuildingPermitTechDocCreateDto TechDoc { get; set; } = new();
         public BuildingPermitSupportingDocCreateDto SupportingDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class BuildingPermitEditDto
@@ -227,6 +230,9 @@ namespace ePermitsApp.DTOs
         public BuildingPermitDesignProfUpdateDto DesignProf { get; set; } = new();
         public BuildingPermitTechDocUpdateDto TechDoc { get; set; } = new();
         public BuildingPermitSupportingDocUpdateDto SupportingDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class BuildingPermitAppInfoCreateDto
