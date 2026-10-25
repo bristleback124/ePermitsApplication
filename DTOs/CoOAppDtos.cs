@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using ePermitsApp.Constants;
+using ePermitsApp.Helpers;
 
 namespace ePermitsApp.DTOs
 {
@@ -68,6 +69,7 @@ namespace ePermitsApp.DTOs
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
         public int OccupancyNatureId { get; set; }
+        [AreaRange, Display(Name = "Floor area")]
         public decimal FloorArea { get; set; }
         public int NoOfStoreys { get; set; }
         public DateTime? CompletionDate { get; set; }
@@ -127,6 +129,7 @@ namespace ePermitsApp.DTOs
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
         public int OccupancyNatureId { get; set; }
+        [AreaRange, Display(Name = "Floor area")]
         public decimal FloorArea { get; set; }
         public int NoOfStoreys { get; set; }
         public DateTime? CompletionDate { get; set; }
