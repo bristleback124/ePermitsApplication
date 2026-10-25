@@ -23,5 +23,6 @@ namespace ePermits.Models
         public UserProfile? UserProfile { get; set; }
         public LGU? LGU { get; set; }
         public Department? Department { get; set; }
+        public ICollection<UserRoleAssignment> RoleAssignments { get; set; } = new List<UserRoleAssignment>();
     }
 }

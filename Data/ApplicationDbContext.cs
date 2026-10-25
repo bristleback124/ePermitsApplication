@@ -34,6 +34,7 @@ namespace ePermitsApp.Data
         public DbSet<OwnershipType> OwnershipTypes => Set<OwnershipType>();
         public DbSet<BuildingPermitCategory> BuildingPermitCategories => Set<BuildingPermitCategory>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserRoleAssignment> UserRoleAssignments => Set<UserRoleAssignment>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
 
@@ -355,6 +356,23 @@ namespace ePermitsApp.Data
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
 
+            });
+
+            // UserRoleAssignment configuration (multi-role users)
+            modelBuilder.Entity<UserRoleAssignment>(entity =>
+            {
+                entity.ToTable("UserRoleAssignments");
+                entity.HasKey(e => new { e.UserId, e.UserRoleId });
+
+                entity.HasOne(e => e.User)
+                    .WithMany(u => u.RoleAssignments)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.UserRole)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserRoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // UserRole configuration
@@ -713,6 +731,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.Action).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Details).HasMaxLength(1000);
                 entity.Property(e => e.PerformedByName).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.PerformedByRole).HasMaxLength(20);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasIndex(e => new { e.ApplicationId, e.CreatedAt });

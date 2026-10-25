@@ -246,20 +246,20 @@ namespace ePermitsApp.Services
             }
 
             var currentUser = await GetCurrentUserAsync();
-            var userRole = currentUser?.UserRole?.UserRoleDesc ?? string.Empty;
+            var userRoles = UserRoleRules.GetRoleNames(currentUser);
 
-            // Validate transition through workflow service
-            var (isValid, validationMessage) = _workflowTransitionService.ValidateTransition(
-                application.Status, userRole, dto.Status);
+            // Validate transition through workflow service (any of the user's roles, or the one they acted as)
+            var (isValid, validationMessage, transition) = _workflowTransitionService.ValidateTransition(
+                application.Status, userRoles, dto.Status, dto.ActingRole);
 
-            if (!isValid)
+            if (!isValid || transition == null)
             {
                 return (false, validationMessage);
             }
 
             // Initial Reviewer cannot proceed to Fee Computation unless both review substatuses are Complete
             if (string.Equals(dto.Status, ApplicationWorkflowDefinitions.OverallStatuses.ForFeeComputation, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(userRole, ApplicationWorkflowDefinitions.Roles.InitialReviewer, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(transition.RequiredRole, ApplicationWorkflowDefinitions.Roles.InitialReviewer, StringComparison.OrdinalIgnoreCase)
                 && (!string.Equals(application.RequirementsReviewStatus, ApplicationWorkflowDefinitions.ReviewSubstatuses.Complete, StringComparison.OrdinalIgnoreCase)
                     || !string.Equals(application.TechnicalPlansReviewStatus, ApplicationWorkflowDefinitions.ReviewSubstatuses.Complete, StringComparison.OrdinalIgnoreCase)))
             {
@@ -324,7 +324,8 @@ namespace ePermitsApp.Services
                 $"Status changed to {dto.Status}",
                 details,
                 overallUserId,
-                overallUserName);
+                overallUserName,
+                transition.RequiredRole);
 
             return (true, "Status updated successfully");
         }
@@ -343,12 +344,11 @@ namespace ePermitsApp.Services
             }
 
             var currentUser = await GetCurrentUserAsync();
-            var userRole = currentUser?.UserRole?.UserRoleDesc ?? string.Empty;
             var reviewType = dto.ReviewType.Trim().ToLowerInvariant();
             var canEditRequirements = reviewType == "requirements"
-                && string.Equals(userRole, ApplicationWorkflowDefinitions.Roles.InitialReviewer, StringComparison.OrdinalIgnoreCase);
+                && UserRoleRules.HasRole(currentUser, ApplicationWorkflowDefinitions.Roles.InitialReviewer);
             var canEditTechnicalPlans = reviewType == "technical-plans"
-                && string.Equals(userRole, ApplicationWorkflowDefinitions.Roles.TechnicalReviewer, StringComparison.OrdinalIgnoreCase);
+                && UserRoleRules.HasRole(currentUser, ApplicationWorkflowDefinitions.Roles.TechnicalReviewer);
 
             if (!canEditRequirements && !canEditTechnicalPlans)
             {
@@ -402,7 +402,10 @@ namespace ePermitsApp.Services
                 $"{reviewLabel} review substatus changed to {dto.Status}",
                 details,
                 userId,
-                currentUser?.Username ?? "System");
+                currentUser?.Username ?? "System",
+                canEditRequirements
+                    ? ApplicationWorkflowDefinitions.Roles.InitialReviewer
+                    : ApplicationWorkflowDefinitions.Roles.TechnicalReviewer);
 
             return (true, "Review substatus updated successfully");
         }

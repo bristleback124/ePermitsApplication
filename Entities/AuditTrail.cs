@@ -10,6 +10,8 @@ namespace ePermits.Models
         // No FK to User — intentional denormalization. Captures name at event time.
         public int PerformedByUserId { get; set; }
         public string PerformedByName { get; set; } = string.Empty;
+        // Role the action was taken as (the workflow transition's RequiredRole); null for non-role actions and older rows.
+        public string? PerformedByRole { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Navigation properties

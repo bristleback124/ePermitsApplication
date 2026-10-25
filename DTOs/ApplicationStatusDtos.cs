@@ -28,6 +28,9 @@ namespace ePermitsApp.DTOs
         public string Status { get; set; } = string.Empty;
         [MaxLength(500)]
         public string? Reason { get; set; }
+        // Role the action is taken as (the transition's RequiredRole). Optional: older clients omit it.
+        [MaxLength(20)]
+        public string? ActingRole { get; set; }
     }
 
     public class UpdateApplicationReviewSubstatusDto

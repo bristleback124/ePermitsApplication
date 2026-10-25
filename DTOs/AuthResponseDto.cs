@@ -7,6 +7,8 @@ namespace ePermits.DTOs
         public string Token { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public int RoleId { get; set; }
+        // Every role the user holds (Role/RoleId stay the primary role).
+        public List<string> Roles { get; set; } = new List<string>();
         public bool MustChangePassword { get; set; }
         public UserProfileDto Profile { get; set; } = new UserProfileDto();
     }

@@ -35,7 +35,7 @@ namespace ePermitsApp.Services
             return _mapper.Map<IEnumerable<AuditTrailDto>>(auditTrails);
         }
 
-        public async Task LogAsync(int applicationId, string actionType, string action, string? details, int userId, string userName)
+        public async Task LogAsync(int applicationId, string actionType, string action, string? details, int userId, string userName, string? role = null)
         {
             try
             {
@@ -47,6 +47,7 @@ namespace ePermitsApp.Services
                     Details = details,
                     PerformedByUserId = userId,
                     PerformedByName = userName,
+                    PerformedByRole = role,
                     CreatedAt = DateTime.UtcNow
                 };
 
