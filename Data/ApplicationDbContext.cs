@@ -434,11 +434,11 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.Coordinates).HasMaxLength(100);
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
-                entity.Property(e => e.EstimatedCost).HasPrecision(18, 10);
-                entity.Property(e => e.FloorAreaPerStorey).HasPrecision(18, 10);
-                entity.Property(e => e.TotalFloorArea).HasPrecision(18, 10);
-                entity.Property(e => e.ProjectScopeLotArea).HasPrecision(18, 10);
-                entity.Property(e => e.PropertyDetailLotArea).HasPrecision(18, 10);
+                entity.Property(e => e.EstimatedCost).HasPrecision(18, 2);
+                entity.Property(e => e.FloorAreaPerStorey).HasPrecision(18, 4);
+                entity.Property(e => e.TotalFloorArea).HasPrecision(18, 4);
+                entity.Property(e => e.ProjectScopeLotArea).HasPrecision(18, 4);
+                entity.Property(e => e.PropertyDetailLotArea).HasPrecision(18, 4);
 
                 entity.HasOne(e => e.AppInfo)
                     .WithOne(a => a.BuildingPermit)
@@ -576,7 +576,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.MailAddress).IsRequired();
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
-                entity.Property(e => e.FloorArea).HasPrecision(18, 10);
+                entity.Property(e => e.FloorArea).HasPrecision(18, 4);
 
                 entity.HasOne(e => e.CoOAppProf)
                     .WithOne(p => p.CoOApp)

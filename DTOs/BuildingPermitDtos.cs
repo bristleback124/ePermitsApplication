@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 using ePermitsApp.Constants;
+using ePermitsApp.Helpers;
 
 namespace ePermitsApp.DTOs
 {
@@ -139,10 +140,14 @@ namespace ePermitsApp.DTOs
         public int OccupancyNatureId { get; set; }
         public string? ProjectTitle { get; set; }
         public int ProjectClassId { get; set; }
+        [CostRange, Display(Name = "Estimated cost")]
         public decimal EstimatedCost { get; set; }
         public int NoOfStoreys { get; set; }
+        [AreaRange, Display(Name = "Floor area per storey")]
         public decimal FloorAreaPerStorey { get; set; }
+        [AreaRange, Display(Name = "Total floor area")]
         public decimal TotalFloorArea { get; set; }
+        [AreaRange, Display(Name = "Lot area")]
         public decimal ProjectScopeLotArea { get; set; }
         public string? PropertyAddBlock { get; set; }
         public string? PropertyAddLot { get; set; }
@@ -150,6 +155,7 @@ namespace ePermitsApp.DTOs
         public int ProvinceId { get; set; }
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
+        [AreaRange, Display(Name = "Property lot area")]
         public decimal PropertyDetailLotArea { get; set; }
         public string? TCTNo { get; set; }
         public string? TaxDeclarionNo { get; set; }
@@ -207,10 +213,14 @@ namespace ePermitsApp.DTOs
         public int OccupancyNatureId { get; set; }
         public string? ProjectTitle { get; set; }
         public int ProjectClassId { get; set; }
+        [CostRange, Display(Name = "Estimated cost")]
         public decimal EstimatedCost { get; set; }
         public int NoOfStoreys { get; set; }
+        [AreaRange, Display(Name = "Floor area per storey")]
         public decimal FloorAreaPerStorey { get; set; }
+        [AreaRange, Display(Name = "Total floor area")]
         public decimal TotalFloorArea { get; set; }
+        [AreaRange, Display(Name = "Lot area")]
         public decimal ProjectScopeLotArea { get; set; }
         public string? PropertyAddBlock { get; set; }
         public string? PropertyAddLot { get; set; }
@@ -218,6 +228,7 @@ namespace ePermitsApp.DTOs
         public int ProvinceId { get; set; }
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
+        [AreaRange, Display(Name = "Property lot area")]
         public decimal PropertyDetailLotArea { get; set; }
         public string? TCTNo { get; set; }
         public string? TaxDeclarionNo { get; set; }

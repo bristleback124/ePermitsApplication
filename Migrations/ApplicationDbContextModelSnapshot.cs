@@ -1256,12 +1256,12 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("EstimatedCost")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("FloorAreaPerStorey")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("LGUId")
                         .HasColumnType("int");
@@ -1279,8 +1279,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("ProjectScopeLotArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("ProjectTitle")
                         .IsRequired()
@@ -1298,8 +1298,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PropertyDetailLotArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("ProvinceId")
                         .HasColumnType("int");
@@ -1315,8 +1315,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("TotalFloorArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1849,8 +1849,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("FloorArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
