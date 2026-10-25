@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
+using ePermitsApp.Constants;
+using ePermitsApp.Helpers;
 
 namespace ePermitsApp.DTOs
 {
@@ -127,6 +130,7 @@ namespace ePermitsApp.DTOs
         public List<FileMetadataDto> SupportDocSECRegistration { get; set; } = new();
         public List<FileMetadataDto> SupportDocBoardResolution { get; set; } = new();
         public List<FileMetadataDto> SupportDocHOAClearance { get; set; } = new();
+        public List<FileMetadataDto> SupportDocOthers { get; set; } = new();
     }
 
     public class BuildingPermitCreateDto
@@ -136,10 +140,14 @@ namespace ePermitsApp.DTOs
         public int OccupancyNatureId { get; set; }
         public string? ProjectTitle { get; set; }
         public int ProjectClassId { get; set; }
+        [CostRange, Display(Name = "Estimated cost")]
         public decimal EstimatedCost { get; set; }
         public int NoOfStoreys { get; set; }
+        [AreaRange, Display(Name = "Floor area per storey")]
         public decimal FloorAreaPerStorey { get; set; }
+        [AreaRange, Display(Name = "Total floor area")]
         public decimal TotalFloorArea { get; set; }
+        [AreaRange, Display(Name = "Lot area")]
         public decimal ProjectScopeLotArea { get; set; }
         public string? PropertyAddBlock { get; set; }
         public string? PropertyAddLot { get; set; }
@@ -147,6 +155,7 @@ namespace ePermitsApp.DTOs
         public int ProvinceId { get; set; }
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
+        [AreaRange, Display(Name = "Property lot area")]
         public decimal PropertyDetailLotArea { get; set; }
         public string? TCTNo { get; set; }
         public string? TaxDeclarionNo { get; set; }
@@ -159,6 +168,9 @@ namespace ePermitsApp.DTOs
         public BuildingPermitDesignProfCreateDto DesignProf { get; set; } = new();
         public BuildingPermitTechDocCreateDto TechDoc { get; set; } = new();
         public BuildingPermitSupportingDocCreateDto SupportingDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class BuildingPermitEditDto
@@ -201,10 +213,14 @@ namespace ePermitsApp.DTOs
         public int OccupancyNatureId { get; set; }
         public string? ProjectTitle { get; set; }
         public int ProjectClassId { get; set; }
+        [CostRange, Display(Name = "Estimated cost")]
         public decimal EstimatedCost { get; set; }
         public int NoOfStoreys { get; set; }
+        [AreaRange, Display(Name = "Floor area per storey")]
         public decimal FloorAreaPerStorey { get; set; }
+        [AreaRange, Display(Name = "Total floor area")]
         public decimal TotalFloorArea { get; set; }
+        [AreaRange, Display(Name = "Lot area")]
         public decimal ProjectScopeLotArea { get; set; }
         public string? PropertyAddBlock { get; set; }
         public string? PropertyAddLot { get; set; }
@@ -212,6 +228,7 @@ namespace ePermitsApp.DTOs
         public int ProvinceId { get; set; }
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
+        [AreaRange, Display(Name = "Property lot area")]
         public decimal PropertyDetailLotArea { get; set; }
         public string? TCTNo { get; set; }
         public string? TaxDeclarionNo { get; set; }
@@ -224,6 +241,9 @@ namespace ePermitsApp.DTOs
         public BuildingPermitDesignProfUpdateDto DesignProf { get; set; } = new();
         public BuildingPermitTechDocUpdateDto TechDoc { get; set; } = new();
         public BuildingPermitSupportingDocUpdateDto SupportingDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class BuildingPermitAppInfoCreateDto
@@ -231,6 +251,7 @@ namespace ePermitsApp.DTOs
         public int ApplicantTypeId { get; set; }
         public string? FullName { get; set; }
         public string? ContactNo { get; set; }
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string? Email { get; set; }
         public string? TIN { get; set; }
         public string? MailAddress { get; set; }
@@ -249,6 +270,7 @@ namespace ePermitsApp.DTOs
         public int ApplicantTypeId { get; set; }
         public string? FullName { get; set; }
         public string? ContactNo { get; set; }
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string? Email { get; set; }
         public string? TIN { get; set; }
         public string? MailAddress { get; set; }
@@ -366,6 +388,7 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection? SupportDocSECRegistration { get; set; }
         public IFormFileCollection? SupportDocBoardResolution { get; set; }
         public IFormFileCollection? SupportDocHOAClearance { get; set; }
+        public IFormFileCollection? SupportDocOthers { get; set; }
     }
 
     public class BuildingPermitSupportingDocUpdateDto
@@ -380,6 +403,7 @@ namespace ePermitsApp.DTOs
         public string[] KeepSupportDocSECRegistration { get; set; } = Array.Empty<string>();
         public string[] KeepSupportDocBoardResolution { get; set; } = Array.Empty<string>();
         public string[] KeepSupportDocHOAClearance { get; set; } = Array.Empty<string>();
+        public string[] KeepSupportDocOthers { get; set; } = Array.Empty<string>();
 
         public IFormFileCollection? SupportDocZoningClearance { get; set; }
         public IFormFileCollection? SupportDocLocationalClearance { get; set; }
@@ -391,5 +415,6 @@ namespace ePermitsApp.DTOs
         public IFormFileCollection? SupportDocSECRegistration { get; set; }
         public IFormFileCollection? SupportDocBoardResolution { get; set; }
         public IFormFileCollection? SupportDocHOAClearance { get; set; }
+        public IFormFileCollection? SupportDocOthers { get; set; }
     }
 }

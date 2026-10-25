@@ -1,4 +1,5 @@
 using ePermitsApp.DTOs;
+using ePermitsApp.Helpers;
 using ePermitsApp.Services.Interfaces;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -117,7 +118,7 @@ namespace ePermitsApp.Services
             {
                 inner.Item().Text(title).FontSize(18).Bold().FontColor(Colors.Blue.Darken2);
                 inner.Item().Text($"Application ID: {formattedId}").FontSize(11).FontColor(Colors.Grey.Darken1);
-                inner.Item().Text($"Generated: {DateTime.Now:MMMM dd, yyyy hh:mm tt}").FontSize(9).FontColor(Colors.Grey.Medium);
+                inner.Item().Text($"Generated: {PhilippineTime.Now:MMMM dd, yyyy hh:mm tt}").FontSize(9).FontColor(Colors.Grey.Medium);
             });
             col.Item().PaddingBottom(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
         }
@@ -195,12 +196,13 @@ namespace ePermitsApp.Services
                 table.ColumnsDefinition(c => { c.RelativeColumn(1); c.RelativeColumn(2); });
                 AddFieldRow(table, "Project Type", NaIfEmpty(details.ProjectType));
                 AddFieldRow(table, "Project Value", $"₱{details.ProjectValue:N2}");
-                AddFieldRow(table, "Lot Area", $"{details.LotArea:N2} sq.m.");
+                AddFieldRow(table, "Property Lot Area", $"{details.LotArea:N2} sq.m.");
+                AddFieldRow(table, "Project Lot Area", $"{details.ProjectLotArea:N2} sq.m.");
                 AddFieldRow(table, "Number of Stories", details.NumberOfStories.ToString());
                 AddFieldRow(table, "Permit Type", NaIfEmpty(details.PermitType));
                 AddFieldRow(table, "Occupancy Type", NaIfEmpty(details.OccupancyType));
                 AddFieldRow(table, "Floor Area", $"{details.FloorArea:N2} sq.m.");
-                AddFieldRow(table, "Date Filed", details.CreatedAt.ToString("MMMM dd, yyyy"));
+                AddFieldRow(table, "Date Filed", PhilippineTime.FromUtc(details.CreatedAt).ToString("MMMM dd, yyyy"));
             });
         }
 
@@ -241,7 +243,7 @@ namespace ePermitsApp.Services
                 AddFieldRow(table, "Floor Area", $"{details.FloorArea:N2} sq.m.");
                 AddFieldRow(table, "Number of Stories", details.NumberOfStories.ToString());
                 AddFieldRow(table, "Completion Date", details.CompletionDate.ToString("MMMM dd, yyyy"));
-                AddFieldRow(table, "Date Filed", details.CreatedAt.ToString("MMMM dd, yyyy"));
+                AddFieldRow(table, "Date Filed", PhilippineTime.FromUtc(details.CreatedAt).ToString("MMMM dd, yyyy"));
             });
         }
 

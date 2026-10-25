@@ -112,6 +112,9 @@ namespace ePermitsApp.Migrations
                     b.Property<int>("ApplicationId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Attachments")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -170,6 +173,10 @@ namespace ePermitsApp.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PerformedByRole")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("PerformedByUserId")
                         .HasColumnType("int");
@@ -385,8 +392,8 @@ namespace ePermitsApp.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -820,6 +827,21 @@ namespace ePermitsApp.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ePermits.Models.UserRoleAssignment", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserRoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId", "UserRoleId");
+
+                    b.HasIndex("UserRoleId");
+
+                    b.ToTable("UserRoleAssignments", (string)null);
+                });
+
             modelBuilder.Entity("ePermitsApp.Entities.AdminEmailNotificationConfig", b =>
                 {
                     b.Property<int>("Id")
@@ -1234,12 +1256,12 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("EstimatedCost")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("FloorAreaPerStorey")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("LGUId")
                         .HasColumnType("int");
@@ -1257,8 +1279,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("ProjectScopeLotArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("ProjectTitle")
                         .IsRequired()
@@ -1276,8 +1298,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("PropertyDetailLotArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("ProvinceId")
                         .HasColumnType("int");
@@ -1293,8 +1315,8 @@ namespace ePermitsApp.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("TotalFloorArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1351,8 +1373,8 @@ namespace ePermitsApp.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -1606,6 +1628,9 @@ namespace ePermitsApp.Migrations
                     b.Property<string>("SupportDocLocationalClearance")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SupportDocOthers")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SupportDocSECRegistration")
                         .HasColumnType("nvarchar(max)");
 
@@ -1820,12 +1845,12 @@ namespace ePermitsApp.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("FloorArea")
-                        .HasPrecision(18, 10)
-                        .HasColumnType("decimal(18,10)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -3480,6 +3505,25 @@ namespace ePermitsApp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ePermits.Models.UserRoleAssignment", b =>
+                {
+                    b.HasOne("ePermits.Models.User", "User")
+                        .WithMany("RoleAssignments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ePermits.Models.UserRole", "UserRole")
+                        .WithMany()
+                        .HasForeignKey("UserRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserRole");
+                });
+
             modelBuilder.Entity("ePermitsApp.Entities.AdminEmailNotificationConfig", b =>
                 {
                     b.HasOne("ePermits.Models.User", "User")
@@ -3818,6 +3862,8 @@ namespace ePermitsApp.Migrations
 
             modelBuilder.Entity("ePermits.Models.User", b =>
                 {
+                    b.Navigation("RoleAssignments");
+
                     b.Navigation("UserProfile");
                 });
 

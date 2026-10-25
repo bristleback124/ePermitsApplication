@@ -1,7 +1,9 @@
 using ePermits.Data;
 using ePermits.DTOs;
+using ePermitsApp.Constants;
 using ePermitsApp.DTOs;
 using ePermitsApp.Entities;
+using ePermitsApp.Helpers;
 
 using ePermits.Models;
 using ePermitsApp.Models.EmailModels;
@@ -130,7 +132,7 @@ namespace ePermits.Services
             }
 
             // Generate JWT token
-            string token = GenerateJwtToken(createdUser.Id, createdUser.Username, role.UserRoleDesc, role.Id);
+            string token = GenerateJwtToken(createdUser.Id, createdUser.Username, new[] { role.UserRoleDesc }, role.Id);
 
             Console.WriteLine($"Registration successful for user: {createdUser.Username}");
 
@@ -142,6 +144,7 @@ namespace ePermits.Services
                 Token = token,
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                Roles = new List<string> { role.UserRoleDesc },
                 MustChangePassword = createdUser.MustChangePassword,
                 Profile = new UserProfileDto
                 {
@@ -184,7 +187,7 @@ namespace ePermits.Services
             }
 
             // Generate JWT token
-            string token = GenerateJwtToken(user.Id, user.Username, role.UserRoleDesc, role.Id);
+            string token = GenerateJwtToken(user.Id, user.Username, UserRoleRules.GetRoleNames(user), role.Id);
 
             // Return response
             return new AuthResponseDto
@@ -194,6 +197,7 @@ namespace ePermits.Services
                 Token = token,
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                Roles = UserRoleRules.GetRoleNames(user).ToList(),
                 MustChangePassword = user.MustChangePassword,
                 Profile = new UserProfileDto
                 {
@@ -233,19 +237,20 @@ namespace ePermits.Services
             }
         }
 
-        public string GenerateJwtToken(int userId, string username, string role, int roleId)
+        public string GenerateJwtToken(int userId, string username, IReadOnlyList<string> roles, int roleId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"));
 
-            var claims = new[]
+            // One role claim per role the user holds, so [Authorize(Roles = ...)] accepts any of them.
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, role),
-                new Claim("RoleId", roleId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.Add(new Claim("RoleId", roleId.ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -294,6 +299,7 @@ namespace ePermits.Services
                 Token = null, // No token here
                 Role = role.UserRoleDesc,
                 RoleId = role.Id,
+                Roles = UserRoleRules.GetRoleNames(user).ToList(),
                 MustChangePassword = user.MustChangePassword,
                 Profile = new UserProfileDto
                 {
@@ -323,11 +329,14 @@ namespace ePermits.Services
                 return (false, "An account with this email already exists.", null);
             }
 
-            // Generate username from email prefix
-            var username = email.Split('@')[0].ToLowerInvariant();
+            // Generate username from email prefix, truncated to fit the Username column
+            var emailPrefix = email.Split('@')[0].ToLowerInvariant();
+            var username = Truncate(emailPrefix, ValidationLimits.UsernameMaxLength);
             if (await _userRepository.UsernameExistsAsync(username))
             {
-                username = $"{username}{DateTime.UtcNow.Ticks % 10000}";
+                // Leave room for the up-to-4-digit suffix
+                var suffix = (DateTime.UtcNow.Ticks % 10000).ToString();
+                username = Truncate(emailPrefix, ValidationLimits.UsernameMaxLength - suffix.Length) + suffix;
             }
 
             // Generate temp password (8 chars alphanumeric)
@@ -470,11 +479,48 @@ namespace ePermits.Services
             return (true, "Password changed successfully.");
         }
 
+        public async Task<(bool Success, bool Forbidden, string Message)> SetPasswordByAdminAsync(int targetUserId, string newPassword, int adminUserId, string adminRole)
+        {
+            if (targetUserId == adminUserId)
+            {
+                return (false, false, "Use Change Password to change your own password.");
+            }
+
+            var user = await _userRepository.GetByIdAsync(targetUserId);
+            if (user == null)
+            {
+                return (false, false, "User not found.");
+            }
+
+            var targetRole = user.UserRole?.UserRoleDesc ?? string.Empty;
+            if (string.Equals(targetRole, "superadmin", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(adminRole, "superadmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return (false, true, "Only a superadmin can change a superadmin's password.");
+            }
+
+            var admin = await _userRepository.GetByIdAsync(adminUserId);
+            user.Password = HashPassword(newPassword);
+            user.MustChangePassword = false;
+            user.UpdatedBy = admin?.Username ?? "admin";
+            user.UpdatedAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
+
+            _logger.LogInformation("Password for user {TargetUserId} ({TargetUsername}) set by admin {AdminUserId} ({AdminUsername}).",
+                user.Id, user.Username, adminUserId, admin?.Username);
+            return (true, false, "Password changed.");
+        }
+
         private static string GenerateTempPassword(int length)
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
             var random = new Random();
             return new string(Enumerable.Range(0, length).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+        }
+
+        private static string Truncate(string value, int maxLength)
+        {
+            return value.Length <= maxLength ? value : value[..maxLength];
         }
 
     }

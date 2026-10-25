@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
+using ePermitsApp.Constants;
+using ePermitsApp.Helpers;
 
 namespace ePermitsApp.DTOs
 {
@@ -67,12 +69,14 @@ namespace ePermitsApp.DTOs
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
         public int OccupancyNatureId { get; set; }
+        [AreaRange, Display(Name = "Floor area")]
         public decimal FloorArea { get; set; }
         public int NoOfStoreys { get; set; }
         public DateTime? CompletionDate { get; set; }
         public int ApplicantTypeId { get; set; }
         public string? FullName { get; set; }
         public string? ContactNo { get; set; }
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string? Email { get; set; }
         public string? TIN { get; set; }
         public string? MailAddress { get; set; }
@@ -81,6 +85,9 @@ namespace ePermitsApp.DTOs
 
         public CoOAppProfCreateDto CoOAppProf { get; set; } = new();
         public CoOAppReqDocCreateDto CoOAppReqDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class CoOAppEditDto
@@ -122,12 +129,14 @@ namespace ePermitsApp.DTOs
         public int LGUId { get; set; }
         public int BarangayId { get; set; }
         public int OccupancyNatureId { get; set; }
+        [AreaRange, Display(Name = "Floor area")]
         public decimal FloorArea { get; set; }
         public int NoOfStoreys { get; set; }
         public DateTime? CompletionDate { get; set; }
         public int ApplicantTypeId { get; set; }
         public string? FullName { get; set; }
         public string? ContactNo { get; set; }
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string? Email { get; set; }
         public string? TIN { get; set; }
         public string? MailAddress { get; set; }
@@ -135,6 +144,9 @@ namespace ePermitsApp.DTOs
         public DateTime? DateOfSignature { get; set; }
         public CoOAppProfUpdateDto CoOAppProf { get; set; } = new();
         public CoOAppReqDocUpdateDto CoOAppReqDoc { get; set; } = new();
+
+        /// Files already uploaded in chunks via /api/uploads/permit-files, by document slot.
+        public List<UploadedFileRefDto> UploadedFiles { get; set; } = new();
     }
 
     public class CoOAppProfCreateDto

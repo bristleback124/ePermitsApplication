@@ -9,6 +9,8 @@ namespace ePermits.Models
         public int CreatedById { get; set; }
         public string Content { get; set; } = string.Empty;
         public bool IsVisibleToApplicant { get; set; } = false;
+        /// Attached files (FilePathHelper format); shown to the applicant only when the note is.
+        public string? Attachments { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties

@@ -32,7 +32,7 @@
             <div class="details">
                 <p><span class="label">Reference Number:</span> @Model.ApplicationFormattedId</p>
                 <p><span class="label">From:</span> @Model.SenderName (@Model.SenderRole)</p>
-                <p><span class="label">Date:</span> @Model.SentAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                <p><span class="label">Date:</span> @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.SentAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
                 <p><span class="label">Message:</span></p>
                 <div class="message-box">
                     <p>@Model.MessagePreview</p>

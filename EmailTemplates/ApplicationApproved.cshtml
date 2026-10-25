@@ -42,7 +42,7 @@
                 {
                     <p><span class="label">Approved By:</span> @Model.UpdatedBy</p>
                 }
-                <p><span class="label">Approved On:</span> @Model.UpdatedAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                <p><span class="label">Approved On:</span> @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.UpdatedAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
             </div>
 
             <p>You may now proceed with the next steps. Please visit the ePermits portal for further instructions.</p>

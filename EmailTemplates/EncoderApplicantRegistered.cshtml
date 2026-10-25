@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <p class="meta">Registered on @Model.RegisteredAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+            <p class="meta">Registered on @ePermitsApp.Helpers.PhilippineTime.FromUtc(Model.RegisteredAt).ToString("MMMM dd, yyyy hh:mm tt")</p>
         </div>
         <div class="footer">
             <p>&copy; @DateTime.Now.Year ePermits System. All rights reserved.</p>

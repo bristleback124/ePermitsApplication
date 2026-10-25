@@ -27,6 +27,13 @@ namespace ePermitsApp.Services
         private readonly IApplicationFormattedIdService _applicationFormattedIdService;
         private readonly ILogger<CoOAppService> _logger;
         private readonly ApplicationDbContext _dbContext;
+        private readonly IPermitUploadService _uploads;
+
+        // Document slots that accept files uploaded in chunks beforehand (UploadedFiles).
+        private static readonly string[] UploadSlots = UploadedFileSet.SlotsOf(typeof(CoOAppReqDocCreateDto), "coOAppReqDoc").ToArray();
+
+        // Pre-uploaded files of the request being handled; slots are taken as they're saved.
+        private UploadedFileSet _uploaded = UploadedFileSet.Empty;
 
         public CoOAppService(
             ICoOAppRepository repository,
@@ -38,7 +45,8 @@ namespace ePermitsApp.Services
             IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
             IApplicationFormattedIdService applicationFormattedIdService,
             ApplicationDbContext dbContext,
-            ILogger<CoOAppService> logger)
+            ILogger<CoOAppService> logger,
+            IPermitUploadService uploads)
         {
             _repository = repository;
             _mapper = mapper;
@@ -50,6 +58,7 @@ namespace ePermitsApp.Services
             _dbContext = dbContext;
             _applicationFormattedIdService = applicationFormattedIdService;
             _logger = logger;
+            _uploads = uploads;
         }
 
         public async Task<PagedResult<CoOApp>> GetAllAsync(PaginationParams pagination)
@@ -86,6 +95,8 @@ namespace ePermitsApp.Services
 
         public async Task<CoOApp> CreateAsync(CoOAppCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
+            _uploaded = await _uploads.ResolveAsync(dto.UploadedFiles, _currentUser.UserId, UploadSlots);
+
             var coOApp = _mapper.Map<CoOApp>(dto);
             NormalizePersistedStringValues(coOApp);
 
@@ -163,7 +174,11 @@ namespace ePermitsApp.Services
 
                 if (dto.CoOAppReqDoc.ReqDocOthers != null)
                     coOApp.CoOAppReqDoc.ReqDocOthers = await SaveFilesAsync(dto.CoOAppReqDoc.ReqDocOthers, "req-docs");
+
+                AppendUploadedFiles(coOApp.CoOAppReqDoc);
             }
+
+            _uploaded.EnsureAllTaken();
 
             if (!saveAsDraft)
             {
@@ -173,6 +188,7 @@ namespace ePermitsApp.Services
             // Update again with file paths
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
+            await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             if (!saveAsDraft)
             {
@@ -203,6 +219,8 @@ namespace ePermitsApp.Services
             {
                 return (false, "This application can no longer be edited", null);
             }
+
+            _uploaded = await _uploads.ResolveAsync(dto.UploadedFiles, _currentUser.UserId, UploadSlots);
 
             var now = DateTime.UtcNow;
             var actor = _currentUser.UserName ?? "System";
@@ -235,6 +253,7 @@ namespace ePermitsApp.Services
             await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocBrgyClearance), dto.CoOAppReqDoc.ReqDocBrgyClearance, dto.CoOAppReqDoc.KeepReqDocBrgyClearance, !saveAsDraft);
             await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocFSIC), dto.CoOAppReqDoc.ReqDocFSIC, dto.CoOAppReqDoc.KeepReqDocFSIC, !saveAsDraft);
             await UpdateMultiReqDocAsync(coOApp.CoOAppReqDoc, nameof(coOApp.CoOAppReqDoc.ReqDocOthers), dto.CoOAppReqDoc.ReqDocOthers, dto.CoOAppReqDoc.KeepReqDocOthers, false);
+            _uploaded.EnsureAllTaken();
 
             if (saveAsDraft)
             {
@@ -259,6 +278,7 @@ namespace ePermitsApp.Services
 
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
+            await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             if (!saveAsDraft && wasDraft)
             {
@@ -317,12 +337,37 @@ namespace ePermitsApp.Services
                 retained.AddRange(await SaveNewFileMetadataAsync(newFiles));
             }
 
+            retained.AddRange(_uploaded.Take(UploadedFileSet.SlotName("coOAppReqDoc", propertyName)));
+
             if (required && retained.Count == 0)
             {
                 throw new InvalidOperationException($"{propertyName} is required.");
             }
 
             property.SetValue(target, FilePathHelper.Serialize(retained));
+        }
+
+        /// Adds pre-uploaded files to every document slot of the request's required docs (create path).
+        private void AppendUploadedFiles(CoOAppReqDoc reqDoc)
+        {
+            foreach (var property in typeof(CoOAppReqDoc).GetProperties().Where(p => p.PropertyType == typeof(string)))
+            {
+                var slot = UploadedFileSet.SlotName("coOAppReqDoc", property.Name);
+                if (!UploadSlots.Contains(slot))
+                {
+                    continue;
+                }
+
+                var uploaded = _uploaded.Take(slot);
+                if (uploaded.Count == 0)
+                {
+                    continue;
+                }
+
+                var files = FilePathHelper.Deserialize(property.GetValue(reqDoc) as string);
+                files.AddRange(uploaded);
+                property.SetValue(reqDoc, FilePathHelper.Serialize(files));
+            }
         }
 
         private async Task<List<FileMetadataDto>> SaveNewFileMetadataAsync(IFormFileCollection files)

@@ -16,4 +16,16 @@ namespace ePermits.DTOs
         [Compare(nameof(NewPassword))]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
+
+    /// An admin setting another user's password (User Management), e.g. when they forgot it.
+    public class AdminSetPasswordDto
+    {
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required]
+        [Compare(nameof(NewPassword))]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
 }

@@ -48,8 +48,6 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPost]
-        [RequestSizeLimit(200 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 200 * 1024 * 1024)]
         public async Task<ActionResult<CoOAppDto>> Create([FromForm] CoOAppCreateDto dto, [FromQuery] bool saveAsDraft = false, [FromQuery] int? applicantId = null)
         {
             try
@@ -87,8 +85,6 @@ namespace ePermitsApp.Controllers
         }
 
         [HttpPut("application/{applicationId}")]
-        [RequestSizeLimit(200 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 200 * 1024 * 1024)]
         public async Task<IActionResult> UpdateByApplicationId(int applicationId, [FromForm] CoOAppUpdateDto dto, [FromQuery] bool saveAsDraft = false)
         {
             try

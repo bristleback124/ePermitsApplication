@@ -1,10 +1,12 @@
-﻿using ePermitsApp.Entities;
+﻿using ePermitsApp.Constants;
+using ePermitsApp.Entities;
 using ePermitsApp.Entities.BuildingPermit;
 using ePermits.Models;
 using ePermitsApp.Entities.CoOApp;
 using ePermitsApp.Data.Seeders;
 using ePermitsApp.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ePermitsApp.Data
 {
@@ -32,6 +34,7 @@ namespace ePermitsApp.Data
         public DbSet<OwnershipType> OwnershipTypes => Set<OwnershipType>();
         public DbSet<BuildingPermitCategory> BuildingPermitCategories => Set<BuildingPermitCategory>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<UserRoleAssignment> UserRoleAssignments => Set<UserRoleAssignment>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
 
@@ -331,7 +334,7 @@ namespace ePermitsApp.Data
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Username).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Username).IsRequired().HasMaxLength(ValidationLimits.UsernameMaxLength);
                 entity.Property(e => e.Password).IsRequired();
                 entity.Property(e => e.CreatedBy).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -355,6 +358,23 @@ namespace ePermitsApp.Data
 
             });
 
+            // UserRoleAssignment configuration (multi-role users)
+            modelBuilder.Entity<UserRoleAssignment>(entity =>
+            {
+                entity.ToTable("UserRoleAssignments");
+                entity.HasKey(e => new { e.UserId, e.UserRoleId });
+
+                entity.HasOne(e => e.User)
+                    .WithMany(u => u.RoleAssignments)
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.UserRole)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserRoleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             // UserRole configuration
             modelBuilder.Entity<UserRole>(entity =>
             {
@@ -368,10 +388,10 @@ namespace ePermitsApp.Data
             modelBuilder.Entity<UserProfile>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.MiddleName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(ValidationLimits.NameMaxLength);
+                entity.Property(e => e.MiddleName).IsRequired().HasMaxLength(ValidationLimits.NameMaxLength);
+                entity.Property(e => e.LastName).IsRequired().HasMaxLength(ValidationLimits.NameMaxLength);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.MobileNo).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.CreatedBy).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired();
@@ -414,11 +434,11 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.Coordinates).HasMaxLength(100);
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
-                entity.Property(e => e.EstimatedCost).HasPrecision(18, 10);
-                entity.Property(e => e.FloorAreaPerStorey).HasPrecision(18, 10);
-                entity.Property(e => e.TotalFloorArea).HasPrecision(18, 10);
-                entity.Property(e => e.ProjectScopeLotArea).HasPrecision(18, 10);
-                entity.Property(e => e.PropertyDetailLotArea).HasPrecision(18, 10);
+                entity.Property(e => e.EstimatedCost).HasPrecision(18, 2);
+                entity.Property(e => e.FloorAreaPerStorey).HasPrecision(18, 4);
+                entity.Property(e => e.TotalFloorArea).HasPrecision(18, 4);
+                entity.Property(e => e.ProjectScopeLotArea).HasPrecision(18, 4);
+                entity.Property(e => e.PropertyDetailLotArea).HasPrecision(18, 4);
 
                 entity.HasOne(e => e.AppInfo)
                     .WithOne(a => a.BuildingPermit)
@@ -478,7 +498,7 @@ namespace ePermitsApp.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FullName).IsRequired();
                 entity.Property(e => e.ContactNo).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.TIN).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.MailAddress).IsRequired();
                 entity.Property(e => e.ReqDocProofOwnership).IsRequired();
@@ -551,12 +571,12 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.ProjLocStreet).IsRequired();
                 entity.Property(e => e.FullName).IsRequired();
                 entity.Property(e => e.ContactNo).IsRequired().HasMaxLength(20);
-                entity.Property(e => e.Email).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(ValidationLimits.EmailMaxLength);
                 entity.Property(e => e.TIN).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.MailAddress).IsRequired();
                 entity.Property(e => e.DigitalSignature).IsRequired();
 
-                entity.Property(e => e.FloorArea).HasPrecision(18, 10);
+                entity.Property(e => e.FloorArea).HasPrecision(18, 4);
 
                 entity.HasOne(e => e.CoOAppProf)
                     .WithOne(p => p.CoOApp)
@@ -711,6 +731,7 @@ namespace ePermitsApp.Data
                 entity.Property(e => e.Action).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Details).HasMaxLength(1000);
                 entity.Property(e => e.PerformedByName).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.PerformedByRole).HasMaxLength(20);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
                 entity.HasIndex(e => new { e.ApplicationId, e.CreatedAt });
@@ -721,10 +742,40 @@ namespace ePermitsApp.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            MarkTimestampsAsUtc(modelBuilder);
+
             // Run modular seeders (HasData calls)
             DatabaseSeederRunner.RunSeeders(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        // Timestamps are written as UTC, but datetime2 carries no zone, so EF reads them back as
+        // DateTimeKind.Unspecified and they serialize without a 'Z' (browsers then parse them as local
+        // time). Only "*At" / "Timestamp" properties are timestamps; calendar dates such as validity,
+        // completion and signature dates are left as-is.
+        private static void MarkTimestampsAsUtc(ModelBuilder modelBuilder)
+        {
+            var utc = new ValueConverter<DateTime, DateTime>(
+                v => v,
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            var nullableUtc = new ValueConverter<DateTime?, DateTime?>(
+                v => v,
+                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v);
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (!property.Name.EndsWith("At", StringComparison.Ordinal) && property.Name != "Timestamp")
+                        continue;
+
+                    if (property.ClrType == typeof(DateTime))
+                        property.SetValueConverter(utc);
+                    else if (property.ClrType == typeof(DateTime?))
+                        property.SetValueConverter(nullableUtc);
+                }
+            }
         }
     }
 }

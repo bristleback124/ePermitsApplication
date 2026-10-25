@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using ePermitsApp.Constants;
 
 namespace ePermits.DTOs
 {
     public class RegisterDto
     {
         [Required]
-        [StringLength(20, MinimumLength = 3)]
+        [StringLength(ValidationLimits.UsernameMaxLength, MinimumLength = ValidationLimits.UsernameMinLength)]
         public string Username { get; set; } = string.Empty;
 
         [Required]
@@ -17,20 +18,20 @@ namespace ePermits.DTOs
         public string ConfirmPassword { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.NameMaxLength)]
         public string FirstName { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.NameMaxLength)]
         public string MiddleName { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.NameMaxLength)]
         public string LastName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
-        [StringLength(100)]
+        [StringLength(ValidationLimits.EmailMaxLength)]
         public string Email { get; set; } = string.Empty;
 
         [Required]

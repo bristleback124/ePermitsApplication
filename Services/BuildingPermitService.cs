@@ -26,6 +26,16 @@ namespace ePermitsApp.Services
         private readonly IAdminEmailNotificationConfigService _adminEmailNotificationConfigService;
         private readonly IApplicationFormattedIdService _applicationFormattedIdService;
         private readonly ILogger<BuildingPermitService> _logger;
+        private readonly IPermitUploadService _uploads;
+
+        // Document slots that accept files uploaded in chunks beforehand (UploadedFiles).
+        private static readonly string[] UploadSlots = UploadedFileSet.SlotsOf(typeof(BuildingPermitAppInfoCreateDto), "appInfo")
+            .Concat(UploadedFileSet.SlotsOf(typeof(BuildingPermitTechDocCreateDto), "techDoc"))
+            .Concat(UploadedFileSet.SlotsOf(typeof(BuildingPermitSupportingDocCreateDto), "supportingDoc"))
+            .ToArray();
+
+        // Pre-uploaded files of the request being handled; slots are taken as they're saved.
+        private UploadedFileSet _uploaded = UploadedFileSet.Empty;
         private readonly ApplicationDbContext _dbContext;
 
         public BuildingPermitService(
@@ -38,7 +48,8 @@ namespace ePermitsApp.Services
             IAdminEmailNotificationConfigService adminEmailNotificationConfigService,
             IApplicationFormattedIdService applicationFormattedIdService,
             ApplicationDbContext dbContext,
-            ILogger<BuildingPermitService> logger)
+            ILogger<BuildingPermitService> logger,
+            IPermitUploadService uploads)
         {
             _repository = repository;
             _mapper = mapper;
@@ -50,6 +61,7 @@ namespace ePermitsApp.Services
             _applicationFormattedIdService = applicationFormattedIdService;
             _dbContext = dbContext;
             _logger = logger;
+            _uploads = uploads;
         }
 
         public async Task<PagedResult<BuildingPermit>> GetAllAsync(PaginationParams pagination)
@@ -86,6 +98,8 @@ namespace ePermitsApp.Services
 
         public async Task<BuildingPermit> CreateAsync(BuildingPermitCreateDto dto, bool saveAsDraft = false, int? applicantId = null)
         {
+            _uploaded = await _uploads.ResolveAsync(dto.UploadedFiles, _currentUser.UserId, UploadSlots);
+
             var buildingPermit = _mapper.Map<BuildingPermit>(dto);
             NormalizeDraftValues(buildingPermit);
 
@@ -216,16 +230,23 @@ namespace ePermitsApp.Services
                 await UpdateSupportingDocFilesAsync(buildingPermit.SupportingDoc, dto.SupportingDoc, buildingPermit.Id);
             }
 
+            AppendUploadedFiles(buildingPermit.AppInfo, "appInfo");
+            AppendUploadedFiles(buildingPermit.TechDoc, "techDoc");
+            AppendUploadedFiles(buildingPermit.SupportingDoc, "supportingDoc");
+            _uploaded.EnsureAllTaken();
+
             if (!saveAsDraft)
             {
                 ValidateRequiredSubmission(buildingPermit);
                 ValidateCategorySpecificRequirements(buildingPermit);
+                ValidateLotAreas(buildingPermit);
             }
 
             // Update again with file paths
             _repository.Update(buildingPermit);
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
+            await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             // Send notification emails
             if (!saveAsDraft)
@@ -258,6 +279,8 @@ namespace ePermitsApp.Services
                 return (false, "This application can no longer be edited", null);
             }
 
+            _uploaded = await _uploads.ResolveAsync(dto.UploadedFiles, _currentUser.UserId, UploadSlots);
+
             var now = DateTime.UtcNow;
             var actor = _currentUser.UserName ?? "System";
             var currentUserId = TryGetCurrentUserId();
@@ -265,6 +288,9 @@ namespace ePermitsApp.Services
                 buildingPermit.Application.Status,
                 ApplicationWorkflowDefinitions.OverallStatuses.Draft,
                 StringComparison.OrdinalIgnoreCase);
+
+            var lotAreasChanged = buildingPermit.ProjectScopeLotArea != dto.ProjectScopeLotArea
+                || buildingPermit.PropertyDetailLotArea != dto.PropertyDetailLotArea;
 
             UpdateBuildingPermitFields(buildingPermit, dto, now, currentUserId);
             UpdateAppInfoFields(buildingPermit.AppInfo, dto.AppInfo, now, currentUserId);
@@ -320,6 +346,8 @@ namespace ePermitsApp.Services
             await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocSECRegistration), dto.SupportingDoc.KeepSupportDocSECRegistration, dto.SupportingDoc.SupportDocSECRegistration, buildingPermit.Id, false, "supporting-docs");
             await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocBoardResolution), dto.SupportingDoc.KeepSupportDocBoardResolution, dto.SupportingDoc.SupportDocBoardResolution, buildingPermit.Id, false, "supporting-docs");
             await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocHOAClearance), dto.SupportingDoc.KeepSupportDocHOAClearance, dto.SupportingDoc.SupportDocHOAClearance, buildingPermit.Id, false, "supporting-docs");
+            await UpdateMultiFileAsync(buildingPermit.SupportingDoc, nameof(buildingPermit.SupportingDoc.SupportDocOthers), dto.SupportingDoc.KeepSupportDocOthers, dto.SupportingDoc.SupportDocOthers, buildingPermit.Id, false, "supporting-docs");
+            _uploaded.EnsureAllTaken();
 
             if (saveAsDraft)
             {
@@ -333,6 +361,13 @@ namespace ePermitsApp.Services
                 ValidateRequiredSubmission(buildingPermit);
                 ValidateCategorySpecificRequirements(buildingPermit);
 
+                // Only when the lot areas are being set, so older applications that already break
+                // the rule stay editable (e.g. staff document updates).
+                if (wasDraft || lotAreasChanged)
+                {
+                    ValidateLotAreas(buildingPermit);
+                }
+
                 if (wasDraft)
                 {
                     buildingPermit.Application.CreatedAt = now;
@@ -345,6 +380,7 @@ namespace ePermitsApp.Services
 
             _repository.Update(buildingPermit);
             await _repository.SaveChangesAsync();
+            await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             if (!saveAsDraft && wasDraft)
             {
@@ -423,6 +459,9 @@ namespace ePermitsApp.Services
                     retained.AddRange(await SaveNewFileMetadataAsync(dto.ReqDocRealPropTaxReceipt, permitId, "req-docs"));
                 }
             }
+
+            retained.AddRange(TakeUploadedFiles(appInfo, nameof(appInfo.ReqDocTaxDeclaration)));
+            retained.AddRange(TakeUploadedFiles(appInfo, nameof(appInfo.ReqDocRealPropTaxReceipt)));
 
             retained = DedupeFileMetadata(retained);
             if (required && retained.Count == 0)
@@ -546,6 +585,7 @@ namespace ePermitsApp.Services
             supportingDoc.SupportDocSECRegistration = await SaveFilesAsync(dto.SupportDocSECRegistration, permitId, "supporting-docs");
             supportingDoc.SupportDocBoardResolution = await SaveFilesAsync(dto.SupportDocBoardResolution, permitId, "supporting-docs");
             supportingDoc.SupportDocHOAClearance = await SaveFilesAsync(dto.SupportDocHOAClearance, permitId, "supporting-docs");
+            supportingDoc.SupportDocOthers = await SaveFilesAsync(dto.SupportDocOthers, permitId, "supporting-docs");
         }
 
         private async Task UpdateMultiFileAsync(object target, string propertyName, string[] keepPaths, IFormFileCollection? newFiles, int permitId, bool required, string subFolder = "tech-docs")
@@ -558,6 +598,8 @@ namespace ePermitsApp.Services
             {
                 retained.AddRange(await SaveNewFileMetadataAsync(newFiles, permitId, subFolder));
             }
+
+            retained.AddRange(TakeUploadedFiles(target, propertyName));
 
             if (required && retained.Count == 0)
             {
@@ -587,6 +629,46 @@ namespace ePermitsApp.Services
             return result;
         }
 
+        private List<FileMetadataDto> TakeUploadedFiles(object target, string propertyName)
+        {
+            var prefix = target switch
+            {
+                BuildingPermitAppInfo => "appInfo",
+                BuildingPermitTechDoc => "techDoc",
+                BuildingPermitSupportingDoc => "supportingDoc",
+                _ => throw new InvalidOperationException($"No upload slots for {target.GetType().Name}."),
+            };
+
+            return _uploaded.Take(UploadedFileSet.SlotName(prefix, propertyName));
+        }
+
+        /// Adds pre-uploaded files to every document slot of `target` (create path).
+        private void AppendUploadedFiles(object? target, string prefix)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            foreach (var property in target.GetType().GetProperties().Where(p => p.PropertyType == typeof(string)))
+            {
+                if (!UploadSlots.Contains(UploadedFileSet.SlotName(prefix, property.Name)))
+                {
+                    continue;
+                }
+
+                var uploaded = TakeUploadedFiles(target, property.Name);
+                if (uploaded.Count == 0)
+                {
+                    continue;
+                }
+
+                var files = FilePathHelper.Deserialize(property.GetValue(target) as string);
+                files.AddRange(uploaded);
+                property.SetValue(target, FilePathHelper.Serialize(files));
+            }
+        }
+
         private static readonly string[] ComplexSupportingDocFields =
         {
             nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
@@ -604,6 +686,16 @@ namespace ePermitsApp.Services
             nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
         };
+
+        /// The project can cover part of the property, but never more than the whole lot.
+        private static void ValidateLotAreas(BuildingPermit buildingPermit)
+        {
+            if (buildingPermit.ProjectScopeLotArea > buildingPermit.PropertyDetailLotArea)
+            {
+                throw new InvalidOperationException(
+                    $"Project lot area ({buildingPermit.ProjectScopeLotArea:0.##} sqm) can't be more than the property lot area ({buildingPermit.PropertyDetailLotArea:0.##} sqm).");
+            }
+        }
 
         private static void ValidateRequiredSubmission(BuildingPermit buildingPermit)
         {

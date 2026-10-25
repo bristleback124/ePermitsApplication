@@ -78,7 +78,10 @@ namespace ePermitsApp.DTOs
     {
         public string ProjectType { get; set; } = string.Empty;
         public decimal ProjectValue { get; set; }
+        /// Property lot area (whole lot, per title).
         public decimal LotArea { get; set; }
+        /// Lot area the project covers; at most LotArea.
+        public decimal ProjectLotArea { get; set; }
         public int NumberOfStories { get; set; }
         public string PermitType { get; set; } = string.Empty;
         public string OccupancyType { get; set; } = string.Empty;

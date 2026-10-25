@@ -77,7 +77,8 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.SupportDocDENRClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocDENRClearance)))
                 .ForMember(dest => dest.SupportDocSECRegistration, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocSECRegistration)))
                 .ForMember(dest => dest.SupportDocBoardResolution, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocBoardResolution)))
-                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHOAClearance)));
+                .ForMember(dest => dest.SupportDocHOAClearance, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocHOAClearance)))
+                .ForMember(dest => dest.SupportDocOthers, opt => opt.MapFrom(src => FilePathHelper.Deserialize(src.SupportDocOthers)));
 
             // Mapping for RequiredDocs
             CreateMap<BuildingPermitAppInfo, RequiredDocs>()
@@ -113,6 +114,7 @@ namespace ePermitsApp.Mappings
                 .ForMember(dest => dest.ProjectType, opt => opt.MapFrom(src => src.Type))
                 .ForMember(dest => dest.ProjectValue, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.EstimatedCost : 0))
                 .ForMember(dest => dest.LotArea, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.PropertyDetailLotArea : 0))
+                .ForMember(dest => dest.ProjectLotArea, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.ProjectScopeLotArea : 0))
                 .ForMember(dest => dest.NumberOfStories, opt => opt.MapFrom(src => src.BuildingPermit != null ? src.BuildingPermit.NoOfStoreys : 0))
                 .ForMember(dest => dest.PermitType, opt => opt.MapFrom(src => src.BuildingPermit != null && src.BuildingPermit.PermitApplicationType != null 
                     ? src.BuildingPermit.PermitApplicationType.PermitAppTypeDesc : string.Empty))
