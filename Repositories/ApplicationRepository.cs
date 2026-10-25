@@ -105,7 +105,7 @@ namespace ePermits.Data
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.AssignedReviewer)
                         .ThenInclude(u => u!.UserProfile)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .FirstOrDefaultAsync(a => a.Id == id && a.BuildingPermit != null);
         }
 
         public async Task<Application?> GetByIdCoODetailedAsync(int id)
@@ -130,7 +130,7 @@ namespace ePermits.Data
                 .Include(a => a.DepartmentReviews)
                     .ThenInclude(r => r.AssignedReviewer)
                         .ThenInclude(u => u!.UserProfile)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .FirstOrDefaultAsync(a => a.Id == id && a.CoOApp != null);
         }
 
         public async Task<Application?> GetByIdWithApplicantInfoAsync(int id)
