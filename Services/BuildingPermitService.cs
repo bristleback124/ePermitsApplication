@@ -669,22 +669,14 @@ namespace ePermitsApp.Services
             }
         }
 
+        // Zoning, Locational and Fire Safety Clearance are optional at submission (FE#102): applicants
+        // often don't have them yet, and staff add them during review.
         private static readonly string[] ComplexSupportingDocFields =
         {
-            nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocHighwayClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocHeightClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocECCorCNC),
             nameof(BuildingPermitSupportingDoc.SupportDocDENRClearance),
-        };
-
-        private static readonly string[] SimpleSupportingDocFields =
-        {
-            nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
         };
 
         /// The project can cover part of the property, but never more than the whole lot.
@@ -796,14 +788,13 @@ namespace ePermitsApp.Services
                 RequireSerializedFiles(techDoc.TechDocSoilTestFieldDensityTest, "Soil Test / Field Density Test");
             }
 
-            var requiredSupportingDocs = isComplex || isHighlyTechnical
-                ? ComplexSupportingDocFields
-                : SimpleSupportingDocFields;
-
-            foreach (var field in requiredSupportingDocs)
+            if (isComplex || isHighlyTechnical)
             {
-                var value = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as string;
-                RequireSerializedFiles(value, field);
+                foreach (var field in ComplexSupportingDocFields)
+                {
+                    var value = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as string;
+                    RequireSerializedFiles(value, field);
+                }
             }
 
             if (buildingPermit.AppInfo?.ApplicantTypeId == 2 && FilePathHelper.Deserialize(supportingDoc.SupportDocSECRegistration).Count == 0)
