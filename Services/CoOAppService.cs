@@ -154,6 +154,11 @@ namespace ePermitsApp.Services
                 coOApp.CoOAppReqDoc.CreatedBy = currentUserId;
             }
 
+            // The first save is needed for the Id (file paths, formatted ID), but validation only runs once
+            // the files are in. Without a transaction a rejected submission left a "Submitted" application
+            // with no documents behind; disposing the transaction uncommitted rolls it back.
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             await _repository.AddAsync(coOApp);
             await _repository.SaveChangesAsync();
 
@@ -188,6 +193,7 @@ namespace ePermitsApp.Services
             // Update again with file paths
             _repository.Update(coOApp);
             await _repository.SaveChangesAsync();
+            await transaction.CommitAsync();
             await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             if (!saveAsDraft)

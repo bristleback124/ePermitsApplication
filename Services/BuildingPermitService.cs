@@ -168,7 +168,12 @@ namespace ePermitsApp.Services
                 buildingPermit.SupportingDoc.CreatedAt = now;
                 buildingPermit.SupportingDoc.CreatedBy = currentUserId;
             }
-            
+
+            // The first save is needed for the Id (file paths, formatted ID), but validation only runs once
+            // the files are in. Without a transaction a rejected submission left a "Submitted" application
+            // with no documents behind; disposing the transaction uncommitted rolls it back.
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             await _repository.AddAsync(buildingPermit);
             await _repository.SaveChangesAsync();
 
@@ -246,6 +251,7 @@ namespace ePermitsApp.Services
             _repository.Update(buildingPermit);
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
+            await transaction.CommitAsync();
             await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             // Send notification emails
