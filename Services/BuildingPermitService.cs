@@ -168,7 +168,12 @@ namespace ePermitsApp.Services
                 buildingPermit.SupportingDoc.CreatedAt = now;
                 buildingPermit.SupportingDoc.CreatedBy = currentUserId;
             }
-            
+
+            // The first save is needed for the Id (file paths, formatted ID), but validation only runs once
+            // the files are in. Without a transaction a rejected submission left a "Submitted" application
+            // with no documents behind; disposing the transaction uncommitted rolls it back.
+            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             await _repository.AddAsync(buildingPermit);
             await _repository.SaveChangesAsync();
 
@@ -246,6 +251,7 @@ namespace ePermitsApp.Services
             _repository.Update(buildingPermit);
             if (buildingPermit.AppInfo != null) _repository.Update(buildingPermit); // This might be redundant but ensuring graph is marked
             await _repository.SaveChangesAsync();
+            await transaction.CommitAsync();
             await _uploads.MarkAttachedAsync(_uploaded.Paths);
 
             // Send notification emails
@@ -669,22 +675,14 @@ namespace ePermitsApp.Services
             }
         }
 
+        // Zoning, Locational and Fire Safety Clearance are optional at submission (FE#102): applicants
+        // often don't have them yet, and staff add them during review.
         private static readonly string[] ComplexSupportingDocFields =
         {
-            nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocHighwayClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocHeightClearance),
             nameof(BuildingPermitSupportingDoc.SupportDocECCorCNC),
             nameof(BuildingPermitSupportingDoc.SupportDocDENRClearance),
-        };
-
-        private static readonly string[] SimpleSupportingDocFields =
-        {
-            nameof(BuildingPermitSupportingDoc.SupportDocZoningClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocLocationalClearance),
-            nameof(BuildingPermitSupportingDoc.SupportDocFireSafetyClearance),
         };
 
         /// The project can cover part of the property, but never more than the whole lot.
@@ -796,14 +794,13 @@ namespace ePermitsApp.Services
                 RequireSerializedFiles(techDoc.TechDocSoilTestFieldDensityTest, "Soil Test / Field Density Test");
             }
 
-            var requiredSupportingDocs = isComplex || isHighlyTechnical
-                ? ComplexSupportingDocFields
-                : SimpleSupportingDocFields;
-
-            foreach (var field in requiredSupportingDocs)
+            if (isComplex || isHighlyTechnical)
             {
-                var value = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as string;
-                RequireSerializedFiles(value, field);
+                foreach (var field in ComplexSupportingDocFields)
+                {
+                    var value = supportingDoc.GetType().GetProperty(field)?.GetValue(supportingDoc) as string;
+                    RequireSerializedFiles(value, field);
+                }
             }
 
             if (buildingPermit.AppInfo?.ApplicantTypeId == 2 && FilePathHelper.Deserialize(supportingDoc.SupportDocSECRegistration).Count == 0)
